@@ -63,7 +63,7 @@ describe('Integration Tests', () => {
 
     test('should handle job income calculation with task multipliers', () => {
       const job = new Job({ name: 'Test Job', maxXp: 100, income: 100 });
-      const skill = new Skill({ name: 'Job XP Skill', maxXp: 100, effect: 0.1 });
+      const skill = new Skill({ name: 'Job XP Skill', maxXp: 100, effect: 0.1, description: 'Job XP skill' });
       
       // Set up skill to affect job income
       skill.level = 10; // 10% bonus

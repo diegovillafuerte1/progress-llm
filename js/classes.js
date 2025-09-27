@@ -1,13 +1,25 @@
 class Task {
     constructor(baseData) {
+        // Validate input data
+        if (!baseData || typeof baseData !== 'object') {
+            throw new Error('Task constructor requires valid baseData object')
+        }
+        
+        if (!baseData.name || typeof baseData.name !== 'string') {
+            throw new Error('Task constructor requires valid name property')
+        }
+        
+        if (typeof baseData.maxXp !== 'number' || baseData.maxXp <= 0) {
+            throw new Error('Task constructor requires valid maxXp property')
+        }
+        
         this.baseData = baseData
         this.name = baseData.name
         this.level = 0
         this.maxLevel = 0 
         this.xp = 0
 
-        this.xpMultipliers = [
-        ]
+        this.xpMultipliers = []
     }
 
     getMaxXp() {
@@ -29,23 +41,53 @@ class Task {
     }
 
     increaseXp() {
-        this.xp += applySpeed(this.getXpGain())
-        if (this.xp >= this.getMaxXp()) {
-            var excess = this.xp - this.getMaxXp()
-            while (excess >= 0) {
-                this.level += 1
-                excess -= this.getMaxXp()
+        try {
+            const xpGain = this.getXpGain()
+            if (typeof xpGain !== 'number' || xpGain < 0) {
+                console.warn("Invalid XP gain calculated:", xpGain)
+                return
             }
-            this.xp = this.getMaxXp() + excess
+            
+            this.xp += applySpeed(xpGain)
+            
+            if (this.xp >= this.getMaxXp()) {
+                var excess = this.xp - this.getMaxXp()
+                while (excess >= 0) {
+                    this.level += 1
+                    excess -= this.getMaxXp()
+                }
+                this.xp = this.getMaxXp() + excess
+            }
+            
+            // Validate state after XP increase with config limits
+            if (this.level < 0 || this.level > 1000) {
+                console.warn("Invalid level after XP increase, clamping")
+                this.level = Math.max(0, Math.min(1000, this.level))
+            }
+            
+            if (this.xp < 0 || this.xp > 1000000000000) {
+                console.warn("Invalid XP after XP increase, clamping")
+                this.xp = Math.max(0, Math.min(1000000000000, this.xp))
+            }
+            
+        } catch (error) {
+            if (typeof console !== 'undefined' && console.error) {
+                console.error("Error in increaseXp:", error)
+            }
         }
     }
 }
 
 class Job extends Task {
     constructor(baseData) {
-        super(baseData)   
-        this.incomeMultipliers = [
-        ]
+        super(baseData)
+        
+        // Validate job-specific properties
+        if (typeof baseData.income !== 'number' || baseData.income < 0) {
+            throw new Error('Job constructor requires valid income property')
+        }
+        
+        this.incomeMultipliers = []
     }
 
     getLevelMultiplier() {
@@ -54,18 +96,51 @@ class Job extends Task {
     }
     
     getIncome() {
-        return applyMultipliers(this.baseData.income, this.incomeMultipliers) 
+        try {
+            if (!this.incomeMultipliers || !Array.isArray(this.incomeMultipliers)) {
+                console.warn("Invalid incomeMultipliers, using base income")
+                return this.baseData.income || 0
+            }
+            
+            return applyMultipliers(this.baseData.income, this.incomeMultipliers)
+        } catch (error) {
+            if (typeof console !== 'undefined' && console.error) {
+                console.error("Error in getIncome:", error)
+            }
+            return this.baseData.income || 0
+        }
     }
 }
 
 class Skill extends Task {
     constructor(baseData) {
         super(baseData)
+        
+        // Validate skill-specific properties
+        if (typeof baseData.effect !== 'number') {
+            throw new Error('Skill constructor requires valid effect property')
+        }
+        
+        if (!baseData.description || typeof baseData.description !== 'string') {
+            throw new Error('Skill constructor requires valid description property')
+        }
     }
 
     getEffect() {
-        var effect = 1 + this.baseData.effect * this.level
-        return effect
+        try {
+            if (typeof this.level !== 'number' || this.level < 0) {
+                console.warn("Invalid skill level:", this.level)
+                return 1
+            }
+            
+            var effect = 1 + this.baseData.effect * this.level
+            return effect
+        } catch (error) {
+            if (typeof console !== 'undefined' && console.error) {
+                console.error("Error in getEffect:", error)
+            }
+            return 1
+        }
     }
 
     getEffectDescription() {

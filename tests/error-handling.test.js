@@ -39,16 +39,16 @@ describe('Error Handling Tests', () => {
     });
 
     test('should handle baseData with missing required properties', () => {
-      // Task class doesn't actually validate required properties, so these won't throw
-      expect(() => new Task({})).not.toThrow();
-      expect(() => new Task({ name: 'Test' })).not.toThrow();
-      expect(() => new Task({ maxXp: 100 })).not.toThrow();
+      // Task class now validates required properties, so these will throw
+      expect(() => new Task({})).toThrow();
+      expect(() => new Task({ name: 'Test' })).toThrow();
+      expect(() => new Task({ maxXp: 100 })).toThrow();
     });
 
     test('should handle invalid maxXp values', () => {
-      expect(() => new Task({ name: 'Test', maxXp: -1 })).not.toThrow();
-      expect(() => new Task({ name: 'Test', maxXp: 0 })).not.toThrow();
-      expect(() => new Task({ name: 'Test', maxXp: 'invalid' })).not.toThrow();
+      expect(() => new Task({ name: 'Test', maxXp: -1 })).toThrow();
+      expect(() => new Task({ name: 'Test', maxXp: 0 })).toThrow();
+      expect(() => new Task({ name: 'Test', maxXp: 'invalid' })).toThrow();
     });
 
     test('should handle invalid effect values', () => {
@@ -75,31 +75,32 @@ describe('Error Handling Tests', () => {
 
   describe('Job Class Error Handling', () => {
     test('should handle invalid income values', () => {
-      const job = new Job({ name: 'Test', maxXp: 100, income: 'invalid' });
-      expect(() => job.getIncome()).not.toThrow();
+      expect(() => new Job({ name: 'Test', maxXp: 100, income: 'invalid' })).toThrow();
+      expect(() => new Job({ name: 'Test', maxXp: 100, income: -1 })).toThrow();
     });
 
     test('should handle null/undefined income multipliers', () => {
       const job = new Job({ name: 'Test', maxXp: 100, income: 50 });
       job.incomeMultipliers = null;
-      expect(() => job.getIncome()).toThrow();
+      expect(() => job.getIncome()).not.toThrow();
+      expect(job.getIncome()).toBe(50); // Should return base income
     });
   });
 
   describe('Skill Class Error Handling', () => {
     test('should handle invalid effect values', () => {
-      const skill = new Skill({ name: 'Test', maxXp: 100, effect: 'invalid' });
-      expect(() => skill.getEffect()).not.toThrow();
+      expect(() => new Skill({ name: 'Test', maxXp: 100, effect: 'invalid' })).toThrow();
+      expect(() => new Skill({ name: 'Test', maxXp: 100, effect: 0.01 })).toThrow(); // Missing description
     });
 
     test('should handle negative level values', () => {
-      const skill = new Skill({ name: 'Test', maxXp: 100, effect: 0.01 });
+      const skill = new Skill({ name: 'Test', maxXp: 100, effect: 0.01, description: 'Test skill' });
       skill.level = -1;
       expect(() => skill.getEffect()).not.toThrow();
     });
 
     test('should handle very large level values', () => {
-      const skill = new Skill({ name: 'Test', maxXp: 100, effect: 0.01 });
+      const skill = new Skill({ name: 'Test', maxXp: 100, effect: 0.01, description: 'Test skill' });
       skill.level = Number.MAX_SAFE_INTEGER;
       expect(() => skill.getEffect()).not.toThrow();
     });
@@ -265,21 +266,21 @@ describe('Error Handling Tests', () => {
     });
 
     test('should handle zero values', () => {
-      const task = new Task({ name: 'Test', maxXp: 0 });
+      expect(() => new Task({ name: 'Test', maxXp: 0 })).toThrow();
+      const task = new Task({ name: 'Test', maxXp: 1 });
       expect(() => task.getMaxXp()).not.toThrow();
       expect(() => task.getXpLeft()).not.toThrow();
     });
 
     test('should handle negative values', () => {
-      const task = new Task({ name: 'Test', maxXp: -100 });
-      expect(() => task.getMaxXp()).not.toThrow();
-      
+      expect(() => new Task({ name: 'Test', maxXp: -100 })).toThrow();
+      const task = new Task({ name: 'Test', maxXp: 100 });
       task.level = -1;
       expect(() => task.getMaxXp()).not.toThrow();
     });
 
     test('should handle floating point precision issues', () => {
-      const skill = new Skill({ name: 'Test', maxXp: 100, effect: 0.1 });
+      const skill = new Skill({ name: 'Test', maxXp: 100, effect: 0.1, description: 'Test skill' });
       skill.level = 0.1;
       expect(() => skill.getEffect()).not.toThrow();
       
