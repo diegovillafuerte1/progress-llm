@@ -1,3 +1,21 @@
+// Set up logging
+var logger;
+if (typeof log !== 'undefined' && log.noConflict) {
+    logger = log.noConflict();
+} else if (typeof log !== 'undefined') {
+    logger = log;
+} else {
+    // Fallback to console if loglevel is not available
+    logger = {
+        debug: console.debug,
+        info: console.info,
+        warn: console.warn,
+        error: console.error,
+        setLevel: function() {}
+    };
+}
+logger.setLevel('warn'); // Only show warnings and errors in production
+
 var gameData = {
     taskData: {},
     itemData: {},
@@ -15,6 +33,27 @@ var gameData = {
     currentSkill: null,
     currentProperty: null,
     currentMisc: null,
+
+    // Methods for external control (used by StoryAdventureManager)
+    setPaused: function(paused) {
+        this.paused = paused;
+    },
+    
+    setDays: function(days) {
+        this.days = days;
+    },
+    
+    getDays: function() {
+        return this.days;
+    },
+    
+    setCoins: function(coins) {
+        this.coins = coins;
+    },
+    
+    getCoins: function() {
+        return this.coins;
+    }
 }
 
 // Performance optimization: Cache DOM elements
@@ -90,7 +129,7 @@ function cacheDOMElements() {
         }
     }
     
-    console.log("DOM elements cached for performance optimization")
+    logger.info("DOM elements cached for performance optimization")
 }
 
 var tempData = {}
@@ -459,7 +498,7 @@ function getExpense() {
         
         return expense
     } catch (error) {
-        console.error("Error in getExpense:", error)
+        logger.error("Error in getExpense:", error)
         return 0
     }
 }
@@ -483,10 +522,50 @@ function setTab(element, selectedTab) {
         tabButton.classList.remove("w3-blue-gray")
     }
     element.classList.add("w3-blue-gray")
+    
+    // Initialize World tab content dynamically when clicked
+    if (selectedTab === 'world' && window.worldTabManager) {
+        window.worldTabManager.initialize();
+    }
 }
 
 function setPause() {
+    // Check if we're trying to unpause during an active adventure
+    if (gameData.paused && window.storyAdventureManager) {
+        try {
+            if (window.storyAdventureManager.isAdventureActive() && !window.storyAdventureManager.canUnpauseGame()) {
+                // Prevent unpause during active adventure
+                logger.info('Cannot unpause during active adventure');
+                return;
+            }
+        } catch (error) {
+            logger.warn('Error checking adventure status:', error);
+            // Continue with normal pause toggle if adventure check fails
+        }
+    }
+    
     gameData.paused = !gameData.paused
+}
+
+function getPauseButtonState() {
+    const state = {
+        canUnpause: true,
+        reason: null
+    };
+    
+    if (window.storyAdventureManager) {
+        try {
+            if (window.storyAdventureManager.isAdventureActive() && !window.storyAdventureManager.canUnpauseGame()) {
+                state.canUnpause = false;
+                state.reason = 'adventure_active';
+            }
+        } catch (error) {
+            logger.warn('Error checking adventure status for pause button:', error);
+            // Default to allowing unpause if check fails
+        }
+    }
+    
+    return state;
 }
 
 function setTimeWarping() {
@@ -520,7 +599,7 @@ function setMisc(miscName) {
 }
 
 function createData(data, baseData) {
-    for (key in baseData) {
+    for (var key in baseData) {
         var entity = baseData[key]
         createEntity(data, entity)
     }
@@ -548,6 +627,31 @@ function createHeaderRow(templates, categoryType, categoryName) {
         headerRow.getElementsByClassName("valueType")[0].textContent = categoryType == jobCategories ? "Income/day" : "Effect"
     }
 
+    // Ensure style property exists before setting properties
+    if (!headerRow.style) {
+        headerRow.style = {};
+    }
+    
+    // Ensure classList property exists before setting properties
+    if (!headerRow.classList) {
+        headerRow.classList = {
+            add: function(className) {
+                if (!this.classNames) this.classNames = [];
+                if (!this.classNames.includes(className)) {
+                    this.classNames.push(className);
+                }
+            },
+            remove: function(className) {
+                if (this.classNames) {
+                    this.classNames = this.classNames.filter(c => c !== className);
+                }
+            },
+            contains: function(className) {
+                return this.classNames ? this.classNames.includes(className) : false;
+            }
+        };
+    }
+    
     headerRow.style.backgroundColor = headerRowColors[categoryName]
     headerRow.style.color = "#ffffff"
     headerRow.classList.add(removeSpaces(categoryName))
@@ -578,7 +682,7 @@ function createAllRows(categoryType, tableId) {
 
     var table = document.getElementById(tableId)
 
-    for (categoryName in categoryType) {
+    for (var categoryName in categoryType) {
         var headerRow = createHeaderRow(templates, categoryType, categoryName)
         table.appendChild(headerRow)
         
@@ -753,7 +857,15 @@ function updateText() {
     elements.ageDisplay.textContent = daysToYears(gameData.days)
     elements.dayDisplay.textContent = getDay()
     elements.lifespanDisplay.textContent = daysToYears(getLifespan())
-    elements.pauseButton.textContent = gameData.paused ? "Play" : "Pause"
+    // Update pause button with adventure status
+    const pauseState = getPauseButtonState();
+    if (gameData.paused && !pauseState.canUnpause) {
+        elements.pauseButton.textContent = "Paused (Adventure Active)";
+        elements.pauseButton.disabled = true;
+    } else {
+        elements.pauseButton.textContent = gameData.paused ? "Play" : "Pause";
+        elements.pauseButton.disabled = false;
+    }
 
     formatCoins(gameData.coins, elements.coinDisplay)
     setSignDisplay()
@@ -1219,7 +1331,7 @@ function loadGameData() {
         var gameDataSave = localStorage.getItem("gameDataSave")
         
         if (gameDataSave === null) {
-            console.log("No saved game data found, starting fresh")
+            logger.info("No saved game data found, starting fresh")
             return
         }
 
@@ -1227,9 +1339,15 @@ function loadGameData() {
         
         // Validate that the saved data has the required structure
         if (!isValidGameData(parsedData)) {
-            console.warn("Invalid saved game data detected, starting fresh")
+            logger.warn("Invalid saved game data detected, starting fresh")
             localStorage.removeItem("gameDataSave")
             return
+        }
+
+        // Additional validation for game state consistency
+        if (parsedData.days && parsedData.days < 0) {
+            logger.warn("Invalid days value in saved data, resetting to 14 years")
+            parsedData.days = 365 * 14
         }
 
         replaceSaveDict(gameData, parsedData)
@@ -1238,11 +1356,12 @@ function loadGameData() {
         replaceSaveDict(gameData.itemData, parsedData.itemData)
 
         gameData = parsedData
-        console.log("Game data loaded successfully")
+        logger.info("Game data loaded successfully")
         
     } catch (error) {
+        logger.error("Error loading game data:", error)
         console.error("Error loading game data:", error)
-        console.log("Starting with fresh game data")
+        logger.info("Starting with fresh game data")
         localStorage.removeItem("gameDataSave")
     }
 
@@ -1382,6 +1501,11 @@ function updateUI() {
 
 function update() {
     try {
+        // Skip all game updates if paused (including during adventures)
+        if (gameData.paused) {
+            return;
+        }
+        
         increaseDays()
         autoPromote()
         autoLearn()
@@ -1422,6 +1546,46 @@ function update() {
 function resetGameData() {
     localStorage.clear()
     location.reload()
+}
+
+function resetGameState() {
+    // Reset to a clean initial state
+    gameData.coins = 0
+    gameData.days = 365 * 14
+    gameData.evil = 0
+    gameData.paused = false
+    gameData.timeWarpingEnabled = true
+    gameData.rebirthOneCount = 0
+    gameData.rebirthTwoCount = 0
+    
+    // Reset current entities
+    if (gameData.taskData["Beggar"]) {
+        gameData.currentJob = gameData.taskData["Beggar"]
+    }
+    if (gameData.taskData["Concentration"]) {
+        gameData.currentSkill = gameData.taskData["Concentration"]
+    }
+    if (gameData.itemData["Homeless"]) {
+        gameData.currentProperty = gameData.itemData["Homeless"]
+    }
+    gameData.currentMisc = []
+    
+    // Reset all task levels
+    for (taskName in gameData.taskData) {
+        var task = gameData.taskData[taskName]
+        task.level = 0
+        task.xp = 0
+    }
+    
+    // Reset requirements
+    for (key in gameData.requirements) {
+        var requirement = gameData.requirements[key]
+        if (!permanentUnlocks.includes(key)) {
+            requirement.completed = false
+        }
+    }
+    
+    logger.info("Game state reset to initial values")
 }
 
 function importGameData() {
@@ -1590,17 +1754,53 @@ for (key in gameData.requirements) {
     tempData["requirements"][key] = requirement
 }
 
-loadGameData()
+// Initialize game when DOM is ready
+function initializeGame() {
+    try {
+        loadGameData()
+        
+        // Check if game state is corrupted and reset if necessary
+        if (!gameData.currentJob || !gameData.currentSkill || !gameData.currentProperty) {
+            logger.warn('Corrupted game state detected, resetting to initial values');
+            resetGameState();
+        }
+        
+        // Check if character is in an impossible state (dead but young)
+        if (gameData.days >= getLifespan() && gameData.days < 365 * 20) {
+            logger.warn('Character in impossible death state, resetting age');
+            gameData.days = 365 * 14;
+        }
+        
+        setCustomEffects()
+        addMultipliers()
+        
+        // Initialize DOM caching for performance optimization
+        cacheDOMElements()
+        
+        setTab(jobTabButton, "jobs")
+        
+        update()
+        setInterval(update, 1000 / updateSpeed)
+        setInterval(saveGameData, 3000)
+        setInterval(setSkillWithLowestMaxXp, 1000)
+        
+        logger.info('Game initialized successfully');
+    } catch (error) {
+        logger.error('Error initializing game:', error);
+        console.error('Game initialization failed:', error);
+        // Try to reset and continue
+        try {
+            resetGameState();
+            logger.info('Game state reset, continuing...');
+        } catch (resetError) {
+            logger.error('Failed to reset game state:', resetError);
+        }
+    }
+}
 
-setCustomEffects()
-addMultipliers()
-
-// Initialize DOM caching for performance optimization
-cacheDOMElements()
-
-setTab(jobTabButton, "jobs")
-
-update()
-setInterval(update, 1000 / updateSpeed)
-setInterval(saveGameData, 3000)
-setInterval(setSkillWithLowestMaxXp, 1000)
+// Wait for DOM to be ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeGame);
+} else {
+    initializeGame();
+}

@@ -479,7 +479,7 @@ test('should simulate a complete game cycle', () => {
 
 ### Debugging Tips
 
-1. **Use console.log** in tests to debug complex logic
+1. **Use logger.debug** in tests to debug complex logic (console.log has been replaced with loglevel)
 2. **Check mock calls** with `toHaveBeenCalledWith`
 3. **Verify test data** with `expect().toEqual()`
 4. **Use Jest's verbose mode** for detailed output

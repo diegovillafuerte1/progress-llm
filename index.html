@@ -109,6 +109,7 @@
                 <div class="w3-button w3-bar-item tabButton" onClick="setTab(this, 'skills')">Skills</div>
                 <div class="w3-button w3-bar-item tabButton" id="shopTabButton" onClick="setTab(this, 'shop')">Shop</div>
                 <div class="w3-button w3-bar-item tabButton" id="rebirthTabButton" onClick="setTab(this, 'rebirth')">Amulet</div>
+                <div class="w3-button w3-bar-item tabButton" onClick="setTab(this, 'world')">World</div>
                 <div class="w3-button w3-bar-item tabButton" onClick="setTab(this, 'settings')" style="float: right">Settings</div>
             </div>
 
@@ -264,6 +265,10 @@
                     </ul>
                 </div>
 
+                <div class="tab" id="world">
+                    <!-- World exploration content will be dynamically generated -->
+                </div>
+
                 <div class="tab" id="settings">
                     <ul>
                         <li>
@@ -295,8 +300,21 @@
     </div>
 </body>
 
+<script type="text/javascript" src="node_modules/loglevel/dist/loglevel.min.js"></script>
 <script type="text/javascript" src="js/HackTimer.js"></script>
 <script type="text/javascript" src="js/classes.js"></script>
 <script type="text/javascript" src="js/main.js"></script>
+
+<!-- LLM Integration -->
+<script type="text/javascript" src="src/llm/CharacterEncoder.js"></script>
+<script type="text/javascript" src="src/llm/PromptGenerator.js"></script>
+<script type="text/javascript" src="src/llm/MistralAPI.js"></script>
+<script type="text/javascript" src="src/llm/StoryManager.js"></script>
+<script type="text/javascript" src="src/llm/StoryPromptGenerator.js"></script>
+<script type="text/javascript" src="src/llm/StoryAdventureManager.js"></script>
+<script type="text/javascript" src="src/ui/WorldExplorationUI.js"></script>
+<script type="text/javascript" src="src/ui/StoryAdventureUI.js"></script>
+<script type="text/javascript" src="src/ui/WorldTabManager.js"></script>
+<script type="text/javascript" src="js/llm-integration.js"></script>
 
 </html>

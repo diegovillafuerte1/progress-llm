@@ -1,5 +1,10 @@
 // State management compatibility layer
 import { GameManager } from '../src/core/GameManager.js';
+import log from 'loglevel';
+
+// Set up logging
+const logger = log.noConflict();
+logger.setLevel('warn'); // Only show warnings and errors in production
 
 // Global game manager instance
 let gameManager = null;
@@ -13,10 +18,10 @@ async function initializeNewStateManagement() {
         // Export game manager to global scope for debugging
         window.gameManager = gameManager;
         
-        console.log('New state management system initialized');
+        logger.info('New state management system initialized');
         return gameManager;
     } catch (error) {
-        console.error('Error initializing new state management:', error);
+        logger.error('Error initializing new state management:', error);
         throw error;
     }
 }

@@ -18,6 +18,24 @@ global.console = {
   warn: jest.fn(),
 };
 
+// Mock loglevel
+const mockLogger = {
+  setLevel: jest.fn(),
+  debug: jest.fn(),
+  info: jest.fn(),
+  warn: jest.fn(),
+  error: jest.fn(),
+};
+
+global.log = {
+  noConflict: jest.fn(() => mockLogger),
+  setLevel: jest.fn(),
+  debug: jest.fn(),
+  info: jest.fn(),
+  warn: jest.fn(),
+  error: jest.fn(),
+};
+
 // Mock DOM methods that might be called
 global.document = {
   getElementById: jest.fn(),

@@ -1,11 +1,17 @@
 // Main game loop and update logic
 import { GAME_CONFIG } from '../config/GameConfig.js';
 import { applySpeed, daysToYears } from '../utils/GameUtils.js';
+import log from 'loglevel';
 
 export class GameLoop {
-    constructor(gameState, uiUpdater) {
+    constructor(gameState, uiUpdater, adventureManager = null) {
+        // Set up logging
+        this.logger = log.noConflict(); // Avoid conflicts with console.log
+        this.logger.setLevel('warn'); // Only show warnings and errors in production
+        
         this.gameState = gameState;
         this.uiUpdater = uiUpdater;
+        this.adventureManager = adventureManager;
         this.isRunning = false;
         this.intervalId = null;
         this.saveIntervalId = null;
@@ -31,7 +37,7 @@ export class GameLoop {
         // Skill optimization
         this.skillUpdateIntervalId = setInterval(this.setSkillWithLowestMaxXp, GAME_CONFIG.SKILL_UPDATE_INTERVAL);
         
-        console.log('Game loop started');
+        this.logger.info('Game loop started');
     }
     
     stop() {
@@ -54,7 +60,7 @@ export class GameLoop {
             this.skillUpdateIntervalId = null;
         }
         
-        console.log('Game loop stopped');
+        this.logger.info('Game loop stopped');
     }
     
     update() {
@@ -67,7 +73,7 @@ export class GameLoop {
             this.applyExpenses();
             this.uiUpdater.updateUI();
         } catch (error) {
-            console.error('Error in game loop update:', error);
+            this.logger.error('Error in game loop update:', error);
         }
     }
     
@@ -184,7 +190,7 @@ export class GameLoop {
             const gameData = this.gameState.toJSON();
             localStorage.setItem('gameDataSave', JSON.stringify(gameData));
         } catch (error) {
-            console.error('Error saving game:', error);
+            this.logger.error('Error saving game:', error);
         }
     }
     
@@ -196,17 +202,60 @@ export class GameLoop {
                 this.gameState.loadFromJSON(gameData);
             }
         } catch (error) {
-            console.error('Error loading game:', error);
+            this.logger.error('Error loading game:', error);
         }
     }
     
     // Control methods
     togglePause() {
-        this.gameState.setPaused(!this.gameState.paused);
+        // Check if we're trying to unpause during an active adventure
+        if (this.gameState.paused && this.adventureManager) {
+            try {
+                if (this.adventureManager.isAdventureActive() && !this.adventureManager.canUnpauseGame()) {
+                    // Prevent unpause during active adventure
+                    this.logger.info('Cannot unpause during active adventure');
+                    return;
+                }
+            } catch (error) {
+                this.logger.warn('Error checking adventure status:', error);
+                // Continue with normal pause toggle if adventure check fails
+            }
+        }
+        
+        try {
+            this.gameState.setPaused(!this.gameState.paused);
+        } catch (error) {
+            this.logger.warn('Error toggling pause state:', error);
+            // Don't rethrow - handle gracefully
+        }
     }
     
     toggleTimeWarping() {
         this.gameState.setTimeWarpingEnabled(!this.gameState.timeWarpingEnabled);
+    }
+    
+    /**
+     * Get pause button state for UI
+     */
+    getPauseButtonState() {
+        const state = {
+            canUnpause: true,
+            reason: null
+        };
+        
+        if (this.adventureManager) {
+            try {
+                if (this.adventureManager.isAdventureActive() && !this.adventureManager.canUnpauseGame()) {
+                    state.canUnpause = false;
+                    state.reason = 'adventure_active';
+                }
+            } catch (error) {
+                this.logger.warn('Error checking adventure status for pause button:', error);
+                // Default to allowing unpause if check fails
+            }
+        }
+        
+        return state;
     }
     
     // Cleanup

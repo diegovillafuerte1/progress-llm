@@ -202,7 +202,7 @@ function applyMultipliers(value, multipliers) {
 }
 
 function applySpeed(value) {
-  finalValue = value * getGameSpeed() / 20 // updateSpeed is 20
+  var finalValue = value * getGameSpeed() / 20 // updateSpeed is 20
   return finalValue
 }
 

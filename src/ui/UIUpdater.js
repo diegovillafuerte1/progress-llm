@@ -2,9 +2,14 @@
 import { DOM_IDS, CSS_CLASSES } from '../config/GameConfig.js';
 import { format, formatCoins, daysToYears } from '../utils/GameUtils.js';
 import { itemCategories, headerRowColors } from '../data/GameData.js';
+import log from 'loglevel';
 
 export class UIUpdater {
     constructor(gameState) {
+        // Set up logging
+        this.logger = log.noConflict(); // Avoid conflicts with console.log
+        this.logger.setLevel('warn'); // Only show warnings and errors in production
+        
         this.gameState = gameState;
         this.elements = this.cacheElements();
     }
@@ -60,7 +65,7 @@ export class UIUpdater {
             this.hideEntities();
             this.updateText();
         } catch (error) {
-            console.error('Error updating UI:', error);
+            this.logger.error('Error updating UI:', error);
         }
     }
     

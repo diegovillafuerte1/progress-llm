@@ -21,9 +21,14 @@ import {
     EvilRequirement 
 } from '../entities/index.js';
 import { GAME_CONFIG } from '../config/GameConfig.js';
+import log from 'loglevel';
 
 export class GameManager {
     constructor() {
+        // Set up logging
+        this.logger = log.noConflict(); // Avoid conflicts with console.log
+        this.logger.setLevel('warn'); // Only show warnings and errors in production
+        
         this.gameState = new GameState();
         this.uiUpdater = new UIUpdater(this.gameState);
         this.gameLoop = new GameLoop(this.gameState, this.uiUpdater);
@@ -33,7 +38,7 @@ export class GameManager {
     
     async initialize() {
         try {
-            console.log('Initializing game...');
+            this.logger.info('Initializing game...');
             
             // Create all game entities
             this.createGameEntities();
@@ -54,10 +59,10 @@ export class GameManager {
             this.gameLoop.start();
             
             this.initialized = true;
-            console.log('Game initialized successfully');
+            this.logger.info('Game initialized successfully');
             
         } catch (error) {
-            console.error('Error initializing game:', error);
+            this.logger.error('Error initializing game:', error);
             throw error;
         }
     }
@@ -315,7 +320,7 @@ export class GameManager {
             this.gameLoop.saveGame();
             location.reload();
         } catch (error) {
-            console.error('Error importing game data:', error);
+            this.logger.error('Error importing game data:', error);
             alert('Invalid import data');
         }
     }
@@ -328,7 +333,7 @@ export class GameManager {
             const gameData = this.gameState.toJSON();
             importExportBox.value = window.btoa(JSON.stringify(gameData));
         } catch (error) {
-            console.error('Error exporting game data:', error);
+            this.logger.error('Error exporting game data:', error);
         }
     }
     

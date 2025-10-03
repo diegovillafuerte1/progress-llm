@@ -1,4 +1,22 @@
 (function (workerScript) {
+	// Set up logging
+	var logger;
+	if (typeof log !== 'undefined' && log.noConflict) {
+		logger = log.noConflict();
+	} else if (typeof log !== 'undefined') {
+		logger = log;
+	} else {
+		// Fallback to console if loglevel is not available
+		logger = {
+			debug: console.debug,
+			info: console.info,
+			warn: console.warn,
+			error: console.error,
+			setLevel: function() {}
+		};
+	}
+	logger.setLevel('warn'); // Only show warnings and errors in production
+	
 	if (!/MSIE 10/i.test (navigator.userAgent)) {
 		try {
 			var blob = new Blob (["\
@@ -127,7 +145,7 @@ onmessage = function (event) {\
 					try {
 						callback = new Function (callback);
 					} catch (error) {
-						console.log (logPrefix + 'Error parsing callback code string: ', error);
+						logger.warn(logPrefix + 'Error parsing callback code string: ', error);
 					}
 				}
 				if (typeof (callback) === 'function') {
@@ -135,13 +153,13 @@ onmessage = function (event) {\
 				}
 			};
 			worker.onerror = function (event) {
-				console.log (event);
+				logger.error(event);
 			};
 		} catch (error) {
-			console.log (logPrefix + 'Initialisation failed');
-			console.error (error);
+			logger.error(logPrefix + 'Initialisation failed');
+			logger.error(error);
 		}
 	} else {
-		console.log (logPrefix + 'Initialisation failed - HTML5 Web Worker is not supported');
+		logger.warn(logPrefix + 'Initialisation failed - HTML5 Web Worker is not supported');
 	}
 }) ('HackTimerWorker.js');

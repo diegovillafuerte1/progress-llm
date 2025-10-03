@@ -1,3 +1,21 @@
+// Set up logging
+var logger;
+if (typeof log !== 'undefined' && log.noConflict) {
+    logger = log.noConflict();
+} else if (typeof log !== 'undefined') {
+    logger = log;
+} else {
+    // Fallback to console if loglevel is not available
+    logger = {
+        debug: console.debug,
+        info: console.info,
+        warn: console.warn,
+        error: console.error,
+        setLevel: function() {}
+    };
+}
+logger.setLevel('warn'); // Only show warnings and errors in production
+
 class Task {
     constructor(baseData) {
         // Validate input data
@@ -44,7 +62,7 @@ class Task {
         try {
             const xpGain = this.getXpGain()
             if (typeof xpGain !== 'number' || xpGain < 0) {
-                console.warn("Invalid XP gain calculated:", xpGain)
+                logger.warn("Invalid XP gain calculated:", xpGain)
                 return
             }
             
@@ -61,18 +79,18 @@ class Task {
             
             // Validate state after XP increase with config limits
             if (this.level < 0 || this.level > 1000) {
-                console.warn("Invalid level after XP increase, clamping")
+                logger.warn("Invalid level after XP increase, clamping")
                 this.level = Math.max(0, Math.min(1000, this.level))
             }
             
             if (this.xp < 0 || this.xp > 1000000000000) {
-                console.warn("Invalid XP after XP increase, clamping")
+                logger.warn("Invalid XP after XP increase, clamping")
                 this.xp = Math.max(0, Math.min(1000000000000, this.xp))
             }
             
         } catch (error) {
-            if (typeof console !== 'undefined' && console.error) {
-                console.error("Error in increaseXp:", error)
+            if (typeof logger !== 'undefined' && logger.error) {
+                logger.error("Error in increaseXp:", error)
             }
         }
     }
@@ -98,7 +116,7 @@ class Job extends Task {
     getIncome() {
         try {
             if (!this.incomeMultipliers || !Array.isArray(this.incomeMultipliers)) {
-                console.warn("Invalid incomeMultipliers, using base income")
+                logger.warn("Invalid incomeMultipliers, using base income")
                 return this.baseData.income || 0
             }
             

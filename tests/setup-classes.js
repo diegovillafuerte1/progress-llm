@@ -5,6 +5,22 @@ const path = require('path');
 
 // Create a controlled context with all required globals
 const context = {
+  // Mock loglevel for legacy JavaScript files
+  log: {
+    noConflict: () => ({
+      setLevel: () => {},
+      debug: () => {},
+      info: () => {},
+      warn: () => {},
+      error: () => {},
+    }),
+    setLevel: () => {},
+    debug: () => {},
+    info: () => {},
+    warn: () => {},
+    error: () => {},
+  },
+
   // Mock functions that classes depend on - these will be replaced with Jest mocks in tests
   applyMultipliers: (value, multipliers) => {
     let finalMultiplier = 1;
@@ -78,11 +94,13 @@ try {
   // Add the classes to our context
   Object.assign(context, result);
   
-  console.log('Classes loaded successfully');
-  console.log('Task type:', typeof context.Task);
+  // Note: Debug logging would now use logger instead of console.log
+  // console.log('Classes loaded successfully');
+  // console.log('Task type:', typeof context.Task);
   
 } catch (error) {
-  console.error('Error loading classes:', error);
+  // Note: Error logging would now use logger.error instead of console.error
+  // console.error('Error loading classes:', error);
   throw error;
 }
 
