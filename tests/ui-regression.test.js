@@ -145,11 +145,34 @@ describe('Dynamic UI Generation Tests', () => {
             apiKey: 'test-key'
         };
         
+        const mockStoryManager = {
+            startNewStory: jest.fn(),
+            continueStory: jest.fn(),
+            getSystemMessage: jest.fn()
+        };
+        
+        const mockAdventureManager = {
+            startAdventure: jest.fn(),
+            endAdventure: jest.fn()
+        };
+        
+        const mockGameManager = {
+            processAction: jest.fn(),
+            getSystemMetrics: jest.fn()
+        };
+        
         // Test that we can create the UI without hardcoding
         // Note: This test will only pass if the classes are loaded in the test environment
         if (typeof StoryAdventureUI !== 'undefined') {
             expect(() => {
-                const storyAdventureUI = new StoryAdventureUI(mockGameState, mockMistralAPI);
+                // Test with the same constructor signature used in llm-integration.js
+                const storyAdventureUI = new StoryAdventureUI(mockGameState, mockMistralAPI, mockStoryManager, mockAdventureManager);
+                expect(storyAdventureUI).toBeDefined();
+            }).not.toThrow();
+            
+            // Test with optional gameManager parameter (new hybrid state management)
+            expect(() => {
+                const storyAdventureUI = new StoryAdventureUI(mockGameState, mockMistralAPI, mockStoryManager, mockAdventureManager, mockGameManager);
                 expect(storyAdventureUI).toBeDefined();
             }).not.toThrow();
         } else {

@@ -82,14 +82,52 @@ function initializeLLMIntegration() {
 function setupAPIKeyConfiguration() {
     const apiKeyInput = document.getElementById('mistralApiKey');
     if (apiKeyInput) {
-        apiKeyInput.addEventListener('change', (e) => {
+        // Remove any existing listeners
+        const newInput = apiKeyInput.cloneNode(true);
+        apiKeyInput.parentNode.replaceChild(newInput, apiKeyInput);
+        
+        // Add both input and change event listeners
+        newInput.addEventListener('input', (e) => {
             const apiKey = e.target.value.trim();
-            if (apiKey) {
+            if (apiKey && typeof mistralAPI !== 'undefined') {
                 mistralAPI.apiKey = apiKey;
                 localStorage.setItem('mistralApiKey', apiKey);
-                logger.info('Mistral API key saved');
+                logger.info('Mistral API key saved via input event');
             }
         });
+        
+        newInput.addEventListener('change', (e) => {
+            const apiKey = e.target.value.trim();
+            if (apiKey && typeof mistralAPI !== 'undefined') {
+                mistralAPI.apiKey = apiKey;
+                localStorage.setItem('mistralApiKey', apiKey);
+                logger.info('Mistral API key saved via change event');
+            }
+        });
+        
+        // Also set up a periodic check for the API key
+        const checkAPIKey = () => {
+            if (newInput.value.trim() && typeof mistralAPI !== 'undefined' && !mistralAPI.apiKey) {
+                const apiKey = newInput.value.trim();
+                mistralAPI.apiKey = apiKey;
+                localStorage.setItem('mistralApiKey', apiKey);
+                logger.info('Mistral API key saved via periodic check');
+            }
+        };
+        
+        // Check every 500ms for the first 10 seconds
+        let checkCount = 0;
+        const checkInterval = setInterval(() => {
+            checkAPIKey();
+            checkCount++;
+            if (checkCount >= 20) { // 10 seconds
+                clearInterval(checkInterval);
+            }
+        }, 500);
+        
+        logger.info('API key configuration set up with enhanced event handling');
+    } else {
+        logger.warn('API key input element not found');
     }
 }
 
@@ -100,6 +138,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // Wait for game to be initialized
     setTimeout(() => {
         initializeLLMIntegration();
-        setupAPIKeyConfiguration();
+        // Set up API key configuration after LLM integration is ready
+        setTimeout(() => {
+            setupAPIKeyConfiguration();
+        }, 500);
     }, 1000);
 });

@@ -4,7 +4,7 @@
  */
 
 class StoryAdventureUI {
-    constructor(gameState, mistralAPI, storyManager, adventureManager = null) {
+    constructor(gameState, mistralAPI, storyManager, adventureManager = null, gameManager = null) {
         // Set up logging
         if (typeof log !== 'undefined' && log.noConflict) {
             this.logger = log.noConflict();
@@ -33,6 +33,14 @@ class StoryAdventureUI {
         this.mistralAPI = mistralAPI;
         this.storyManager = storyManager;
         this.adventureManager = adventureManager;
+        this.gameManager = gameManager; // Store reference to game manager for hybrid state management
+        
+        // Log whether hybrid state management is available
+        if (this.gameManager) {
+            this.logger.debug('Hybrid state management enabled');
+        } else {
+            this.logger.debug('Hybrid state management not available - using fallback mode');
+        }
         this.isGenerating = false;
         this.currentStory = null;
         this.currentChoices = [];
@@ -52,6 +60,14 @@ class StoryAdventureUI {
         if (this.adventureManager && this.adventureManager.isAdventureActive()) {
             this.logger.info('Adventure already in progress');
             return;
+        }
+        
+        // Check and set API key from input field if not already set
+        const apiKeyInput = document.getElementById('mistralApiKey');
+        if (apiKeyInput && apiKeyInput.value.trim() && (!this.mistralAPI.apiKey || this.mistralAPI.apiKey !== apiKeyInput.value.trim())) {
+            this.mistralAPI.apiKey = apiKeyInput.value.trim();
+            localStorage.setItem('mistralApiKey', apiKeyInput.value.trim());
+            this.logger.info('API key set from input field');
         }
         
         this.isGenerating = true;
@@ -172,8 +188,28 @@ class StoryAdventureUI {
             
             this.logger.debug('Choice with result being sent to LLM:', choiceWithResult);
             
-            // Continue story with choice
-            const storyContext = this.storyManager.continueStory(choiceWithResult, characterState);
+            // Continue story with choice using hybrid state management
+            let storyContext;
+            if (this.gameManager && this.storyManager.processStoryChoice) {
+                // Use hybrid state management for better consistency
+                this.logger.debug('Using hybrid state management for story choice');
+                const hybridResult = await this.storyManager.processStoryChoice(choice, characterState);
+                storyContext = hybridResult.storyContext;
+                
+                // Log hybrid state management metrics
+                if (hybridResult.metrics) {
+                    this.logger.debug('Hybrid State Management Metrics:', hybridResult.metrics);
+                }
+                
+                // Log validation results
+                if (hybridResult.validation && !hybridResult.validation.overall) {
+                    this.logger.warn('Story choice validation issues:', hybridResult.validation.issues);
+                }
+            } else {
+                // Fallback to original method
+                this.logger.debug('Using original story processing (hybrid state management not available)');
+                storyContext = this.storyManager.continueStory(choiceWithResult, characterState);
+            }
             
             // Get system message with character name
             const systemMessage = this.storyManager.getSystemMessage();

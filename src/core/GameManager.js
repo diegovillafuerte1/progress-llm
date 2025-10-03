@@ -2,6 +2,7 @@
 import { GameState } from './GameState.js';
 import { GameLoop } from './GameLoop.js';
 import { UIUpdater } from '../ui/UIUpdater.js';
+import { HybridStateManager } from './HybridStateManager.js';
 import { 
     jobBaseData, 
     skillBaseData, 
@@ -32,6 +33,9 @@ export class GameManager {
         this.gameState = new GameState();
         this.uiUpdater = new UIUpdater(this.gameState);
         this.gameLoop = new GameLoop(this.gameState, this.uiUpdater);
+        
+        // Initialize hybrid state management system
+        this.hybridStateManager = new HybridStateManager(this.gameState, this);
         
         this.initialized = false;
     }
@@ -354,6 +358,94 @@ export class GameManager {
         return document.getElementsByClassName(className.replace(/ /g, ""));
     }
     
+    // Hybrid State Management Methods
+    
+    /**
+     * Process an action through the hybrid state management system
+     * @param {Object} action - The action to process
+     * @param {Object} context - Additional context
+     * @returns {Promise<Object>} Processing result
+     */
+    async processAction(action, context = {}) {
+        if (!this.hybridStateManager) {
+            throw new Error('Hybrid state manager not initialized');
+        }
+        
+        return await this.hybridStateManager.processAction(action, context);
+    }
+    
+    /**
+     * Get state for LLM consumption
+     * @returns {Object} Formatted state for LLM
+     */
+    getStateForLLM() {
+        if (!this.hybridStateManager) {
+            throw new Error('Hybrid state manager not initialized');
+        }
+        
+        return this.hybridStateManager.getStateForLLM();
+    }
+    
+    /**
+     * Get world rules for LLM
+     * @returns {Object} World rules
+     */
+    getWorldRulesForLLM() {
+        if (!this.hybridStateManager) {
+            throw new Error('Hybrid state manager not initialized');
+        }
+        
+        return this.hybridStateManager.getWorldRulesForLLM();
+    }
+    
+    /**
+     * Validate current game state
+     * @returns {Object} Validation report
+     */
+    validateCurrentState() {
+        if (!this.hybridStateManager) {
+            throw new Error('Hybrid state manager not initialized');
+        }
+        
+        return this.hybridStateManager.validateCurrentState();
+    }
+    
+    /**
+     * Get system metrics and performance data
+     * @returns {Object} System metrics
+     */
+    getSystemMetrics() {
+        if (!this.hybridStateManager) {
+            throw new Error('Hybrid state manager not initialized');
+        }
+        
+        return this.hybridStateManager.getMetrics();
+    }
+    
+    /**
+     * Get comprehensive system report
+     * @returns {Object} System report
+     */
+    getSystemReport() {
+        if (!this.hybridStateManager) {
+            throw new Error('Hybrid state manager not initialized');
+        }
+        
+        return this.hybridStateManager.getSystemReport();
+    }
+    
+    /**
+     * Get state differences since last action
+     * @returns {Object} State differences
+     */
+    getStateDifferences() {
+        if (!this.hybridStateManager) {
+            throw new Error('Hybrid state manager not initialized');
+        }
+        
+        return this.hybridStateManager.getStateDifferences();
+    }
+    
     // Cleanup
     destroy() {
         if (this.gameLoop) {
@@ -362,6 +454,10 @@ export class GameManager {
         
         if (this.uiUpdater) {
             this.uiUpdater.destroy();
+        }
+        
+        if (this.hybridStateManager) {
+            this.hybridStateManager.destroy();
         }
         
         this.gameState = null;

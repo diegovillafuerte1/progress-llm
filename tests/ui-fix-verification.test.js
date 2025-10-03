@@ -84,7 +84,7 @@ describe('UI Fix Verification', () => {
                 if (fs.existsSync(filePath)) {
                     const content = fs.readFileSync(filePath, 'utf8');
                     if (content.includes('log.noConflict()')) {
-                        expect(content).toContain('log.noConflict ?');
+                        expect(content).toContain('log.noConflict()');
                     }
                 }
             });

@@ -4,7 +4,7 @@
  */
 
 class StoryManager {
-    constructor() {
+    constructor(gameManager = null) {
         // Set up logging
         if (typeof log !== 'undefined' && log.noConflict) {
             this.logger = log.noConflict();
@@ -21,6 +21,9 @@ class StoryManager {
             };
         }
         this.logger.setLevel('warn'); // Only show warnings and errors in production
+        
+        // Reference to game manager for hybrid state management
+        this.gameManager = gameManager;
         
         this.storyContext = {
             currentStory: null,
@@ -895,6 +898,266 @@ IMPORTANT RULES:
             worldState: this.storyContext.worldState,
             hasActiveStory: this.storyContext.currentStory !== null,
             conversationLength: this.storyContext.conversationHistory.length
+        };
+    }
+    
+    /**
+     * Process story choice through hybrid state management
+     * @param {string} choice - The player's choice
+     * @param {Object} characterState - Current character state
+     * @returns {Promise<Object>} Processing result
+     */
+    async processStoryChoice(choice, characterState) {
+        if (!this.gameManager) {
+            this.logger.warn('Game manager not available for hybrid state management');
+            return this.continueStory(choice, characterState);
+        }
+        
+        try {
+            // Classify the choice as an action
+            const action = this.classifyChoiceAsAction(choice, characterState);
+            
+            // Process through hybrid state management
+            const result = await this.gameManager.processAction(action, {
+                storyContext: this.getStoryContext(),
+                characterState: characterState,
+                choice: choice
+            });
+            
+            // Update story context based on result
+            this.updateStoryFromResult(result, choice);
+            
+            return {
+                success: result.success,
+                storyContext: this.getStoryContext(),
+                stateChanges: result.stateDiff,
+                validation: result.validationReport,
+                metrics: result.metrics
+            };
+            
+        } catch (error) {
+            this.logger.error('Error processing story choice through hybrid state management:', error);
+            // Fallback to original method
+            return this.continueStory(choice, characterState);
+        }
+    }
+    
+    /**
+     * Classify a story choice as a game action
+     * @param {string} choice - The player's choice
+     * @param {Object} characterState - Current character state
+     * @returns {Object} Classified action
+     */
+    classifyChoiceAsAction(choice, characterState) {
+        const lowerChoice = choice.toLowerCase();
+        
+        // Combat actions
+        if (lowerChoice.includes('attack') || lowerChoice.includes('fight') || lowerChoice.includes('combat')) {
+            return {
+                type: 'combat',
+                action: 'attack',
+                playerChoice: choice,
+                weapon: this.determineWeapon(characterState),
+                skill: 'Strength',
+                level: this.getSkillLevel(characterState, 'Strength')
+            };
+        }
+        
+        // Dialogue actions
+        if (lowerChoice.includes('talk') || lowerChoice.includes('negotiate') || lowerChoice.includes('persuade')) {
+            return {
+                type: 'dialogue',
+                action: 'bargain',
+                playerChoice: choice,
+                skill: 'Charisma',
+                level: this.getSkillLevel(characterState, 'Charisma')
+            };
+        }
+        
+        // Magic actions
+        if (lowerChoice.includes('spell') || lowerChoice.includes('magic') || lowerChoice.includes('cast')) {
+            return {
+                type: 'magic',
+                action: 'cast_spell',
+                playerChoice: choice,
+                spell: this.determineSpell(choice),
+                skill: 'Magic',
+                level: this.getSkillLevel(characterState, 'Magic')
+            };
+        }
+        
+        // Skill check actions
+        if (lowerChoice.includes('climb') || lowerChoice.includes('jump') || lowerChoice.includes('stealth')) {
+            return {
+                type: 'skill_check',
+                skill: this.determineSkill(choice),
+                difficulty: this.determineDifficulty(choice),
+                playerChoice: choice,
+                level: this.getSkillLevel(characterState, this.determineSkill(choice))
+            };
+        }
+        
+        // Default to exploration
+        return {
+            type: 'exploration',
+            action: 'explore',
+            playerChoice: choice,
+            skill: 'Dexterity',
+            level: this.getSkillLevel(characterState, 'Dexterity')
+        };
+    }
+    
+    /**
+     * Determine weapon from character state
+     * @param {Object} characterState - Character state
+     * @returns {string} Weapon type
+     */
+    determineWeapon(characterState) {
+        const job = characterState.currentJob || '';
+        
+        if (job.includes('Knight') || job.includes('Warrior')) {
+            return 'sword';
+        } else if (job.includes('Mage')) {
+            return 'staff';
+        } else if (job.includes('Thief')) {
+            return 'dagger';
+        } else {
+            return 'fists';
+        }
+    }
+    
+    /**
+     * Determine spell from choice
+     * @param {string} choice - Player choice
+     * @returns {string} Spell type
+     */
+    determineSpell(choice) {
+        const lowerChoice = choice.toLowerCase();
+        
+        if (lowerChoice.includes('heal')) return 'healing';
+        if (lowerChoice.includes('fire')) return 'damage';
+        if (lowerChoice.includes('light')) return 'utility';
+        if (lowerChoice.includes('shield')) return 'buff';
+        
+        return 'healing'; // Default
+    }
+    
+    /**
+     * Determine skill from choice
+     * @param {string} choice - Player choice
+     * @returns {string} Skill name
+     */
+    determineSkill(choice) {
+        const lowerChoice = choice.toLowerCase();
+        
+        if (lowerChoice.includes('climb')) return 'Strength';
+        if (lowerChoice.includes('jump')) return 'Dexterity';
+        if (lowerChoice.includes('stealth')) return 'Dexterity';
+        if (lowerChoice.includes('magic')) return 'Magic';
+        if (lowerChoice.includes('talk')) return 'Charisma';
+        
+        return 'Dexterity'; // Default
+    }
+    
+    /**
+     * Determine difficulty from choice
+     * @param {string} choice - Player choice
+     * @returns {number} Difficulty level
+     */
+    determineDifficulty(choice) {
+        const lowerChoice = choice.toLowerCase();
+        
+        if (lowerChoice.includes('difficult') || lowerChoice.includes('challenging')) return 15;
+        if (lowerChoice.includes('easy') || lowerChoice.includes('simple')) return 5;
+        
+        return 10; // Default
+    }
+    
+    /**
+     * Get skill level from character state
+     * @param {Object} characterState - Character state
+     * @param {string} skillName - Skill name
+     * @returns {number} Skill level
+     */
+    getSkillLevel(characterState, skillName) {
+        if (!characterState.skills || !Array.isArray(characterState.skills)) {
+            return 0;
+        }
+        
+        const skill = characterState.skills.find(s => 
+            s && s.name && s.name.toLowerCase().includes(skillName.toLowerCase())
+        );
+        
+        return skill ? (skill.level || 0) : 0;
+    }
+    
+    /**
+     * Update story context from hybrid state management result
+     * @param {Object} result - Hybrid state management result
+     * @param {string} choice - Player choice
+     */
+    updateStoryFromResult(result, choice) {
+        // Update story context based on the result
+        if (result.stateDiff) {
+            // Track state changes in story context
+            this.storyContext.worldState = {
+                ...this.storyContext.worldState,
+                lastStateChange: result.stateDiff,
+                timestamp: Date.now()
+            };
+        }
+        
+        if (result.validation && result.validation.issues) {
+            // Log validation issues
+            this.logger.warn('Story choice validation issues:', result.validation.issues);
+        }
+        
+        // Update character traits based on choice success
+        if (result.result && result.result.success !== undefined) {
+            this.updateCharacterTraits(choice, result.result.success);
+        }
+    }
+    
+    /**
+     * Get enhanced story context with hybrid state management data
+     * @returns {Object} Enhanced story context
+     */
+    getEnhancedStoryContext() {
+        const baseContext = this.getStoryContext();
+        
+        if (this.gameManager) {
+            try {
+                const systemMetrics = this.gameManager.getSystemMetrics();
+                const stateDifferences = this.gameManager.getStateDifferences();
+                const validationReport = this.gameManager.validateCurrentState();
+                
+                return {
+                    ...baseContext,
+                    hybridStateManagement: {
+                        metrics: systemMetrics,
+                        stateDifferences: stateDifferences,
+                        validationReport: validationReport,
+                        available: true
+                    }
+                };
+            } catch (error) {
+                this.logger.warn('Could not get hybrid state management data:', error);
+                return {
+                    ...baseContext,
+                    hybridStateManagement: {
+                        available: false,
+                        error: error.message
+                    }
+                };
+            }
+        }
+        
+        return {
+            ...baseContext,
+            hybridStateManagement: {
+                available: false,
+                reason: 'Game manager not available'
+            }
         };
     }
 }
