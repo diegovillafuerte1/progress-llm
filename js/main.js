@@ -1,21 +1,3 @@
-// Set up logging
-var logger;
-if (typeof log !== 'undefined' && log.noConflict) {
-    logger = log.noConflict();
-} else if (typeof log !== 'undefined') {
-    logger = log;
-} else {
-    // Fallback to console if loglevel is not available
-    logger = {
-        debug: console.debug,
-        info: console.info,
-        warn: console.warn,
-        error: console.error,
-        setLevel: function() {}
-    };
-}
-logger.setLevel('warn'); // Only show warnings and errors in production
-
 var gameData = {
     taskData: {},
     itemData: {},
@@ -33,103 +15,6 @@ var gameData = {
     currentSkill: null,
     currentProperty: null,
     currentMisc: null,
-
-    // Methods for external control (used by StoryAdventureManager)
-    setPaused: function(paused) {
-        this.paused = paused;
-    },
-    
-    setDays: function(days) {
-        this.days = days;
-    },
-    
-    getDays: function() {
-        return this.days;
-    },
-    
-    setCoins: function(coins) {
-        this.coins = coins;
-    },
-    
-    getCoins: function() {
-        return this.coins;
-    }
-}
-
-// Performance optimization: Cache DOM elements
-var domCache = {
-    elements: {},
-    lastUpdate: 0,
-    updateThrottle: 50, // Update UI max every 50ms (20 FPS)
-    dirtyFlags: {
-        tasks: false,
-        items: false,
-        text: false,
-        requirements: false
-    }
-}
-
-// Cache frequently used DOM elements
-function cacheDOMElements() {
-    domCache.elements = {
-        // Sidebar elements
-        ageDisplay: document.getElementById("ageDisplay"),
-        dayDisplay: document.getElementById("dayDisplay"),
-        lifespanDisplay: document.getElementById("lifespanDisplay"),
-        pauseButton: document.getElementById("pauseButton"),
-        coinDisplay: document.getElementById("coinDisplay"),
-        netDisplay: document.getElementById("netDisplay"),
-        incomeDisplay: document.getElementById("incomeDisplay"),
-        expenseDisplay: document.getElementById("expenseDisplay"),
-        happinessDisplay: document.getElementById("happinessDisplay"),
-        evilDisplay: document.getElementById("evilDisplay"),
-        evilGainDisplay: document.getElementById("evilGainDisplay"),
-        timeWarpingDisplay: document.getElementById("timeWarpingDisplay"),
-        timeWarpingButton: document.getElementById("timeWarpingButton"),
-        signDisplay: document.getElementById("signDisplay"),
-        
-        // Task and item rows (will be populated dynamically)
-        taskRows: {},
-        itemRows: {},
-        requiredRows: document.getElementsByClassName("requiredRow")
-    }
-    
-    // Cache task rows
-    for (key in gameData.taskData) {
-        const task = gameData.taskData[key]
-        const row = document.getElementById("row " + task.name)
-        if (row) {
-            domCache.elements.taskRows[task.name] = {
-                element: row,
-                level: row.getElementsByClassName("level")[0],
-                xpGain: row.getElementsByClassName("xpGain")[0],
-                xpLeft: row.getElementsByClassName("xpLeft")[0],
-                maxLevel: row.getElementsByClassName("maxLevel")[0],
-                progressFill: row.getElementsByClassName("progressFill")[0],
-                valueElement: row.getElementsByClassName("value")[0],
-                income: row.getElementsByClassName("income")[0],
-                effect: row.getElementsByClassName("effect")[0],
-                skipSkill: row.getElementsByClassName("skipSkill")[0]
-            }
-        }
-    }
-    
-    // Cache item rows
-    for (key in gameData.itemData) {
-        const item = gameData.itemData[key]
-        const row = document.getElementById("row " + item.name)
-        if (row) {
-            domCache.elements.itemRows[item.name] = {
-                element: row,
-                button: row.getElementsByClassName("button")[0],
-                active: row.getElementsByClassName("active")[0],
-                effect: row.getElementsByClassName("effect")[0],
-                expense: row.getElementsByClassName("expense")[0]
-            }
-        }
-    }
-    
-    logger.info("DOM elements cached for performance optimization")
 }
 
 var tempData = {}
@@ -139,41 +24,13 @@ var skillWithLowestMaxXp = null
 const autoPromoteElement = document.getElementById("autoPromote")
 const autoLearnElement = document.getElementById("autoLearn")
 
-// Configuration constants - centralized for better maintainability
-const GAME_CONFIG = {
-    // Timing
-    UPDATE_SPEED: 20,
-    BASE_LIFESPAN: 365 * 70,
-    BASE_GAME_SPEED: 4,
-    
-    // Save intervals
-    SAVE_INTERVAL: 3000, // 3 seconds
-    SKILL_UPDATE_INTERVAL: 1000, // 1 second
-    
-    // Initial values
-    INITIAL_AGE: 365 * 14, // 14 years
-    INITIAL_COINS: 0,
-    INITIAL_EVIL: 0,
-    
-    // Permanent unlocks
-    PERMANENT_UNLOCKS: ["Scheduling", "Shop", "Automation", "Quick task display"],
-    
-    // UI
-    TAB_UPDATE_SPEED: 1000 / 20, // 20 FPS
-    
-    // Validation limits
-    MAX_LEVEL: 1000,
-    MAX_XP: 1000000000000,
-    MAX_COINS: 1000000000000,
-    MAX_AGE: 1000,
-    MAX_EVIL: 1000
-}
+const updateSpeed = 20
 
-// Backward compatibility
-const updateSpeed = GAME_CONFIG.UPDATE_SPEED
-const baseLifespan = GAME_CONFIG.BASE_LIFESPAN
-const baseGameSpeed = GAME_CONFIG.BASE_GAME_SPEED
-const permanentUnlocks = GAME_CONFIG.PERMANENT_UNLOCKS
+const baseLifespan = 365 * 70
+
+const baseGameSpeed = 4
+
+const permanentUnlocks = ["Scheduling", "Shop", "Automation", "Quick task display"]
 
 const jobBaseData = {
     "Beggar": {name: "Beggar", maxXp: 50, income: 5},
@@ -481,26 +338,12 @@ function applyExpenses() {
 }
 
 function getExpense() {
-    try {
-        var expense = 0
-        
-        if (gameData.currentProperty && typeof gameData.currentProperty.getExpense === 'function') {
-            expense += gameData.currentProperty.getExpense()
-        }
-        
-        if (gameData.currentMisc && Array.isArray(gameData.currentMisc)) {
-            for (misc of gameData.currentMisc) {
-                if (misc && typeof misc.getExpense === 'function') {
-                    expense += misc.getExpense()
-                }
-            }
-        }
-        
-        return expense
-    } catch (error) {
-        logger.error("Error in getExpense:", error)
-        return 0
+    var expense = 0
+    expense += gameData.currentProperty.getExpense()
+    for (misc of gameData.currentMisc) {
+        expense += misc.getExpense()
     }
+    return expense
 }
 
 function goBankrupt() {
@@ -522,11 +365,6 @@ function setTab(element, selectedTab) {
         tabButton.classList.remove("w3-blue-gray")
     }
     element.classList.add("w3-blue-gray")
-    
-    // Initialize World tab content dynamically when clicked
-    if (selectedTab === 'world' && window.worldTabManager) {
-        window.worldTabManager.initialize();
-    }
 }
 
 function setPause() {
@@ -535,37 +373,14 @@ function setPause() {
         try {
             if (window.storyAdventureManager.isAdventureActive() && !window.storyAdventureManager.canUnpauseGame()) {
                 // Prevent unpause during active adventure
-                logger.info('Cannot unpause during active adventure');
                 return;
             }
         } catch (error) {
-            logger.warn('Error checking adventure status:', error);
             // Continue with normal pause toggle if adventure check fails
         }
     }
     
     gameData.paused = !gameData.paused
-}
-
-function getPauseButtonState() {
-    const state = {
-        canUnpause: true,
-        reason: null
-    };
-    
-    if (window.storyAdventureManager) {
-        try {
-            if (window.storyAdventureManager.isAdventureActive() && !window.storyAdventureManager.canUnpauseGame()) {
-                state.canUnpause = false;
-                state.reason = 'adventure_active';
-            }
-        } catch (error) {
-            logger.warn('Error checking adventure status for pause button:', error);
-            // Default to allowing unpause if check fails
-        }
-    }
-    
-    return state;
 }
 
 function setTimeWarping() {
@@ -575,13 +390,11 @@ function setTimeWarping() {
 function setTask(taskName) {
     var task = gameData.taskData[taskName]
     task instanceof Job ? gameData.currentJob = task : gameData.currentSkill = task
-    domCache.dirtyFlags.tasks = true // Mark tasks as dirty
 }
 
 function setProperty(propertyName) {
     var property = gameData.itemData[propertyName]
     gameData.currentProperty = property
-    domCache.dirtyFlags.items = true // Mark items as dirty
 }
 
 function setMisc(miscName) {
@@ -595,11 +408,10 @@ function setMisc(miscName) {
     } else {
         gameData.currentMisc.push(misc)
     }
-    domCache.dirtyFlags.items = true // Mark items as dirty
 }
 
 function createData(data, baseData) {
-    for (var key in baseData) {
+    for (key in baseData) {
         var entity = baseData[key]
         createEntity(data, entity)
     }
@@ -627,31 +439,6 @@ function createHeaderRow(templates, categoryType, categoryName) {
         headerRow.getElementsByClassName("valueType")[0].textContent = categoryType == jobCategories ? "Income/day" : "Effect"
     }
 
-    // Ensure style property exists before setting properties
-    if (!headerRow.style) {
-        headerRow.style = {};
-    }
-    
-    // Ensure classList property exists before setting properties
-    if (!headerRow.classList) {
-        headerRow.classList = {
-            add: function(className) {
-                if (!this.classNames) this.classNames = [];
-                if (!this.classNames.includes(className)) {
-                    this.classNames.push(className);
-                }
-            },
-            remove: function(className) {
-                if (this.classNames) {
-                    this.classNames = this.classNames.filter(c => c !== className);
-                }
-            },
-            contains: function(className) {
-                return this.classNames ? this.classNames.includes(className) : false;
-            }
-        };
-    }
-    
     headerRow.style.backgroundColor = headerRowColors[categoryName]
     headerRow.style.color = "#ffffff"
     headerRow.classList.add(removeSpaces(categoryName))
@@ -682,7 +469,7 @@ function createAllRows(categoryType, tableId) {
 
     var table = document.getElementById(tableId)
 
-    for (var categoryName in categoryType) {
+    for (categoryName in categoryType) {
         var headerRow = createHeaderRow(templates, categoryType, categoryName)
         table.appendChild(headerRow)
         
@@ -773,68 +560,47 @@ function updateRequiredRows(data, categoryType) {
 }
 
 function updateTaskRows() {
-    // Use cached DOM elements for better performance
     for (key in gameData.taskData) {
         var task = gameData.taskData[key]
-        var cached = domCache.elements.taskRows[task.name]
-        
-        if (!cached) continue // Skip if not cached yet
-        
-        // Update text content using cached elements
-        cached.level.textContent = task.level
-        cached.xpGain.textContent = format(task.getXpGain())
-        cached.xpLeft.textContent = format(task.getXpLeft())
+        var row = document.getElementById("row " + task.name)
+        row.getElementsByClassName("level")[0].textContent = task.level
+        row.getElementsByClassName("xpGain")[0].textContent = format(task.getXpGain())
+        row.getElementsByClassName("xpLeft")[0].textContent = format(task.getXpLeft())
 
-        // Update max level display
-        cached.maxLevel.textContent = task.maxLevel
-        if (gameData.rebirthOneCount > 0) {
-            cached.maxLevel.classList.remove("hidden")
-        } else {
-            cached.maxLevel.classList.add("hidden")
-        }
+        var maxLevel = row.getElementsByClassName("maxLevel")[0]
+        maxLevel.textContent = task.maxLevel
+        gameData.rebirthOneCount > 0 ? maxLevel.classList.remove("hidden") : maxLevel.classList.add("hidden")
 
-        // Update progress bar
-        cached.progressFill.style.width = task.xp / task.getMaxXp() * 100 + "%"
-        if (task == gameData.currentJob || task == gameData.currentSkill) {
-            cached.progressFill.classList.add("current")
-        } else {
-            cached.progressFill.classList.remove("current")
-        }
+        var progressFill = row.getElementsByClassName("progressFill")[0]
+        progressFill.style.width = task.xp / task.getMaxXp() * 100 + "%"
+        task == gameData.currentJob || task == gameData.currentSkill ? progressFill.classList.add("current") : progressFill.classList.remove("current")
 
-        // Update value display
-        cached.income.style.display = task instanceof Job ? "block" : "none"
-        cached.effect.style.display = task instanceof Skill ? "block" : "none"
+        var valueElement = row.getElementsByClassName("value")[0]
+        valueElement.getElementsByClassName("income")[0].style.display = task instanceof Job
+        valueElement.getElementsByClassName("effect")[0].style.display = task instanceof Skill
 
-        // Update skip skill display
-        cached.skipSkill.style.display = task instanceof Skill && autoLearnElement.checked ? "block" : "none"
+        var skipSkillElement = row.getElementsByClassName("skipSkill")[0]
+        skipSkillElement.style.display = task instanceof Skill && autoLearnElement.checked ? "block" : "none"
 
-        // Update income/effect values
         if (task instanceof Job) {
-            formatCoins(task.getIncome(), cached.income)
+            formatCoins(task.getIncome(), valueElement.getElementsByClassName("income")[0])
         } else {
-            cached.effect.textContent = task.getEffectDescription()
+            valueElement.getElementsByClassName("effect")[0].textContent = task.getEffectDescription()
         }
     }
 }
 
 function updateItemRows() {
-    // Use cached DOM elements for better performance
     for (key in gameData.itemData) {
         var item = gameData.itemData[key]
-        var cached = domCache.elements.itemRows[item.name]
-        
-        if (!cached) continue // Skip if not cached yet
-        
-        // Update button state
-        cached.button.disabled = gameData.coins < item.getExpense()
-        
-        // Update active state
+        var row = document.getElementById("row " + item.name)
+        var button = row.getElementsByClassName("button")[0]
+        button.disabled = gameData.coins < item.getExpense()
+        var active = row.getElementsByClassName("active")[0]
         var color = itemCategories["Properties"].includes(item.name) ? headerRowColors["Properties"] : headerRowColors["Misc"]
-        cached.active.style.backgroundColor = gameData.currentMisc.includes(item) || item == gameData.currentProperty ? color : "white"
-        
-        // Update effect and expense
-        cached.effect.textContent = item.getEffectDescription()
-        formatCoins(item.getExpense(), cached.expense)
+        active.style.backgroundColor = gameData.currentMisc.includes(item) || item == gameData.currentProperty ? color : "white"
+        row.getElementsByClassName("effect")[0].textContent = item.getEffectDescription()
+        formatCoins(item.getExpense(), row.getElementsByClassName("expense")[0])
     }
 }
 
@@ -850,40 +616,29 @@ function updateHeaderRows(categories) {
 }
 
 function updateText() {
-    // Use cached DOM elements for better performance
-    var elements = domCache.elements
-    
-    // Update sidebar text using cached elements
-    elements.ageDisplay.textContent = daysToYears(gameData.days)
-    elements.dayDisplay.textContent = getDay()
-    elements.lifespanDisplay.textContent = daysToYears(getLifespan())
-    // Update pause button with adventure status
-    const pauseState = getPauseButtonState();
-    if (gameData.paused && !pauseState.canUnpause) {
-        elements.pauseButton.textContent = "Paused (Adventure Active)";
-        elements.pauseButton.disabled = true;
-    } else {
-        elements.pauseButton.textContent = gameData.paused ? "Play" : "Pause";
-        elements.pauseButton.disabled = false;
-    }
+    //Sidebar
+    document.getElementById("ageDisplay").textContent = daysToYears(gameData.days)
+    document.getElementById("dayDisplay").textContent = getDay()
+    document.getElementById("lifespanDisplay").textContent = daysToYears(getLifespan())
+    document.getElementById("pauseButton").textContent = gameData.paused ? "Play" : "Pause"
 
-    formatCoins(gameData.coins, elements.coinDisplay)
+    formatCoins(gameData.coins, document.getElementById("coinDisplay"))
     setSignDisplay()
-    formatCoins(getNet(), elements.netDisplay)
-    formatCoins(getIncome(), elements.incomeDisplay)
-    formatCoins(getExpense(), elements.expenseDisplay)
+    formatCoins(getNet(), document.getElementById("netDisplay"))
+    formatCoins(getIncome(), document.getElementById("incomeDisplay"))
+    formatCoins(getExpense(), document.getElementById("expenseDisplay"))
 
-    elements.happinessDisplay.textContent = getHappiness().toFixed(1)
-    elements.evilDisplay.textContent = gameData.evil.toFixed(1)
-    elements.evilGainDisplay.textContent = getEvilGain().toFixed(1)
+    document.getElementById("happinessDisplay").textContent = getHappiness().toFixed(1)
 
-    elements.timeWarpingDisplay.textContent = "x" + gameData.taskData["Time warping"].getEffect().toFixed(2)
-    elements.timeWarpingButton.textContent = gameData.timeWarpingEnabled ? "Disable warp" : "Enable warp"
+    document.getElementById("evilDisplay").textContent = gameData.evil.toFixed(1)
+    document.getElementById("evilGainDisplay").textContent = getEvilGain().toFixed(1)
+
+    document.getElementById("timeWarpingDisplay").textContent = "x" + gameData.taskData["Time warping"].getEffect().toFixed(2)
+    document.getElementById("timeWarpingButton").textContent = gameData.timeWarpingEnabled ? "Disable warp" : "Enable warp"
 }
 
 function setSignDisplay() {
-    // Use cached DOM element for better performance
-    var signDisplay = domCache.elements.signDisplay
+    var signDisplay = document.getElementById("signDisplay")
     if (getIncome() > getExpense()) {
         signDisplay.textContent = "+"
         signDisplay.style.color = "green"
@@ -923,52 +678,21 @@ function createItemData(baseData) {
 }
 
 function doCurrentTask(task) {
-    try {
-        if (!task) {
-            console.warn("doCurrentTask called with null/undefined task")
-            return
-        }
-        
-        if (typeof task.increaseXp !== 'function') {
-            console.warn("Task does not have increaseXp method:", task)
-            return
-        }
-        
-        task.increaseXp()
-        
-        if (task instanceof Job) {
-            increaseCoins()
-        }
-        
-    } catch (error) {
-        console.error("Error in doCurrentTask:", error, "Task:", task)
+    task.increaseXp()
+    if (task instanceof Job) {
+        increaseCoins()
     }
 }
 
 function getIncome() {
-    try {
-        var income = 0
-        if (gameData.currentJob && typeof gameData.currentJob.getIncome === 'function') {
-            income += gameData.currentJob.getIncome()
-        }
-        return income
-    } catch (error) {
-        console.error("Error in getIncome:", error)
-        return 0
-    }
+    var income = 0
+    income += gameData.currentJob.getIncome()
+    return income
 }
 
 function increaseCoins() {
     var coins = applySpeed(getIncome())
     gameData.coins += coins
-    
-    // Validate and clamp coins to prevent overflow
-    if (gameData.coins < 0) {
-        gameData.coins = 0
-    } else if (gameData.coins > GAME_CONFIG.MAX_COINS) {
-        gameData.coins = GAME_CONFIG.MAX_COINS
-        console.warn("Coins capped at maximum value:", GAME_CONFIG.MAX_COINS)
-    }
 }
 
 function daysToYears(days) {
@@ -1063,14 +787,6 @@ function getDay() {
 function increaseDays() {
     var increase = applySpeed(1)
     gameData.days += increase
-    
-    // Validate and clamp days to prevent overflow
-    if (gameData.days < 0) {
-        gameData.days = 0
-    } else if (gameData.days > GAME_CONFIG.MAX_AGE * 365) {
-        gameData.days = GAME_CONFIG.MAX_AGE * 365
-        console.warn("Age capped at maximum value:", GAME_CONFIG.MAX_AGE, "years")
-    }
 }
 
 function format(number) {
@@ -1245,47 +961,14 @@ function assignMethods() {
         gameData.requirements[key] = requirement
     }
 
-    // Safely reassign current entities with error handling
-    try {
-        if (gameData.currentJob && gameData.currentJob.name && gameData.taskData[gameData.currentJob.name]) {
-            gameData.currentJob = gameData.taskData[gameData.currentJob.name]
-        } else {
-            console.warn("Invalid currentJob, resetting to Beggar")
-            gameData.currentJob = gameData.taskData["Beggar"]
-        }
-        
-        if (gameData.currentSkill && gameData.currentSkill.name && gameData.taskData[gameData.currentSkill.name]) {
-            gameData.currentSkill = gameData.taskData[gameData.currentSkill.name]
-        } else {
-            console.warn("Invalid currentSkill, resetting to Concentration")
-            gameData.currentSkill = gameData.taskData["Concentration"]
-        }
-        
-        if (gameData.currentProperty && gameData.currentProperty.name && gameData.itemData[gameData.currentProperty.name]) {
-            gameData.currentProperty = gameData.itemData[gameData.currentProperty.name]
-        } else {
-            console.warn("Invalid currentProperty, resetting to Homeless")
-            gameData.currentProperty = gameData.itemData["Homeless"]
-        }
-        
-        var newArray = []
-        if (gameData.currentMisc && Array.isArray(gameData.currentMisc)) {
-            for (misc of gameData.currentMisc) {
-                if (misc && misc.name && gameData.itemData[misc.name]) {
-                    newArray.push(gameData.itemData[misc.name])
-                }
-            }
-        }
-        gameData.currentMisc = newArray
-        
-    } catch (error) {
-        console.error("Error in assignMethods:", error)
-        // Reset to safe defaults
-        gameData.currentJob = gameData.taskData["Beggar"]
-        gameData.currentSkill = gameData.taskData["Concentration"]
-        gameData.currentProperty = gameData.itemData["Homeless"]
-        gameData.currentMisc = []
+    gameData.currentJob = gameData.taskData[gameData.currentJob.name]
+    gameData.currentSkill = gameData.taskData[gameData.currentSkill.name]
+    gameData.currentProperty = gameData.itemData[gameData.currentProperty.name]
+    var newArray = []
+    for (misc of gameData.currentMisc) {
+        newArray.push(gameData.itemData[misc.name])
     }
+    gameData.currentMisc = newArray
 }
 
 function replaceSaveDict(dict, saveDict) {
@@ -1307,240 +990,51 @@ function replaceSaveDict(dict, saveDict) {
 }
 
 function saveGameData() {
-    try {
-        // Validate game data before saving
-        if (!isValidGameData(gameData)) {
-            console.warn("Invalid game data detected, skipping save")
-            return
-        }
-        
-        localStorage.setItem("gameDataSave", JSON.stringify(gameData))
-    } catch (error) {
-        console.error("Error saving game data:", error)
-        // Try to clear corrupted data
-        try {
-            localStorage.removeItem("gameDataSave")
-        } catch (clearError) {
-            console.error("Failed to clear corrupted save data:", clearError)
-        }
-    }
+    localStorage.setItem("gameDataSave", JSON.stringify(gameData))
 }
 
 function loadGameData() {
-    try {
-        var gameDataSave = localStorage.getItem("gameDataSave")
-        
-        if (gameDataSave === null) {
-            logger.info("No saved game data found, starting fresh")
-            return
-        }
+    var gameDataSave = JSON.parse(localStorage.getItem("gameDataSave"))
 
-        var parsedData = JSON.parse(gameDataSave)
-        
-        // Validate that the saved data has the required structure
-        if (!isValidGameData(parsedData)) {
-            logger.warn("Invalid saved game data detected, starting fresh")
-            localStorage.removeItem("gameDataSave")
-            return
-        }
+    if (gameDataSave !== null) {
+        replaceSaveDict(gameData, gameDataSave)
+        replaceSaveDict(gameData.requirements, gameDataSave.requirements)
+        replaceSaveDict(gameData.taskData, gameDataSave.taskData)
+        replaceSaveDict(gameData.itemData, gameDataSave.itemData)
 
-        // Additional validation for game state consistency
-        if (parsedData.days && parsedData.days < 0) {
-            logger.warn("Invalid days value in saved data, resetting to 14 years")
-            parsedData.days = 365 * 14
-        }
-
-        replaceSaveDict(gameData, parsedData)
-        replaceSaveDict(gameData.requirements, parsedData.requirements)
-        replaceSaveDict(gameData.taskData, parsedData.taskData)
-        replaceSaveDict(gameData.itemData, parsedData.itemData)
-
-        gameData = parsedData
-        logger.info("Game data loaded successfully")
-        
-    } catch (error) {
-        logger.error("Error loading game data:", error)
-        console.error("Error loading game data:", error)
-        logger.info("Starting with fresh game data")
-        localStorage.removeItem("gameDataSave")
+        gameData = gameDataSave
     }
 
     assignMethods()
 }
 
-function isValidGameData(data) {
-    // Check if data has required properties
-    if (!data || typeof data !== 'object') {
-        return false
-    }
-    
-    // Check required top-level properties
-    const requiredProps = ['taskData', 'itemData', 'requirements', 'coins', 'days', 'evil']
-    for (const prop of requiredProps) {
-        if (!(prop in data)) {
-            console.warn(`Missing required property: ${prop}`)
-            return false
-        }
-    }
-    
-    // Check that currentJob and currentSkill are properly set
-    if (!data.currentJob || !data.currentSkill) {
-        console.warn("Missing currentJob or currentSkill")
-        return false
-    }
-    
-    // Check that required tasks exist (handle both string names and object references)
-    const currentJobName = typeof data.currentJob === 'string' ? data.currentJob : data.currentJob.name
-    const currentSkillName = typeof data.currentSkill === 'string' ? data.currentSkill : data.currentSkill.name
-    
-    if (!data.taskData[currentJobName] || !data.taskData[currentSkillName]) {
-        console.warn("Current job or skill not found in taskData")
-        return false
-    }
-    
-    // Check that required items exist (handle both string names and object references)
-    if (data.currentProperty) {
-        const currentPropertyName = typeof data.currentProperty === 'string' ? data.currentProperty : data.currentProperty.name
-        if (!data.itemData[currentPropertyName]) {
-            console.warn("Current property not found in itemData")
-            return false
-        }
-    }
-    
-    return true
-}
-
-function validateGameDataRanges(data) {
-    try {
-        // Validate basic numeric ranges
-        if (typeof data.coins !== 'number' || data.coins < 0 || data.coins > GAME_CONFIG.MAX_COINS) {
-            console.warn("Invalid coins value:", data.coins)
-            return false
-        }
-        
-        if (typeof data.days !== 'number' || data.days < 0 || data.days > GAME_CONFIG.MAX_AGE * 365) {
-            console.warn("Invalid days value:", data.days)
-            return false
-        }
-        
-        if (typeof data.evil !== 'number' || data.evil < 0 || data.evil > GAME_CONFIG.MAX_EVIL) {
-            console.warn("Invalid evil value:", data.evil)
-            return false
-        }
-        
-        // Validate task data
-        if (data.taskData) {
-            for (const taskName in data.taskData) {
-                const task = data.taskData[taskName]
-                if (typeof task.level !== 'number' || task.level < 0 || task.level > GAME_CONFIG.MAX_LEVEL) {
-                    console.warn("Invalid task level:", taskName, task.level)
-                    return false
-                }
-                if (typeof task.xp !== 'number' || task.xp < 0 || task.xp > GAME_CONFIG.MAX_XP) {
-                    console.warn("Invalid task XP:", taskName, task.xp)
-                    return false
-                }
-            }
-        }
-        
-        // Validate item data
-        if (data.itemData) {
-            for (const itemName in data.itemData) {
-                const item = data.itemData[itemName]
-                if (typeof item.level !== 'number' || item.level < 0 || item.level > GAME_CONFIG.MAX_LEVEL) {
-                    console.warn("Invalid item level:", itemName, item.level)
-                    return false
-                }
-            }
-        }
-        
-        return true
-        
-    } catch (error) {
-        console.error("Error validating game data ranges:", error)
-        return false
-    }
-}
-
 function updateUI() {
-    // Performance optimization: Throttle UI updates
-    var now = Date.now()
-    if (now - domCache.lastUpdate < domCache.updateThrottle) {
-        return // Skip update if too soon
-    }
-    domCache.lastUpdate = now
-    
-    // Only update what's necessary based on dirty flags
-    if (domCache.dirtyFlags.tasks) {
-        updateTaskRows()
-        domCache.dirtyFlags.tasks = false
-    }
-    
-    if (domCache.dirtyFlags.items) {
-        updateItemRows()
-        domCache.dirtyFlags.items = false
-    }
-    
-    if (domCache.dirtyFlags.requirements) {
-        updateRequiredRows(gameData.taskData, jobCategories)
-        updateRequiredRows(gameData.taskData, skillCategories)
-        updateRequiredRows(gameData.itemData, itemCategories)
-        updateHeaderRows(jobCategories)
-        updateHeaderRows(skillCategories)
-        domCache.dirtyFlags.requirements = false
-    }
-    
-    if (domCache.dirtyFlags.text) {
-        updateQuickTaskDisplay("job")
-        updateQuickTaskDisplay("skill")
-        hideEntities()
-        updateText()
-        domCache.dirtyFlags.text = false
-    }
+    updateTaskRows()
+    updateItemRows()
+    updateRequiredRows(gameData.taskData, jobCategories)
+    updateRequiredRows(gameData.taskData, skillCategories)
+    updateRequiredRows(gameData.itemData, itemCategories)
+    updateHeaderRows(jobCategories)
+    updateHeaderRows(skillCategories)
+    updateQuickTaskDisplay("job")
+    updateQuickTaskDisplay("skill")
+    hideEntities()
+    updateText()  
 }
 
 function update() {
-    try {
-        // Skip all game updates if paused (including during adventures)
-        if (gameData.paused) {
-            return;
-        }
-        
-        increaseDays()
-        autoPromote()
-        autoLearn()
-        
-        // Safely execute current tasks with error handling
-        if (gameData.currentJob && typeof gameData.currentJob.increaseXp === 'function') {
-            doCurrentTask(gameData.currentJob)
-            domCache.dirtyFlags.tasks = true // Mark tasks as dirty
-        } else {
-            console.warn("Invalid currentJob, skipping task execution")
-        }
-        
-        if (gameData.currentSkill && typeof gameData.currentSkill.increaseXp === 'function') {
-            doCurrentTask(gameData.currentSkill)
-            domCache.dirtyFlags.tasks = true // Mark tasks as dirty
-        } else {
-            console.warn("Invalid currentSkill, skipping task execution")
-        }
-        
-        applyExpenses()
-        domCache.dirtyFlags.text = true // Mark text as dirty (coins, income, etc.)
-        updateUI()
-        
-    } catch (error) {
-        console.error("Error in game update loop:", error)
-        // Try to recover by resetting to safe state
-        try {
-            gameData.currentJob = gameData.taskData["Beggar"]
-            gameData.currentSkill = gameData.taskData["Concentration"]
-            gameData.currentProperty = gameData.itemData["Homeless"]
-            gameData.currentMisc = []
-        } catch (recoveryError) {
-            console.error("Failed to recover from update error:", recoveryError)
-        }
+    // Skip all game updates if paused (including during adventures)
+    if (gameData.paused) {
+        return;
     }
+    
+    increaseDays()
+    autoPromote()
+    autoLearn()
+    doCurrentTask(gameData.currentJob)
+    doCurrentTask(gameData.currentSkill)
+    applyExpenses()
+    updateUI()
 }
 
 function resetGameData() {
@@ -1548,98 +1042,12 @@ function resetGameData() {
     location.reload()
 }
 
-function resetGameState() {
-    // Reset to a clean initial state
-    gameData.coins = 0
-    gameData.days = 365 * 14
-    gameData.evil = 0
-    gameData.paused = false
-    gameData.timeWarpingEnabled = true
-    gameData.rebirthOneCount = 0
-    gameData.rebirthTwoCount = 0
-    
-    // Reset current entities
-    if (gameData.taskData["Beggar"]) {
-        gameData.currentJob = gameData.taskData["Beggar"]
-    }
-    if (gameData.taskData["Concentration"]) {
-        gameData.currentSkill = gameData.taskData["Concentration"]
-    }
-    if (gameData.itemData["Homeless"]) {
-        gameData.currentProperty = gameData.itemData["Homeless"]
-    }
-    gameData.currentMisc = []
-    
-    // Reset all task levels
-    for (taskName in gameData.taskData) {
-        var task = gameData.taskData[taskName]
-        task.level = 0
-        task.xp = 0
-    }
-    
-    // Reset requirements
-    for (key in gameData.requirements) {
-        var requirement = gameData.requirements[key]
-        if (!permanentUnlocks.includes(key)) {
-            requirement.completed = false
-        }
-    }
-    
-    logger.info("Game state reset to initial values")
-}
-
 function importGameData() {
-    try {
-        var importExportBox = document.getElementById("importExportBox")
-        
-        if (!importExportBox || !importExportBox.value) {
-            alert("No data to import. Please paste your save data first.")
-            return
-        }
-        
-        // Validate input format
-        var decodedData
-        try {
-            decodedData = window.atob(importExportBox.value)
-        } catch (error) {
-            alert("Invalid save data format. Please check your data and try again.")
-            return
-        }
-        
-        // Parse and validate JSON
-        var data
-        try {
-            data = JSON.parse(decodedData)
-        } catch (error) {
-            alert("Invalid JSON data. Please check your save data and try again.")
-            return
-        }
-        
-        // Validate game data structure
-        if (!isValidGameData(data)) {
-            alert("Invalid game data structure. This save data may be corrupted or from a different version.")
-            return
-        }
-        
-        // Validate data ranges
-        if (!validateGameDataRanges(data)) {
-            alert("Game data contains invalid values. This save data may be corrupted.")
-            return
-        }
-        
-        // Confirm import
-        if (!confirm("This will replace your current game data. Are you sure you want to continue?")) {
-            return
-        }
-        
-        gameData = data
-        saveGameData()
-        location.reload()
-        
-    } catch (error) {
-        console.error("Error importing game data:", error)
-        alert("An error occurred while importing the game data. Please try again.")
-    }
+    var importExportBox = document.getElementById("importExportBox")
+    var data = JSON.parse(window.atob(importExportBox.value))
+    gameData = data
+    saveGameData()
+    location.reload()
 }
 
 function exportGameData() {
@@ -1754,53 +1162,19 @@ for (key in gameData.requirements) {
     tempData["requirements"][key] = requirement
 }
 
-// Initialize game when DOM is ready
-function initializeGame() {
-    try {
-        loadGameData()
-        
-        // Check if game state is corrupted and reset if necessary
-        if (!gameData.currentJob || !gameData.currentSkill || !gameData.currentProperty) {
-            logger.warn('Corrupted game state detected, resetting to initial values');
-            resetGameState();
-        }
-        
-        // Check if character is in an impossible state (dead but young)
-        if (gameData.days >= getLifespan() && gameData.days < 365 * 20) {
-            logger.warn('Character in impossible death state, resetting age');
-            gameData.days = 365 * 14;
-        }
-        
-        setCustomEffects()
-        addMultipliers()
-        
-        // Initialize DOM caching for performance optimization
-        cacheDOMElements()
-        
-        setTab(jobTabButton, "jobs")
-        
-        update()
-        setInterval(update, 1000 / updateSpeed)
-        setInterval(saveGameData, 3000)
-        setInterval(setSkillWithLowestMaxXp, 1000)
-        
-        logger.info('Game initialized successfully');
-    } catch (error) {
-        logger.error('Error initializing game:', error);
-        console.error('Game initialization failed:', error);
-        // Try to reset and continue
-        try {
-            resetGameState();
-            logger.info('Game state reset, continuing...');
-        } catch (resetError) {
-            logger.error('Failed to reset game state:', resetError);
-        }
-    }
+loadGameData()
+
+setCustomEffects()
+addMultipliers()
+
+setTab(jobTabButton, "jobs")
+
+// Initialize LLM integration
+if (typeof window.initializeCareerBasedAdventures === 'function') {
+    window.initializeCareerBasedAdventures();
 }
 
-// Wait for DOM to be ready
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initializeGame);
-} else {
-    initializeGame();
-}
+update()
+setInterval(update, 1000 / updateSpeed)
+setInterval(saveGameData, 3000)
+setInterval(setSkillWithLowestMaxXp, 1000)
