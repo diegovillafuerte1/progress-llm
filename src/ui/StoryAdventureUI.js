@@ -75,6 +75,11 @@ class StoryAdventureUI {
         this.showLoadingState('Starting new adventure...');
         
         try {
+            // Validate API key before proceeding
+            if (!this.mistralAPI.apiKey) {
+                throw new Error('Mistral API key not configured. Please enter your API key in the input field above.');
+            }
+            
             // Start adventure manager if available
             this.logger.debug('StoryAdventureUI.startNewStory() called');
             this.logger.debug('adventureManager exists:', !!this.adventureManager);
@@ -137,7 +142,14 @@ class StoryAdventureUI {
             }
             
         } catch (error) {
+            this.logger.error('Adventure start failed:', error);
             this.showError(`Failed to start adventure: ${error.message}`);
+            
+            // Reset adventure manager state if it was started
+            if (this.adventureManager && this.adventureManager.isAdventureActive()) {
+                this.logger.debug('Resetting adventure manager state due to error');
+                this.adventureManager.endAdventure();
+            }
         } finally {
             this.isGenerating = false;
             this.logger.debug('🟢 startNewStory - isGenerating set to FALSE - Instance ID:', this.instanceId);

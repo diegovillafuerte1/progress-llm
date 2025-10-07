@@ -347,6 +347,275 @@ The paper demonstrates that even GPT-4 achieves only 35-60% accuracy when predic
 - Automated rule generation from game code
 
 
+## Phase 4: Persistent Career-Based Story Trees 🌳
+
+### Goal
+Create a persistent, branching story system where player career progression determines available adventure options, and choices create permanent story paths that persist across multiple lives.
+
+### Core Concept
+The amulet system becomes a persistent story engine where:
+- **Career Categories** determine available adventure options (Common Work, Military, Arcane Association)
+- **Career Weight** (based on highest job levels ever achieved) determines option quality and success probabilities
+- **Story Trees** persist across deaths/rebirths, creating personalized narrative paths
+- **Choice Locking** means once you choose a path, it becomes permanently available for future lives
+
+### Feature Details
+
+#### Career-Based Adventure Options
+- **Career Weight Calculation**: Sum of highest job levels in each category
+  - Common Work: Beggar(1) → Farmer(10) → Fisherman(100) → Miner(1000) → Blacksmith(10000) → Merchant(100000)
+  - Military: Squire(1) → Footman(10) → Veteran Footman(100) → Knight(1000) → Veteran Knight(10000) → Elite Knight(100000) → Holy Knight(1000000) → Legendary Knight(10000000)
+  - Arcane Association: Student(1) → Apprentice Mage(10) → Mage(100) → Wizard(1000) → Master Wizard(10000) → Chairman(100000)
+- **Option Availability**: Higher career weight = better options
+- **Success Probabilities**: Based on max ever skill levels (never regress)
+
+#### Persistent Story Trees
+- **Tree Structure**: Each amulet prompt (age 25, 45, 65, 200) has independent story trees
+- **Career-Specific Branches**: Separate trees for each career category
+- **Choice Locking**: Once a choice is made, that path becomes permanently available
+- **Infinite Depth**: Trees can grow infinitely deep, with success probability decreasing with depth
+- **Cross-Life Persistence**: Story trees survive death/rebirth cycles
+
+#### Story Tree Mechanics
+Example tree of someone on life 4, who just finished choosing the Arcane option with no levels/weight in it
+With Max Job Levels 
+Beggar 10, Farmer 2
+Squire 20, Footman 4
+Student 0
+would evaluate to career weights of:
+CW total level 30
+M total level 60
+A total level 0
+CWA stands for Common Work Option A
+MB stands for Military Option B
+MAF1 stands for Military Option A Failure 1
+No subsequent leaves implies the adventure was ended 
+
+```
+Age 25 Amulet Prompt
+└─ Tree 
+  ├─ Option CWA: "Beg from merchants" (chosen in life #2)
+  │  ├─ Success Path: "Merchants agree to give money"
+  │  │  └─ Option CWA1: "Spend money on education" (chosen in life #2)
+  │  └─ Failure Path: "Merchants refuse"
+  |     └─ Option MAF1: "Ask if they need a squire to help them" (chosen in life #1)
+  ├─ Option MB: "Look for a knight to serve" (chosen in life #3)
+  └─ Option AC: "Look for some books" (chosen in life #4)
+```
+
+#### Implementation Architecture
+```
+PersistentStorySystem
+├─ CareerAnalyzer
+│  ├─ Calculate career weights from job history
+│  ├─ Determine dominant career category
+│  └─ Get available options based on weight
+├─ StoryTreeManager
+│  ├─ Load/save story trees from localStorage
+│  ├─ Track choice history across lives
+│  ├─ Generate new story branches when needed
+│  └─ Lock in choices permanently
+├─ CareerBasedPromptGenerator
+│  ├─ Generate career-specific adventure prompts
+│  ├─ Calculate success probabilities
+│  └─ Create option descriptions
+└─ StoryPersistenceManager
+    ├─ Save story state across sessions
+    ├─ Handle cross-life persistence
+    └─ Manage story tree storage
+```
+
+### Implementation Plan
+
+#### Phase 4A: Minimal Viable Implementation (2-3 weeks)
+**Goal**: Basic career-based filtering with simple persistence
+
+**Week 1: Career Analysis System**
+- Create `CareerAnalyzer.js` - Calculate career weights and dominant category
+- Create `CareerWeights.js` - Define job weight mappings
+- Integrate with existing `StoryAdventureManager`
+
+**Week 2: Basic Story Trees**
+- Create `StoryTreeManager.js` - Handle localStorage persistence
+- Create `StoryTreeData.js` - Define tree data structures
+- Implement choice locking mechanism
+
+**Week 3: Career-Based Prompts** ✅ COMPLETED
+- Create `CareerBasedPromptGenerator.js` - Generate career-specific options ✅
+- Modify existing prompt generation to use career data ✅
+- Test integration with existing adventure system ✅
+
+**Files to Create:**
+- `src/llm/CareerAnalyzer.js`
+- `src/llm/CareerWeights.js`
+- `src/llm/StoryTreeManager.js`
+- `src/llm/StoryTreeData.js`
+- `src/llm/CareerBasedPromptGenerator.js`
+- `tests/career-analyzer.test.js`
+- `tests/story-tree-manager.test.js`
+
+#### Phase 4B: Enhanced Story System (3-4 weeks)
+**Goal**: Advanced tree mechanics with depth-based probabilities
+
+**Week 4-5: Advanced Tree Features**
+- Implement infinite depth tree growth
+- Add success probability calculation based on depth
+- Create story branch generation system
+- Add tree visualization for debugging
+
+**Week 6-7: Cross-Life Persistence**
+- Enhance persistence to survive rebirths
+- Add story tree merging for multiple lives
+- Implement story tree pruning/optimization
+- Add story tree statistics and analytics
+
+**Files to Create:**
+- `src/llm/StoryTreeBuilder.js`
+- `src/llm/ProbabilityCalculator.js`
+- `src/llm/StoryPersistenceManager.js`
+- `src/llm/StoryTreeVisualizer.js`
+- `tests/story-tree-builder.test.js`
+
+#### Phase 4C: Advanced Features (2-3 weeks)
+**Goal**: Polish and advanced story mechanics
+
+**Week 8-9: Story Enhancement**
+- Add story tree branching visualization
+- Implement story tree sharing between players
+- Add story tree export/import functionality
+- Create story tree analytics dashboard
+
+**Week 10: Integration & Polish**
+- Full integration testing
+- Performance optimization
+- UI/UX improvements
+- Documentation and user guides
+
+### Success Metrics
+
+#### Phase 4A (Minimal Viable)
+- ✅ Career weights correctly calculated from job history
+- ✅ Career-specific options appear in adventures
+- ✅ Basic story trees persist across sessions
+- ✅ Choice locking works for simple scenarios
+
+#### Phase 4B (Enhanced)
+- ✅ Story trees grow infinitely deep
+- ✅ Success probabilities decrease with depth
+- ✅ Story trees persist across multiple lives
+- ✅ New branches generate when needed
+
+#### Phase 4C (Advanced)
+- ✅ Players can visualize their story trees
+- ✅ Story trees enhance replayability
+- ✅ Cross-life story continuity works seamlessly
+- ✅ Positive player feedback on story depth
+
+### Technical Considerations
+
+#### Data Storage
+- **localStorage**: Primary storage for story trees
+- **Data Structure**: JSON-based tree representation
+- **Size Limits**: Monitor localStorage usage (5-10MB limit)
+- **Backup**: Export/import functionality for story trees
+
+#### Performance
+- **Tree Traversal**: Efficient tree search algorithms
+- **Memory Usage**: Lazy loading for large story trees
+- **Caching**: Cache frequently accessed story branches
+- **Cleanup**: Prune unused story branches
+
+#### Integration Points
+- **Existing Adventure System**: Extend `StoryAdventureManager`
+- **Job System**: Integrate with existing job categories
+- **LLM Integration**: Use existing Mistral API for story generation
+- **UI System**: Extend existing adventure UI
+
+### Future Enhancements
+
+#### Story Tree Analytics
+- Track most popular story paths
+- Analyze player choice patterns
+- Generate story tree statistics
+- Create story tree recommendations
+
+#### Advanced Story Mechanics
+- **Story Tree Merging**: Combine story trees from different lives
+- **Story Tree Pruning**: Remove unused branches
+- **Story Tree Sharing**: Share interesting story paths with other players
+- **Story Tree Challenges**: Special rewards for completing story trees
+
+#### Integration with Other Systems
+- **Achievement System**: Unlock achievements for story tree completion
+- **Item System**: Special items for story tree milestones
+- **Skill System**: Bonus XP for story tree exploration
+- **Rebirth System**: Story tree bonuses for new lives
+
+## Next Steps Beyond Minimal Viable Implementation
+
+### Phase 4B: Enhanced Story System (Weeks 4-7)
+**Goal**: Transform basic story trees into a sophisticated narrative engine
+
+#### Advanced Tree Mechanics
+- **Infinite Depth Growth**: Trees grow organically as players explore
+- **Success Probability Scaling**: Deeper choices become riskier but more rewarding
+- **Dynamic Branch Generation**: New story paths emerge based on player behavior
+- **Cross-Tree Connections**: Subtle connections between different amulet prompts
+
+#### Cross-Life Story Continuity
+- **Story Tree Merging**: Combine story trees from multiple lives
+- **Legacy Choices**: Previous life choices influence new life options
+- **Story Tree Inheritance**: Pass down story progress to new lives
+- **Narrative Coherence**: Maintain story consistency across rebirths
+
+#### Advanced Features
+- **Story Tree Visualization**: Visual representation of player's story paths
+- **Story Analytics**: Track player choice patterns and preferences
+- **Story Tree Sharing**: Share interesting story paths with other players
+- **Story Tree Challenges**: Special rewards for completing story trees
+
+### Phase 4C: Advanced Story Mechanics (Weeks 8-10)
+**Goal**: Create a comprehensive story ecosystem that enhances the entire game
+
+#### Story Tree Intelligence
+- **AI-Generated Branches**: Use LLM to create new story branches dynamically
+- **Player Behavior Analysis**: Adapt story options based on player preferences
+- **Story Tree Optimization**: Automatically prune unused branches
+- **Narrative Coherence Engine**: Ensure story consistency across all choices
+
+#### Integration with Core Systems
+- **Achievement Integration**: Unlock achievements for story tree milestones
+- **Item System Integration**: Special items for story tree completion
+- **Skill System Integration**: Bonus XP for story tree exploration
+- **Rebirth System Integration**: Story tree bonuses for new lives
+
+#### Advanced Persistence
+- **Cloud Storage**: Sync story trees across devices
+- **Story Tree Backup**: Export/import story trees
+- **Story Tree Versioning**: Track story tree evolution over time
+- **Story Tree Analytics**: Detailed statistics on player story choices
+
+### Phase 5: Story Ecosystem (Future Vision)
+**Goal**: Create a living, breathing story system that evolves with the player
+
+#### Community Features
+- **Story Tree Sharing**: Share story trees with other players
+- **Story Tree Challenges**: Community challenges for story completion
+- **Story Tree Leaderboards**: Rank players by story tree depth/completion
+- **Story Tree Collaboration**: Multiple players contribute to story trees
+
+#### Advanced AI Integration
+- **Dynamic Story Generation**: AI creates new story branches based on player behavior
+- **Narrative Adaptation**: Story adjusts to player's play style
+- **Story Tree Evolution**: Stories evolve based on community choices
+- **Predictive Storytelling**: AI predicts and prepares story branches
+
+#### Meta-Game Features
+- **Story Tree Mastery**: Special rewards for mastering story trees
+- **Story Tree Legacy**: Pass story trees to other players
+- **Story Tree Competitions**: Competitive story tree challenges
+- **Story Tree Economy**: Trade story tree progress with other players
+
 ### Future Story ideas
 - base "start your adventure" on the prompt from the amulet.
 - allow adventures only upon new amulet prompts
@@ -355,3 +624,4 @@ The paper demonstrates that even GPT-4 achieves only 35-60% accuracy when predic
 - if you chose an option one time, that is locked as the "option" for that career category forever, creating a tree of locked options based on what you've chosen before.
 - for example in adventure at level 25 amulet prompt, you might chose option 1 based on your military career. the next scenario you are presented with will be the same every time (given you choose option 1 and roll the same result)
 - if you in a subsequent level 25 amulet adventure (in your next life) chose the option 2 then that scenario will also be stored. this will be true for every chosen option, allowing you to create a specific story that you relive.
+- i think this should look like a data structure representing each "amulet prompt" and it should have basically a tree inside of it with stored decision paths. if a player then finds that no leaves exist after they make a choice then a new one will be created for the subsequent playthrough

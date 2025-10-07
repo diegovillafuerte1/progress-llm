@@ -151,3 +151,19 @@ button:focus {
 .small-margin  {
     margin-bottom: 2px;
 }
+
+/* Fix checkbox and column alignment */
+.maxLevel {
+    text-align: center;
+    width: 80px;
+}
+
+.skipSkill {
+    text-align: center;
+    width: 60px;
+}
+
+.checkbox {
+    margin: 0;
+    transform: scale(1.2);
+}

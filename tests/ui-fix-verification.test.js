@@ -22,8 +22,6 @@ describe('UI Fix Verification', () => {
         test('should not contain hardcoded Story Adventure elements', () => {
             // These elements should NOT be in the HTML
             const forbiddenElements = [
-                'Story Adventure',
-                'mistralApiKey',
                 'adventure-intro',
                 'start-adventure-btn',
                 'Dynamic Storytelling',
@@ -32,19 +30,30 @@ describe('UI Fix Verification', () => {
                 'Persistent World'
             ];
             
+            // These elements are now correctly in the amulet tab
+            const allowedElements = [
+                'Story Adventure',
+                'mistralApiKey'
+            ];
+            
             forbiddenElements.forEach(element => {
                 expect(htmlContent).not.toContain(element);
             });
+            
+            // Verify that the allowed elements are present
+            allowedElements.forEach(element => {
+                expect(htmlContent).toContain(element);
+            });
         });
 
-        test('should have proper World tab structure', () => {
-            // World tab should exist but be empty except for a comment
+        test('should not have World tab (moved to amulet tab)', () => {
+            // World tab should not exist anymore - content moved to amulet tab
             const worldTabMatch = htmlContent.match(/<div class="tab" id="world">(.*?)<\/div>/s);
-            expect(worldTabMatch).toBeTruthy();
+            expect(worldTabMatch).toBeFalsy();
             
-            const worldTabContent = worldTabMatch[1].trim();
-            expect(worldTabContent).toContain('dynamically generated');
-            expect(worldTabContent).not.toContain('Story Adventure');
+            // But amulet tab should contain the API key input
+            expect(htmlContent).toContain('id="rebirth"');
+            expect(htmlContent).toContain('mistralApiKey');
         });
 
         test('should not load story-adventure.css by default', () => {
@@ -118,9 +127,12 @@ describe('UI Fix Verification', () => {
     });
 
     describe('Regression Prevention', () => {
-        test('should not have any hardcoded UI elements that should be dynamic', () => {
+        test('should have API key input in amulet tab (moved from dynamic creation)', () => {
+            // The API key input is now in the amulet tab, which is correct
+            expect(htmlContent).toMatch(/<input[^>]*id="mistralApiKey"/);
+            
+            // But other hardcoded elements should still not be present
             const hardcodedPatterns = [
-                /<input[^>]*id="mistralApiKey"/,
                 /<button[^>]*onclick="storyAdventureUI/,
                 /<div[^>]*class="adventure-intro"/,
                 /<div[^>]*class="adventure-features"/

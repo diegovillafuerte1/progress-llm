@@ -46,7 +46,8 @@ class Task {
     }
 
     getXpLeft() {
-        return Math.round(this.getMaxXp() - this.xp)
+        const xpLeft = Math.round(this.getMaxXp() - this.xp)
+        return Math.max(0, xpLeft) // Ensure non-negative values
     }
 
     getMaxLevelMultiplier() {
