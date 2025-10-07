@@ -6,7 +6,9 @@
  * Asks LLM to predict/describe state changes rather than full state regeneration.
  */
 
-export class StateDiff {
+// Dependencies will be loaded via script tags
+
+class StateDiff {
   constructor() {
     this.diffHistory = [];
     this.maxHistorySize = 10;
@@ -393,4 +395,9 @@ export class StateDiff {
   clearHistory() {
     this.diffHistory = [];
   }
+}
+
+// Export for global usage
+if (typeof window !== 'undefined') {
+    window.StateDiff = StateDiff;
 }

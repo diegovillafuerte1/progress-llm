@@ -6,7 +6,9 @@
  * Uses code for reliable environment transitions, LLM for creative action interpretations.
  */
 
-export class TransitionClassifier {
+// Dependencies will be loaded via script tags
+
+class TransitionClassifier {
   constructor() {
     this.transitionRules = this.initializeTransitionRules();
     this.metrics = {
@@ -372,4 +374,9 @@ export class TransitionClassifier {
       }
     };
   }
+}
+
+// Export for global usage
+if (typeof window !== 'undefined') {
+    window.TransitionClassifier = TransitionClassifier;
 }

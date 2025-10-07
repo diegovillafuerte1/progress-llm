@@ -6,7 +6,9 @@
  * Validates LLM outputs against known game mechanics.
  */
 
-export class WorldRules {
+// Dependencies will be loaded via script tags
+
+class WorldRules {
   constructor() {
     this.rules = this.initializeRules();
     this.customRules = {};
@@ -392,4 +394,9 @@ export class WorldRules {
       skills: this.getSkillRules()
     };
   }
+}
+
+// Export for global usage
+if (typeof window !== 'undefined') {
+    window.WorldRules = WorldRules;
 }

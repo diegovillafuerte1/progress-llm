@@ -6,7 +6,9 @@
  * Validates LLM outputs against current game state and world rules.
  */
 
-export class StateValidator {
+// Dependencies will be loaded via script tags
+
+class StateValidator {
   constructor() {
     this.validationRules = this.initializeValidationRules();
     this.consistencyMetrics = {
@@ -440,4 +442,9 @@ export class StateValidator {
       }
     };
   }
+}
+
+// Export for global usage
+if (typeof window !== 'undefined') {
+    window.StateValidator = StateValidator;
 }

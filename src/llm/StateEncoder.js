@@ -6,7 +6,9 @@
  * and narrative consistency.
  */
 
-export class StateEncoder {
+// Dependencies will be loaded via script tags
+
+class StateEncoder {
   constructor() {
     this.schema = this.initializeSchema();
   }
@@ -356,4 +358,9 @@ export class StateEncoder {
       required: ['player', 'skills', 'inventory', 'world']
     };
   }
+}
+
+// Export for global usage
+if (typeof window !== 'undefined') {
+    window.StateEncoder = StateEncoder;
 }
