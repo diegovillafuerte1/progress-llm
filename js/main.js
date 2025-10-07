@@ -580,7 +580,7 @@ function updateTaskRows() {
         valueElement.getElementsByClassName("effect")[0].style.display = task instanceof Skill
 
         var skipSkillElement = row.getElementsByClassName("skipSkill")[0]
-        skipSkillElement.style.display = task instanceof Skill && autoLearnElement.checked ? "block" : "none"
+        skipSkillElement.style.display = task instanceof Skill && autoLearnElement && autoLearnElement.checked ? "block" : "none"
 
         if (task instanceof Job) {
             formatCoins(task.getIncome(), valueElement.getElementsByClassName("income")[0])
@@ -611,7 +611,7 @@ function updateHeaderRows(categories) {
         var maxLevelElement = headerRow.getElementsByClassName("maxLevel")[0]
         gameData.rebirthOneCount > 0 ? maxLevelElement.classList.remove("hidden") : maxLevelElement.classList.add("hidden")
         var skipSkillElement = headerRow.getElementsByClassName("skipSkill")[0]
-        skipSkillElement.style.display = categories == skillCategories && autoLearnElement.checked ? "block" : "none"
+        skipSkillElement.style.display = categories == skillCategories && autoLearnElement && autoLearnElement.checked ? "block" : "none"
     }
 }
 
@@ -719,7 +719,7 @@ function getNextEntity(data, categoryType, entityName) {
 }
 
 function autoPromote() {
-    if (!autoPromoteElement.checked) return
+    if (!autoPromoteElement || !autoPromoteElement.checked) return
     var nextEntity = getNextEntity(gameData.taskData, jobCategories, gameData.currentJob.name)
     if (nextEntity == null) return
     var requirement = gameData.requirements[nextEntity.name]
@@ -728,7 +728,12 @@ function autoPromote() {
 
 function checkSkillSkipped(skill) {
     var row = document.getElementById("row " + skill.name)
-    var isSkillSkipped = row.getElementsByClassName("checkbox")[0].checked
+    if (!row) return false
+    
+    var checkbox = row.getElementsByClassName("checkbox")[0]
+    if (!checkbox) return false
+    
+    var isSkillSkipped = checkbox.checked
     return isSkillSkipped
 }
 
@@ -770,7 +775,7 @@ function getKeyOfLowestValueFromDict(dict) {
 }
 
 function autoLearn() {
-    if (!autoLearnElement.checked || !skillWithLowestMaxXp) return
+    if (!autoLearnElement || !autoLearnElement.checked || !skillWithLowestMaxXp) return
     gameData.currentSkill = skillWithLowestMaxXp
 }
 
