@@ -340,9 +340,45 @@ class AdventureSystem {
 - Current situation: ${storyContext.amuletStage} amulet milestone`;
         }
         
+        // Add WorldRules context if available
+        let worldRulesContext = '';
+        if (typeof WorldRules !== 'undefined') {
+            try {
+                const rules = new WorldRules();
+                const combatRules = rules.getCombatRules();
+                const magicRules = rules.getMagicRules();
+                
+                worldRulesContext = `
+
+GAME WORLD RULES:
+Combat:
+- Requires: ${combatRules.skillRequired} skill (minimum level ${combatRules.minimumLevel})
+- Weapons available: ${combatRules.weaponTypes.join(', ')}
+- Success depends on skill level and equipment
+
+Magic:
+- Requires: ${magicRules.skillRequired} skill (minimum level ${magicRules.minimumLevel})
+- Mana required: ${magicRules.requiresMana ? 'Yes' : 'No'}
+- Spell complexity increases with level
+
+IMPORTANT: Character can only perform actions they have skills for. Do not describe them using abilities they don't possess.`;
+                
+                // Debug logging to verify WorldRules are included
+                this.logger.debug('✅ WorldRules added to prompt:', {
+                    combatSkill: combatRules.skillRequired,
+                    magicSkill: magicRules.skillRequired,
+                    rulesLength: worldRulesContext.length
+                });
+            } catch (error) {
+                this.logger.warn('Could not load WorldRules:', error);
+            }
+        } else {
+            this.logger.debug('⚠️ WorldRules not available - skipping rules context');
+        }
+        
         return `You are narrating a ${storyContext.genre} adventure for a character.
 
-${powerContext}
+${powerContext}${worldRulesContext}
 
 PREVIOUS CHOICE: "${choice.text}"
 RESULT: The character ${result} in their ${choice.choiceType} approach.
@@ -408,6 +444,58 @@ CHOICES:
             }
             
             const story = storyMatch[1].trim();
+            
+            // Validate story consistency with game state using StateValidator if available
+            if (typeof StateValidator !== 'undefined') {
+                try {
+                    const validator = new StateValidator();
+                    const storyText = story.toLowerCase();
+                    const gameSkills = this.gameState.taskData || {};
+                    
+                    // Debug logging for validation attempt
+                    this.logger.debug('🔍 StateValidator checking story consistency:', {
+                        storyLength: story.length,
+                        skillsAvailable: Object.keys(gameSkills).length
+                    });
+                    
+                    // Check for magic mentions when character has no magic skill
+                    const hasMagicSkill = gameSkills['Mana control'] && gameSkills['Mana control'].level > 0;
+                    const mentionsMagic = storyText.includes('magic') || storyText.includes('spell') || 
+                                         storyText.includes('fireball') || storyText.includes('arcane');
+                    
+                    if (mentionsMagic && !hasMagicSkill) {
+                        this.logger.warn('⚠️ Story validation WARNING: LLM mentioned magic but character has no Mana control skill', {
+                            magicLevel: gameSkills['Mana control']?.level || 0
+                        });
+                    }
+                    
+                    // Check for strength-based actions when character has no strength
+                    const hasStrength = gameSkills['Strength'] && gameSkills['Strength'].level > 0;
+                    const mentionsStrength = storyText.includes('overpower') || storyText.includes('incredible strength') ||
+                                            storyText.includes('muscl');
+                    
+                    if (mentionsStrength && !hasStrength) {
+                        this.logger.warn('⚠️ Story validation WARNING: LLM mentioned strength feats but character has low/no Strength skill', {
+                            strengthLevel: gameSkills['Strength']?.level || 0
+                        });
+                    }
+                    
+                    // Track validation metrics
+                    validator.consistencyMetrics.totalValidations++;
+                    
+                    // Log validation success
+                    if (!mentionsMagic || hasMagicSkill) {
+                        if (!mentionsStrength || hasStrength) {
+                            this.logger.debug('✅ Story passed validation checks');
+                        }
+                    }
+                } catch (validationError) {
+                    this.logger.debug('Could not validate story consistency:', validationError);
+                }
+            } else {
+                this.logger.debug('⚠️ StateValidator not available - skipping validation');
+            }
+            
             const choicesText = choicesMatch[1].trim();
             
             // Parse individual choices
@@ -800,5 +888,10 @@ CHOICES:
             </div>
         `;
     }
+}
+
+// Export for browser usage
+if (typeof window !== 'undefined') {
+    window.AdventureSystem = AdventureSystem;
 }
 
