@@ -43,6 +43,9 @@ class AdventureSystem {
         this.currentChoices = [];
         this.currentStoryContinuation = null;
         
+        // Path tracking for tree traversal
+        this.currentPath = []; // Tracks position in story tree
+        
         // Stats tracking
         this.successCount = 0;
         this.failureCount = 0;
@@ -137,6 +140,7 @@ class AdventureSystem {
     }
     
     resetAdventureState() {
+        this.currentPath = []; // Clear path
         this.successCount = 0;
         this.failureCount = 0;
         this.turnCount = 0;
@@ -227,14 +231,36 @@ class AdventureSystem {
             // Calculate power level
             const powerLevel = this.calculateCurrentPowerLevel();
             
-            // Store choice in tree with power level
-            this.storyTreeBuilder.addChoice(
-                this.currentAdventure.amuletPrompt,
-                this.currentAdventure.careerCategory,
-                choiceText,
-                isSuccess,
-                powerLevel
-            );
+            // Store choice in tree at current path
+            if (this.currentPath.length === 0) {
+                // First choice - add at root
+                this.storyTreeManager.lockChoice(
+                    this.currentAdventure.amuletPrompt,
+                    this.currentAdventure.careerCategory,
+                    choiceText,
+                    isSuccess,
+                    powerLevel
+                );
+            } else {
+                // Subsequent choices - add as child of current path
+                const pathChoices = this.currentPath.map(p => p.choice);
+                this.storyTreeManager.addChildChoice(
+                    this.currentAdventure.amuletPrompt,
+                    this.currentAdventure.careerCategory,
+                    pathChoices,
+                    choiceText,
+                    isSuccess,
+                    powerLevel
+                );
+            }
+            
+            // Update current path
+            this.currentPath.push({ choice: choiceText, result: isSuccess });
+            
+            this.logger.debug('Choice added to tree at path:', {
+                depth: this.currentPath.length - 1,
+                totalPathLength: this.currentPath.length
+            });
             
             // Check for auto-end after 3 failures
             if (this.failureCount >= 3) {

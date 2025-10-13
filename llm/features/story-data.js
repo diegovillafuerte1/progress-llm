@@ -176,7 +176,7 @@ class StoryTreeManager {
     lockChoice(amuletPrompt, careerCategory, choice, result, powerLevel = null) {
         const tree = this.getStoryTree(amuletPrompt, careerCategory);
         
-        // Only increment counts if this is a new choice
+        // Only increment counts if this is a new choice at root level
         const isNewChoice = !tree.choices.includes(choice);
         
         if (isNewChoice) {
@@ -190,9 +190,92 @@ class StoryTreeManager {
             }
         }
         
+        // Create root-level branch (depth 0)
         tree.branches[choice] = StoryTreeData.createStoryBranch(choice, result, 0, powerLevel);
         
         this.saveStoryTree(amuletPrompt, careerCategory, tree);
+    }
+    
+    addChildChoice(amuletPrompt, careerCategory, path, choice, result, powerLevel = null) {
+        const tree = this.getStoryTree(amuletPrompt, careerCategory);
+        
+        // Navigate to parent node
+        let currentNode = null;
+        let depth = 0;
+        
+        if (path.length === 0) {
+            // Adding at root - shouldn't happen via this method
+            console.warn('addChildChoice called with empty path, use lockChoice for root');
+            return;
+        }
+        
+        // Navigate to the node at the end of path
+        currentNode = tree.branches[path[0]];
+        depth = 1;
+        
+        for (let i = 1; i < path.length; i++) {
+            if (!currentNode || !currentNode.children) {
+                console.error('Path does not exist:', path.slice(0, i + 1));
+                return;
+            }
+            currentNode = currentNode.children[path[i]];
+            depth++;
+        }
+        
+        if (!currentNode) {
+            console.error('Could not find parent node at path:', path);
+            return;
+        }
+        
+        // Add choice as child of current node
+        if (!currentNode.children) {
+            currentNode.children = {};
+        }
+        
+        currentNode.children[choice] = StoryTreeData.createStoryBranch(choice, result, depth, powerLevel);
+        
+        // Update metadata
+        tree.metadata.lastModified = Date.now();
+        tree.metadata.totalChoices++;
+        if (result) {
+            tree.metadata.successCount++;
+        } else {
+            tree.metadata.failureCount++;
+        }
+        
+        this.saveStoryTree(amuletPrompt, careerCategory, tree);
+    }
+    
+    getNodeAtPath(amuletPrompt, careerCategory, path) {
+        const tree = this.getStoryTree(amuletPrompt, careerCategory);
+        
+        if (!path || path.length === 0) {
+            return null;
+        }
+        
+        let currentNode = tree.branches[path[0]];
+        if (!currentNode) return null;
+        
+        for (let i = 1; i < path.length; i++) {
+            if (!currentNode || !currentNode.children) {
+                return null;
+            }
+            currentNode = currentNode.children[path[i]];
+            if (!currentNode) return null;
+        }
+        
+        return currentNode || null;
+    }
+    
+    getChildrenAtPath(amuletPrompt, careerCategory, path) {
+        if (!path || path.length === 0) {
+            // Return root level branches
+            const tree = this.getStoryTree(amuletPrompt, careerCategory);
+            return tree.branches;
+        }
+        
+        const node = this.getNodeAtPath(amuletPrompt, careerCategory, path);
+        return node?.children || {};
     }
 
     getAvailableChoices(amuletPrompt, careerCategory) {
@@ -393,4 +476,10 @@ class StoryPersistenceManager {
     }
 }
 
-
+// Export for browser and tests
+if (typeof window !== 'undefined') {
+    window.StoryTreeData = StoryTreeData;
+    window.StoryTreeManager = StoryTreeManager;
+    window.StoryTreeBuilder = StoryTreeBuilder;
+    window.StoryPersistenceManager = StoryPersistenceManager;
+}

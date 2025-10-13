@@ -920,15 +920,21 @@ function getLifespan() {
 
 function isAlive() {
     var condition = gameData.days < getLifespan()
+    return condition
+}
+
+function updateDeathText() {
     var deathText = document.getElementById("deathText")
-    if (!condition) {
+    if (!deathText) return;
+    
+    var alive = isAlive()
+    if (!alive) {
         gameData.days = getLifespan()
         deathText.classList.remove("hidden")
     }
     else {
         deathText.classList.add("hidden")
     }
-    return condition
 }
 
 function assignMethods() {
@@ -1029,7 +1035,8 @@ function updateUI() {
     updateQuickTaskDisplay("job")
     updateQuickTaskDisplay("skill")
     hideEntities()
-    updateText()  
+    updateText()
+    updateDeathText() // Update death message visibility
 }
 
 function update() {

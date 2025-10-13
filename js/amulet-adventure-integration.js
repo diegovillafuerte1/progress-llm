@@ -8,12 +8,36 @@ let adventureSystem = null;
 
 // Track which adventures have been used in the current life
 // Resets on rebirth, prevents using same adventure twice per life
-let currentLifeAdventures = {
-    age25: false,
-    age45: false,
-    age65: false,
-    age200: false
-};
+let currentLifeAdventures = loadAdventureTracking();
+
+// Load adventure tracking from localStorage
+function loadAdventureTracking() {
+    try {
+        const saved = localStorage.getItem('currentLifeAdventures');
+        if (saved) {
+            return JSON.parse(saved);
+        }
+    } catch (error) {
+        console.warn('Could not load adventure tracking:', error);
+    }
+    
+    // Default: all available
+    return {
+        age25: false,
+        age45: false,
+        age65: false,
+        age200: false
+    };
+}
+
+// Save adventure tracking to localStorage
+function saveAdventureTracking() {
+    try {
+        localStorage.setItem('currentLifeAdventures', JSON.stringify(currentLifeAdventures));
+    } catch (error) {
+        console.warn('Could not save adventure tracking:', error);
+    }
+}
 
 // Reset adventure tracking (call on rebirth)
 function resetAdventureTracking() {
@@ -23,6 +47,7 @@ function resetAdventureTracking() {
         age65: false,
         age200: false
     };
+    saveAdventureTracking();
     updateAmuletAdventureAvailability();
 }
 
@@ -55,11 +80,53 @@ function initializeAmuletAdventureIntegration() {
         adventureSystem = new AdventureSystem(gameData, window.mistralAPI, window.storyManager);
         window.adventureSystem = adventureSystem;
         
+        // Expose reset function globally for rebirth hooks
+        window.resetAdventureTracking = resetAdventureTracking;
+        
         console.log('✅ Amulet adventures initialized with LLM support!');
         updateAmuletAdventureAvailability();
+        updateAllStoryTreeTwisties(); // Show twisties for completed adventures
     } catch (error) {
         console.error('❌ Failed to initialize:', error);
     }
+}
+
+// Update story tree debugging twisty for a specific milestone
+function updateStoryTreeTwisty(amuletPrompt) {
+    const twistyElement = document.getElementById(`storyTreeTwisty_${amuletPrompt}`);
+    const dataElement = document.getElementById(`storyTreeData_${amuletPrompt}`);
+    
+    if (!twistyElement || !dataElement) return;
+    
+    // Show twisty if adventure has been run this life
+    const hasRunAdventure = currentLifeAdventures[amuletPrompt] === true;
+    
+    if (hasRunAdventure) {
+        // Load and display story tree data
+        try {
+            const storyTrees = localStorage.getItem('storyTrees');
+            if (storyTrees) {
+                const trees = JSON.parse(storyTrees);
+                const thisTree = trees[amuletPrompt] || {};
+                
+                // Format as pretty JSON
+                dataElement.textContent = JSON.stringify(thisTree, null, 2);
+                twistyElement.style.display = 'block';
+            }
+        } catch (error) {
+            console.warn(`Could not load story tree for ${amuletPrompt}:`, error);
+            dataElement.textContent = 'Error loading story tree data';
+            twistyElement.style.display = 'block';
+        }
+    } else {
+        twistyElement.style.display = 'none';
+    }
+}
+
+// Update all story tree twisties
+function updateAllStoryTreeTwisties() {
+    const milestones = ['age25', 'age45', 'age65', 'age200'];
+    milestones.forEach(prompt => updateStoryTreeTwisty(prompt));
 }
 
 // Check if API key is configured
@@ -94,7 +161,10 @@ async function startAmuletAdventure(amuletPrompt) {
             console.log('Adventure started successfully!');
             // Mark this adventure as used for this life
             currentLifeAdventures[amuletPrompt] = true;
+            saveAdventureTracking(); // Persist to localStorage
             hideAdventureButtons();
+            // Show twisty immediately (will update with data after adventure)
+            updateStoryTreeTwisty(amuletPrompt);
         } else {
             console.error('Failed to start adventure:', result.error);
         }
@@ -151,6 +221,9 @@ function updateAmuletAdventureAvailability() {
                 }
             }
         }
+        
+        // Update story tree twisty for this milestone
+        updateStoryTreeTwisty(prompt);
     });
 }
 

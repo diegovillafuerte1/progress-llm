@@ -227,6 +227,10 @@
                             <div id="adventureButton25" style="margin-top: 8px; display: none;">
                                 <button class="w3-button button w3-green" onClick="startAmuletAdventure('age25')">🌟 Start Adventure</button>
                             </div>
+                            <details id="storyTreeTwisty_age25" style="margin-top: 8px; display: none; background: rgba(76, 175, 80, 0.1); padding: 10px; border-radius: 4px;">
+                                <summary style="cursor: pointer; font-weight: bold; color: #4CAF50;">🌳 Story Tree Debug (age25)</summary>
+                                <pre id="storyTreeData_age25" style="margin-top: 10px; font-size: 11px; overflow-x: auto; max-height: 400px; overflow-y: auto;"></pre>
+                            </details>
                         </li>
                         <li style="margin: 8px;" id="rebirthNote1">
                             On your 45th birthday, you feel the amulet shiver uncontrollably in your pocket. You take it
@@ -235,6 +239,10 @@
                             <div id="adventureButton45" style="margin-top: 8px; display: none;">
                                 <button class="w3-button button w3-green" onClick="startAmuletAdventure('age45')">🌟 Start Adventure</button>
                             </div>
+                            <details id="storyTreeTwisty_age45" style="margin-top: 8px; display: none; background: rgba(76, 175, 80, 0.1); padding: 10px; border-radius: 4px;">
+                                <summary style="cursor: pointer; font-weight: bold; color: #4CAF50;">🌳 Story Tree Debug (age45)</summary>
+                                <pre id="storyTreeData_age45" style="margin-top: 10px; font-size: 11px; overflow-x: auto; max-height: 400px; overflow-y: auto;"></pre>
+                            </details>
                         </li>
                         <li style="margin: 8px;" id="rebirthNote2">
                             <div style="margin-bottom: 8px">
@@ -246,6 +254,10 @@
                             <div id="adventureButton65" style="margin-top: 8px; display: none;">
                                 <button class="w3-button button w3-green" onClick="startAmuletAdventure('age65')">🌟 Start Adventure</button>
                             </div>
+                            <details id="storyTreeTwisty_age65" style="margin-top: 8px; display: none; background: rgba(76, 175, 80, 0.1); padding: 10px; border-radius: 4px;">
+                                <summary style="cursor: pointer; font-weight: bold; color: #4CAF50;">🌳 Story Tree Debug (age65)</summary>
+                                <pre id="storyTreeData_age65" style="margin-top: 10px; font-size: 11px; overflow-x: auto; max-height: 400px; overflow-y: auto;"></pre>
+                            </details>
                             <i style="color: grey">
                                 By touching the eyeball, you will be reborn and have to restart life again, losing all your levels and coins.
                                 However, you will gain <b>xp multipliers</b> for your jobs and skills equivalent to: <b>1 + the max level of the skill or job / 10.</b>
@@ -264,6 +276,10 @@
                             <div id="adventureButton200" style="margin-top: 8px; display: none;">
                                 <button class="w3-button button w3-green" onClick="startAmuletAdventure('age200')">🌟 Start Adventure</button>
                             </div>
+                            <details id="storyTreeTwisty_age200" style="margin-top: 8px; display: none; background: rgba(76, 175, 80, 0.1); padding: 10px; border-radius: 4px;">
+                                <summary style="cursor: pointer; font-weight: bold; color: #4CAF50;">🌳 Story Tree Debug (age200)</summary>
+                                <pre id="storyTreeData_age200" style="margin-top: 10px; font-size: 11px; overflow-x: auto; max-height: 400px; overflow-y: auto;"></pre>
+                            </details>
                             <i style="color: rgb(200, 0, 0)">
                                 If you decide to embrace evil, all of your levels, coins and even max levels will be reset.
                                 You will be reborn as a fresh slate. However, you will unlock a new line of skills and gain
@@ -338,7 +354,7 @@
 <script type="text/javascript" src="node_modules/loglevel/dist/loglevel.min.js"></script>
 <script type="text/javascript" src="js/HackTimer.js"></script>
 <script type="text/javascript" src="js/classes.js"></script>
-<script type="text/javascript" src="js/main.js?v=4"></script>
+<script type="text/javascript" src="js/main.js?v=5"></script>
 
 <!-- LLM Integration (organized by function) -->
 <!-- Core: API & State Management -->
@@ -357,15 +373,15 @@
 <script type="text/javascript" src="llm/narrative/StoryManager.js"></script>
 
 <!-- Features: User-facing functionality -->
-<script type="text/javascript" src="llm/features/story-data.js?v=3"></script>
+<script type="text/javascript" src="llm/features/story-data.js?v=4"></script>
 <script type="text/javascript" src="llm/features/career-analysis.js?v=3"></script>
-<script type="text/javascript" src="llm/features/adventure-system.js?v=10"></script>
+<script type="text/javascript" src="llm/features/adventure-system.js?v=12"></script>
 
 <!-- Integration layer -->
 <script type="text/javascript" src="js/llm-integration.js?v=3"></script>
 <script type="text/javascript" src="js/career-based-adventure-integration.js?v=2"></script>
 
     <!-- Amulet Adventure Integration -->
-    <script type="text/javascript" src="js/amulet-adventure-integration.js?v=8"></script>
+    <script type="text/javascript" src="js/amulet-adventure-integration.js?v=11"></script>
 
 </html>
