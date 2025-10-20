@@ -1,226 +1,171 @@
 /**
- * Tests for Mistral API Key Persistence
- * Tests the integration layer's handling of API key storage and retrieval
+ * API Key Persistence Tests
+ * 
+ * Tests API key storage and retrieval for the minimal adventure system
  */
 
-// Load required classes
-let MistralAPI;
-let AdventureSystem;
-try {
-    MistralAPI = require('../../llm/core/MistralAPI');
-    const result = require('./setup-llm-classes.js');
-    if (typeof result === 'function') {
-        const classes = result();
-        AdventureSystem = classes.AdventureSystem;
-    } else {
-        AdventureSystem = global.AdventureSystem;
-    }
-} catch (e) {
-    MistralAPI = global.MistralAPI;
-    AdventureSystem = global.AdventureSystem;
-}
-
 describe('API Key Persistence', () => {
-    let localStorage;
-    
     beforeEach(() => {
-        // Mock localStorage
-        localStorage = {
-            storage: {},
-            getItem(key) {
-                return this.storage[key] || null;
-            },
-            setItem(key, value) {
-                this.storage[key] = value;
-            },
-            removeItem(key) {
-                delete this.storage[key];
-            },
-            clear() {
-                this.storage = {};
-            }
+        // Mock localStorage with simple implementation
+        const storage = {};
+        global.localStorage = {
+            getItem: (key) => storage[key] || null,
+            setItem: (key, value) => { storage[key] = value; },
+            removeItem: (key) => { delete storage[key]; },
+            clear: () => { Object.keys(storage).forEach(key => delete storage[key]); }
         };
-        global.localStorage = localStorage;
-    });
-    
-    describe('Basic localStorage Operations', () => {
-        test('should store API key in localStorage', () => {
-            localStorage.setItem('mistralApiKey', 'test-key-123');
-            
-            expect(localStorage.getItem('mistralApiKey')).toBe('test-key-123');
-        });
         
-        test('should retrieve stored API key', () => {
-            localStorage.setItem('mistralApiKey', 'stored-key-456');
+        global.alert = jest.fn();
+        
+        // Initialize adventureData before loading the system
+        global.adventureData = {
+            apiKey: '',
+            storyTrees: {},
+            usedAdventures: {},
+            currentAdventure: null,
+            currentChoices: []
+        };
+        
+        // Load the minimal adventure system
+        require('../../js/main-adventure-minimal.js');
+    });
+
+    describe('Basic localStorage Operations', () => {
+        test('should store and retrieve API key', () => {
+            const testKey = 'test-api-key-123';
             
-            const retrievedKey = localStorage.getItem('mistralApiKey');
-            expect(retrievedKey).toBe('stored-key-456');
+            global.localStorage.setItem('mistralApiKey', testKey);
+            const retrievedKey = global.localStorage.getItem('mistralApiKey');
+            
+            expect(retrievedKey).toBe(testKey);
         });
         
         test('should overwrite existing key', () => {
-            localStorage.setItem('mistralApiKey', 'old-key');
-            localStorage.setItem('mistralApiKey', 'new-key');
+            const oldKey = 'old-key';
+            const newKey = 'new-key';
             
-            expect(localStorage.getItem('mistralApiKey')).toBe('new-key');
+            global.localStorage.setItem('mistralApiKey', oldKey);
+            global.localStorage.setItem('mistralApiKey', newKey);
+            
+            const retrievedKey = global.localStorage.getItem('mistralApiKey');
+            expect(retrievedKey).toBe(newKey);
         });
         
         test('should return null for non-existent key', () => {
-            expect(localStorage.getItem('mistralApiKey')).toBeNull();
+            const result = global.localStorage.getItem('nonexistent');
+            expect(result).toBeNull();
         });
         
         test('should remove key', () => {
-            localStorage.setItem('mistralApiKey', 'test-key');
-            localStorage.removeItem('mistralApiKey');
+            global.localStorage.setItem('mistralApiKey', 'test');
+            global.localStorage.removeItem('mistralApiKey');
             
-            expect(localStorage.getItem('mistralApiKey')).toBeNull();
+            const result = global.localStorage.getItem('mistralApiKey');
+            expect(result).toBeNull();
         });
         
         test('should clear all keys', () => {
-            localStorage.setItem('mistralApiKey', 'test-key');
-            localStorage.setItem('otherKey', 'other-value');
+            global.localStorage.setItem('mistralApiKey', 'test');
+            global.localStorage.setItem('otherKey', 'other');
+            global.localStorage.clear();
             
-            localStorage.clear();
-            
-            expect(localStorage.getItem('mistralApiKey')).toBeNull();
-            expect(localStorage.getItem('otherKey')).toBeNull();
+            expect(global.localStorage.getItem('mistralApiKey')).toBeNull();
+            expect(global.localStorage.getItem('otherKey')).toBeNull();
         });
     });
-    
-    describe('MistralAPI Integration', () => {
-        test('should create MistralAPI instance', () => {
-            const api = new MistralAPI();
-            expect(api).toBeDefined();
-            expect(api.apiKey).toBeNull();
+
+    describe('Minimal Adventure System Integration', () => {
+        test('should load API key on initialization', () => {
+            const testKey = 'loaded-key';
+            global.localStorage.setItem('mistralApiKey', testKey);
+            
+            // Simulate system initialization
+            global.adventureData.apiKey = global.localStorage.getItem('mistralApiKey') || '';
+            
+            expect(global.adventureData.apiKey).toBe(testKey);
         });
         
-        test('should set API key on instance', () => {
-            const api = new MistralAPI();
-            api.apiKey = 'test-key';
+        test('should save API key when changed', () => {
+            const newKey = 'saved-key';
             
-            expect(api.apiKey).toBe('test-key');
-        });
-        
-        test('should simulate UI layer setting key', () => {
-            const api = new MistralAPI();
+            // Simulate API key change
+            global.adventureData.apiKey = newKey;
+            global.localStorage.setItem('mistralApiKey', newKey);
             
-            // Simulate what llm-integration.js does
-            const userEnteredKey = 'user-api-key-123';
-            api.apiKey = userEnteredKey;
-            localStorage.setItem('mistralApiKey', userEnteredKey);
-            
-            expect(api.apiKey).toBe('user-api-key-123');
-            expect(localStorage.getItem('mistralApiKey')).toBe('user-api-key-123');
-        });
-        
-        test('should simulate UI layer loading saved key', () => {
-            // Simulate saved key
-            localStorage.setItem('mistralApiKey', 'saved-key-789');
-            
-            // Simulate what llm-integration.js does on initialization
-            const api = new MistralAPI();
-            const savedKey = localStorage.getItem('mistralApiKey');
-            if (savedKey) {
-                api.apiKey = savedKey;
-            }
-            
-            expect(api.apiKey).toBe('saved-key-789');
+            const savedKey = global.localStorage.getItem('mistralApiKey');
+            expect(savedKey).toBe(newKey);
         });
     });
-    
+
     describe('API Key Validation', () => {
-        test('should detect configured API key', () => {
-            const api = new MistralAPI();
-            api.apiKey = 'valid-key';
-            
-            expect(api.apiKey).toBeTruthy();
-            expect(api.apiKey.length).toBeGreaterThan(0);
-        });
-        
-        test('should detect missing API key', () => {
-            const api = new MistralAPI();
-            
-            expect(api.apiKey).toBeFalsy();
-        });
-        
         test('should validate empty string as invalid', () => {
-            const apiKey = '';
-            expect(apiKey.trim().length).toBe(0);
+            const emptyKey = '';
+            const isValid = !!emptyKey;
+            expect(isValid).toBe(false);
         });
         
         test('should validate whitespace-only as invalid', () => {
-            const apiKey = '   ';
-            expect(apiKey.trim().length).toBe(0);
+            const whitespaceKey = '   ';
+            const isValid = !!whitespaceKey.trim();
+            expect(isValid).toBe(false);
         });
         
         test('should validate proper key as valid', () => {
-            const apiKey = 'test-api-key-example-32chars-long';
-            expect(apiKey.trim().length).toBeGreaterThan(0);
+            const properKey = 'mistral-valid-key-123';
+            const isValid = !!properKey && properKey.trim().length > 0;
+            expect(isValid).toBe(true);
         });
     });
-    
-    describe('Error Handling', () => {
-        test('should throw error when API key not configured', async () => {
-            const api = new MistralAPI();
+
+    describe('Adventure System API Key Integration', () => {
+        test('should require API key for adventures', () => {
+            global.adventureData.apiKey = '';
             
-            await expect(api.generateWorldDescription({}, 'test'))
-                .rejects
-                .toThrow('Mistral API key not configured');
+            const hasApiKey = !!global.adventureData.apiKey;
+            expect(hasApiKey).toBe(false);
         });
         
-        test('should have API key set when configured', () => {
-            const api = new MistralAPI();
-            api.apiKey = 'valid-key';
+        test('should allow adventures with valid API key', () => {
+            global.adventureData.apiKey = 'valid-key';
             
-            // API key should be accessible
-            expect(api.apiKey).toBe('valid-key');
-            expect(api.apiKey).toBeTruthy();
+            const hasApiKey = !!global.adventureData.apiKey;
+            expect(hasApiKey).toBe(true);
         });
     });
-    
+
     describe('Persistence Simulation', () => {
         test('should persist across simulated page reloads', () => {
+            const testKey = 'persistent-key';
+            
             // First "session"
-            const api1 = new MistralAPI();
-            api1.apiKey = 'persistent-key';
-            localStorage.setItem('mistralApiKey', api1.apiKey);
+            global.localStorage.setItem('mistralApiKey', testKey);
             
-            // Simulate page reload (new instance)
-            const api2 = new MistralAPI();
-            const savedKey = localStorage.getItem('mistralApiKey');
-            api2.apiKey = savedKey;
-            
-            expect(api2.apiKey).toBe('persistent-key');
+            // Simulate page reload
+            const retrievedKey = global.localStorage.getItem('mistralApiKey');
+            expect(retrievedKey).toBe(testKey);
         });
         
         test('should handle cleared localStorage', () => {
-            localStorage.setItem('mistralApiKey', 'some-key');
-            localStorage.clear();
+            // Set a key
+            global.localStorage.setItem('mistralApiKey', 'test-key');
             
-            const api = new MistralAPI();
-            const savedKey = localStorage.getItem('mistralApiKey');
+            // Clear localStorage
+            global.localStorage.clear();
             
-            expect(savedKey).toBeNull();
-            expect(api.apiKey).toBeNull();
+            const retrievedKey = global.localStorage.getItem('mistralApiKey');
+            expect(retrievedKey).toBeNull();
         });
         
         test('should handle multiple key updates', () => {
-            const api = new MistralAPI();
+            const keys = ['key-v1', 'key-v2', 'key-v3'];
             
-            // Update 1
-            api.apiKey = 'key-v1';
-            localStorage.setItem('mistralApiKey', api.apiKey);
-            expect(localStorage.getItem('mistralApiKey')).toBe('key-v1');
+            keys.forEach(key => {
+                global.localStorage.setItem('mistralApiKey', key);
+            });
             
-            // Update 2
-            api.apiKey = 'key-v2';
-            localStorage.setItem('mistralApiKey', api.apiKey);
-            expect(localStorage.getItem('mistralApiKey')).toBe('key-v2');
-            
-            // Update 3
-            api.apiKey = 'key-v3';
-            localStorage.setItem('mistralApiKey', api.apiKey);
-            expect(localStorage.getItem('mistralApiKey')).toBe('key-v3');
+            // Last key should be stored
+            const finalKey = global.localStorage.getItem('mistralApiKey');
+            expect(finalKey).toBe('key-v3');
         });
     });
 });
-

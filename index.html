@@ -225,7 +225,7 @@
                             it has any worth on the market given that it's made from cheap-looking copper. However, you
                             feel a weird urge to keep the amulet, so you slip it into your pocket for safekeeping.
                             <div id="adventureButton25" style="margin-top: 8px; display: none;">
-                                <button class="w3-button button w3-green" onClick="startAmuletAdventure('age25')">🌟 Start Adventure</button>
+                                <button class="w3-button button w3-green" onClick="startAdventure('age25')">🌟 Start Adventure</button>
                             </div>
                             <details id="storyTreeTwisty_age25" style="margin-top: 8px; display: none; background: rgba(76, 175, 80, 0.1); padding: 10px; border-radius: 4px;">
                                 <summary style="cursor: pointer; font-weight: bold; color: #4CAF50;">🌳 Story Tree Debug (age25)</summary>
@@ -237,7 +237,7 @@
                             out and the constant shivering suddenly stops. More to your bizarre surprise, you notice
                             a strange etching on the centre of the amulet.
                             <div id="adventureButton45" style="margin-top: 8px; display: none;">
-                                <button class="w3-button button w3-green" onClick="startAmuletAdventure('age45')">🌟 Start Adventure</button>
+                                <button class="w3-button button w3-green" onClick="startAdventure('age45')">🌟 Start Adventure</button>
                             </div>
                             <details id="storyTreeTwisty_age45" style="margin-top: 8px; display: none; background: rgba(76, 175, 80, 0.1); padding: 10px; border-radius: 4px;">
                                 <summary style="cursor: pointer; font-weight: bold; color: #4CAF50;">🌳 Story Tree Debug (age45)</summary>
@@ -252,7 +252,7 @@
                                 to see what happens.
                             </div>
                             <div id="adventureButton65" style="margin-top: 8px; display: none;">
-                                <button class="w3-button button w3-green" onClick="startAmuletAdventure('age65')">🌟 Start Adventure</button>
+                                <button class="w3-button button w3-green" onClick="startAdventure('age65')">🌟 Start Adventure</button>
                             </div>
                             <details id="storyTreeTwisty_age65" style="margin-top: 8px; display: none; background: rgba(76, 175, 80, 0.1); padding: 10px; border-radius: 4px;">
                                 <summary style="cursor: pointer; font-weight: bold; color: #4CAF50;">🌳 Story Tree Debug (age65)</summary>
@@ -274,7 +274,7 @@
                                 A mouth emerges from its surface and begins to cackle, and proceeds to say: "So you've made it this far... Are you ready to embrace evil?"
                             </div>
                             <div id="adventureButton200" style="margin-top: 8px; display: none;">
-                                <button class="w3-button button w3-green" onClick="startAmuletAdventure('age200')">🌟 Start Adventure</button>
+                                <button class="w3-button button w3-green" onClick="startAdventure('age200')">🌟 Start Adventure</button>
                             </div>
                             <details id="storyTreeTwisty_age200" style="margin-top: 8px; display: none; background: rgba(76, 175, 80, 0.1); padding: 10px; border-radius: 4px;">
                                 <summary style="cursor: pointer; font-weight: bold; color: #4CAF50;">🌳 Story Tree Debug (age200)</summary>
@@ -356,32 +356,17 @@
 <script type="text/javascript" src="js/classes.js"></script>
 <script type="text/javascript" src="js/main.js?v=5"></script>
 
-<!-- LLM Integration (organized by function) -->
-<!-- Core: API & State Management -->
-<script type="text/javascript" src="llm/core/MistralAPI.js"></script>
-<script type="text/javascript" src="llm/core/StateEncoder.js"></script>
-<script type="text/javascript" src="llm/core/StateValidator.js"></script>
+<!-- Minimal Adventure System -->
+<script type="text/javascript" src="js/main-adventure-minimal.js"></script>
 
-<!-- Utils: Supporting helpers -->
-<script type="text/javascript" src="llm/utils/CharacterEncoder.js"></script>
-<script type="text/javascript" src="llm/utils/WorldRules.js"></script>
-<script type="text/javascript" src="llm/utils/PowerLevelCalculator.js"></script>
-
-<!-- Narrative: Story generation -->
-<script type="text/javascript" src="llm/narrative/PromptGenerator.js"></script>
-<script type="text/javascript" src="llm/narrative/StoryPromptGenerator.js"></script>
-<script type="text/javascript" src="llm/narrative/StoryManager.js"></script>
-
-<!-- Features: User-facing functionality -->
-<script type="text/javascript" src="llm/features/story-data.js?v=4"></script>
-<script type="text/javascript" src="llm/features/career-analysis.js?v=3"></script>
-<script type="text/javascript" src="llm/features/adventure-system.js?v=12"></script>
-
-<!-- Integration layer -->
-<script type="text/javascript" src="js/llm-integration.js?v=3"></script>
-<script type="text/javascript" src="js/career-based-adventure-integration.js?v=2"></script>
-
-    <!-- Amulet Adventure Integration -->
-    <script type="text/javascript" src="js/amulet-adventure-integration.js?v=11"></script>
+<!-- Initialize the minimal adventure system -->
+<script>
+    // Initialize the minimal adventure system after main.js loads
+    setTimeout(() => {
+        if (typeof initializeAdventureSystem === 'function') {
+            initializeAdventureSystem();
+        }
+    }, 100);
+</script>
 
 </html>
