@@ -399,15 +399,32 @@ function updateAdventureButtons() {
     
     Object.keys(adventureMilestones).forEach(milestone => {
         const config = adventureMilestones[milestone];
-        const button = document.querySelector(`[onclick*="${milestone}"]`);
+        const ageNum = config.age;
+        const container = document.getElementById(`adventureButton${ageNum}`);
         
-        if (button) {
-            const ageMet = age >= config.age;
-            const apiKeySet = !!adventureData.apiKey;
-            const alreadyUsed = adventureData.usedAdventures[milestone];
+        if (container) {
+            const button = container.querySelector('button');
             
-            button.disabled = !ageMet || !apiKeySet || alreadyUsed;
-            button.style.display = ageMet ? 'block' : 'none';
+            if (button) {
+                const ageMet = age >= config.age;
+                const apiKeySet = !!adventureData.apiKey;
+                const alreadyUsed = adventureData.usedAdventures[milestone];
+                
+                button.disabled = !ageMet || !apiKeySet || alreadyUsed;
+                container.style.display = ageMet ? 'block' : 'none';
+                container.style.setProperty('display', ageMet ? 'block' : 'none', 'important');
+                
+                // Set tooltip based on why button might be disabled
+                if (!ageMet) {
+                    button.title = `Available at age ${config.age}`;
+                } else if (!apiKeySet) {
+                    button.title = 'API key required';
+                } else if (alreadyUsed) {
+                    button.title = 'Already used this life';
+                } else {
+                    button.title = '';
+                }
+            }
         }
     });
 }
