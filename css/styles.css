@@ -1,5 +1,5 @@
 body {
-    background-color: rgb(243, 243, 243);
+    background-color: var(--space-bg, #0a0a0f);
 }
 
 .w3-bar-item {
@@ -13,7 +13,7 @@ td {
 }
 
 .current {
-    background-color: orange !important;
+    background-color: var(--neon-orange, #ff8c42) !important;
 }
 
 .progress-text {
@@ -26,14 +26,14 @@ td {
 
 .progress-bar {
     position: relative;
-    background-color: rgb(12, 101, 173);
+    background-color: var(--space-border, #333366);
     cursor: pointer;
     width: 200px;
 }
 
 .progress-fill {
     height: 30px;
-    background-color: rgb(46, 148, 231)
+    background-color: var(--accent-primary, var(--neon-cyan, #00ffff));
 }
 
 .hidden {
@@ -45,11 +45,11 @@ td {
 }
 
 .button {
-    border: 1px solid black !important;
+    border: 1px solid var(--space-border, #333366) !important;
 }
 
 .item-button {
-    background-color: white;
+    background-color: var(--space-panel, #1a1a2e);
     text-align: center;
     width: 200px;
     height: 40px;
@@ -58,7 +58,7 @@ td {
 
 .item-button:hover {
     cursor: pointer;
-    background-color: rgb(192, 192, 192);
+    background-color: var(--space-panel-elevated, #2a2a3e);
 }
 
 button:focus {
@@ -77,8 +77,8 @@ button:focus {
 .tooltip .tooltipText {
     visibility: hidden;
     width: 240px;
-    background-color: black;
-    color: #fff;
+    background-color: var(--space-panel, #1a1a2e);
+    color: var(--text-primary, #ffffff);
     text-align: center;
     border-radius: 6px;
     padding: 10px 0;
@@ -111,7 +111,7 @@ button:focus {
     width: 50%;
     height: 15px;
     border-radius: 5px;
-    background: #d3d3d3;
+    background: var(--space-border, #333366);
     outline: none;
     opacity: 0.7;
     -webkit-transition: .2s;
@@ -128,7 +128,7 @@ button:focus {
     width: 25px;
     height: 25px;
     border-radius: 50%;
-    background: #4CAF50;
+    background: var(--neon-green, #00ff88);
     cursor: pointer;
 }
 
@@ -136,7 +136,7 @@ button:focus {
     width: 25px;
     height: 25px;
     border-radius: 50%;
-    background: #4CAF50;
+    background: var(--neon-green, #00ff88);
     cursor: pointer;
 }
 
@@ -145,7 +145,7 @@ button:focus {
 }
 
 .panel {
-    background-color: white;
+    background-color: var(--space-panel, #1a1a2e);
 }
 
 .small-margin  {
