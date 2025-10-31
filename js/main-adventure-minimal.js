@@ -175,23 +175,25 @@ async function startAdventure(milestone) {
         const prompt = `You are a game master for a text-based incremental game.
 
 CHARACTER STATE:
-- Age: ${characterContext.age} years old
-- Job: ${characterContext.job}
+- Distance: ${characterContext.age} light-years from command ship
+- Research Topic: ${characterContext.job}
 - Power Level: ${characterContext.powerLevel} (${characterContext.tierName})
-- Evil Level: ${characterContext.evil}
-- Wealth: ${characterContext.coins} coins
-- Rebirth Count: ${characterContext.rebirthCount}
+- Corruption Level: ${characterContext.evil}
+- Wealth: ${characterContext.coins} data points
+- Drone Deployment Count: ${characterContext.rebirthCount}
 - Skills: ${characterContext.skills}
 
 WORLD RULES:
-- The world is a medieval fantasy setting
-- Character actions should match their power level and skills
-- Higher power level characters face more challenging scenarios
-- Evil characters may encounter darker situations
-- Reborn characters have wisdom from previous lives
+- The world is a deep space exploration setting where you are the AI of a broken command ship
+- You are sending exploratory drones to find clues about what happened to your main command vessel
+- Character actions should match their power level and research topics
+- Higher power level drones can explore more dangerous regions and face more challenging scenarios
+- Corrupted systems may encounter darker situations and forbidden knowledge
+- Redeployed drones have accumulated data from previous missions
 
-Generate a detailed adventure story (300-500 words) appropriate for a ${characterContext.tierName} character.
-Career category: ${config.careerCategory}.
+Generate a detailed adventure story (300-500 words) appropriate for a ${characterContext.tierName} drone exploring deep space.
+Research category: ${config.careerCategory}.
+The adventure should involve discovering clues about the missing command ship, encountering space anomalies, alien phenomena, or lost technology.
 Include exactly 4 choices with different approaches.
 Format as JSON: {"story": "...", "choices": [{"text": "...", "type": "aggressive"}, {"text": "...", "type": "diplomatic"}, {"text": "...", "type": "cautious"}, {"text": "...", "type": "creative"}]}`;
         

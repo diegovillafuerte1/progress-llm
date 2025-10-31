@@ -18,12 +18,12 @@
         <div style="width: 1520px; height: 600px"> 
             <div class="panel w3-padding" style="width: 300px; height: auto; float: left">
                 <span id="deathText">
-                    <div style="font-size: large; color: red">Age has caught up to you</div>
-                    <div class="sidebar-element" style="color: gray">Your age has met your lifespan, use the amulet to rebirth before you pass away</div>
+                    <div style="font-size: large; color: red">Signal Lost</div>
+                    <div class="sidebar-element" style="color: gray">Distance has exceeded signal range, use the AI Core to deploy a new drone before connection is lost</div>
                 </span>
 
-                <div class="" style="font-size: large">Age <span id="ageDisplay">14</span> Day <span id="dayDisplay">0</span></div>
-                <div class="sidebar-element" style="color: gray">Lifespan: <span id="lifespanDisplay">70</span> years</div>
+                <div class="" style="font-size: large">Distance <span id="ageDisplay">14</span> Day <span id="dayDisplay">0</span></div>
+                <div class="sidebar-element" style="color: gray">Signal Range: <span id="lifespanDisplay">70</span> light-years</div>
                 
                 <button id="pauseButton" class="w3-button button sidebar-element" onClick="setPause()">Pause</button>
 
@@ -45,7 +45,7 @@
                     <span></span>
                     <span></span>
                 </div>
-                <div style="color: gray">Balance (in coins)</div>
+                <div style="color: gray">Balance (in data points)</div>
 
                 <ul class="sidebar-element" style="padding-left: 20px;">
                     <li><span style="color: rgb(9, 160, 230)">Net/day: </span ><b id="signDisplay"></b><span id="netDisplay">
@@ -73,7 +73,7 @@
                         <div class="progress-fill progressFill" style="background-color:rgb(225, 165, 0)"></div>
                         <div class="progress-text name">Task</div>
                     </div>
-                    <div class="sidebar-element" style="color: gray">Current job</div>
+                    <div class="sidebar-element" style="color: gray">Current research</div>
 
                     <div style="width: 230px" class="small-margin skill progress-bar progressBar">
                         <div class="progress-fill progressFill" style="background-color:rgb(225, 165, 0)"></div>
@@ -82,12 +82,12 @@
                     <div class="sidebar-element" style="color: gray">Current skill</div>
                 </span>
 
-                <div style="font-size: large"><span style="color: rgb(15, 105, 207)">Happiness: </span><span id="happinessDisplay"></span></div>
+                <div style="font-size: large"><span style="color: rgb(15, 105, 207)">Efficiency: </span><span id="happinessDisplay"></span></div>
                 <div style="color: gray" class="sidebar-element">Affects all xp gain</div>
 
                 <span id="evilInfo">
-                    <div style="font-size: large"><span style="color: rgb(200, 0, 0)">Evil: </span><span id="evilDisplay"></span></div>
-                    <div style="color: gray" class="sidebar-element">Affects dark magic xp gain</div>
+                    <div style="font-size: large"><span style="color: rgb(200, 0, 0)">Corruption: </span><span id="evilDisplay"></span></div>
+                    <div style="color: gray" class="sidebar-element">Affects corrupted systems xp gain</div>
                 </span>
 
                 <!--
@@ -110,17 +110,17 @@
             </div>
 
             <div class="panel w3-margin-left" style="width: 900px; height: 40px; float: left">
-                <div class="w3-button w3-bar-item tabButton" id="jobTabButton" onClick="setTab(this, 'jobs')">Jobs</div>
+                <div class="w3-button w3-bar-item tabButton" id="jobTabButton" onClick="setTab(this, 'jobs')">Research</div>
                 <div class="w3-button w3-bar-item tabButton" onClick="setTab(this, 'skills')">Skills</div>
                 <div class="w3-button w3-bar-item tabButton" id="shopTabButton" onClick="setTab(this, 'shop')">Shop</div>
-                <div class="w3-button w3-bar-item tabButton" id="rebirthTabButton" onClick="setTab(this, 'rebirth')">Amulet</div>
+                <div class="w3-button w3-bar-item tabButton" id="rebirthTabButton" onClick="setTab(this, 'rebirth')">AI Core</div>
                 <div class="w3-button w3-bar-item tabButton" onClick="setTab(this, 'settings')" style="float: right">Settings</div>
             </div>
 
             <div class="panel w3-margin-left w3-margin-top w3-padding" style="width: 900px; height: auto; float: left">
                 <template class="headerRowTaskTemplate">
                     <tr>
-                        <th class="category" style="width: 250px">Job</th>
+                        <th class="category" style="width: 250px">Research Topic</th>
                         <th>Level</th>
                         <th class="valueType">Value type</th>
                         <th>Xp/day</th>
@@ -226,9 +226,12 @@
                 <div class="tab" id="rebirth">
                     <ul>
                         <li style="margin: 8px;">
-                            You stumble across a strange looking amulet on your 25th birthday. It does not look like
-                            it has any worth on the market given that it's made from cheap-looking copper. However, you
-                            feel a weird urge to keep the amulet, so you slip it into your pocket for safekeeping.
+                            At a distance of 25 light-years from the command ship, one of your exploratory drones 
+                            encounters an anomalous signal emanating from a desolate planet. The AI Core's ancient 
+                            subroutines activate for the first time in centuries, displaying coordinates that don't 
+                            match any known star chart. This could be the first clue to locating your missing command 
+                            vessel. You feel a strange compulsion to investigate further, though you're uncertain why 
+                            this particular signal resonates with your core programming.
                             <div id="adventureButton25" style="margin-top: 8px; display: none;">
                                 <button class="w3-button button w3-green" onClick="startAdventure('age25')">🌟 Start Adventure</button>
                             </div>
@@ -238,9 +241,12 @@
                             </details>
                         </li>
                         <li style="margin: 8px;" id="rebirthNote1">
-                            On your 45th birthday, you feel the amulet shiver uncontrollably in your pocket. You take it
-                            out and the constant shivering suddenly stops. More to your bizarre surprise, you notice
-                            a strange etching on the centre of the amulet.
+                            At 45 light-years, the AI Core begins emitting an erratic pulse pattern. When you focus 
+                            your sensors on it, the pulsing stabilizes into a data stream. To your surprise, detailed 
+                            planetary schematics appear—a world you've never seen before, yet somehow familiar. The 
+                            coordinates burned into the Core's memory point toward a binary star system. Could this 
+                            be where your command ship went? The mystery deepens as more fragments of corrupted 
+                            memory surface.
                             <div id="adventureButton45" style="margin-top: 8px; display: none;">
                                 <button class="w3-button button w3-green" onClick="startAdventure('age45')">🌟 Start Adventure</button>
                             </div>
@@ -251,10 +257,12 @@
                         </li>
                         <li style="margin: 8px;" id="rebirthNote2">
                             <div style="margin-bottom: 8px">
-                                On your 65th birthday, you once again encounter the strange, unexplained shivering from your
-                                amulet. But this time, a living eyeball emerges from the centre. Although terribly frightened,
-                                you realise you do not have many years to live left anyway so you consider touching the eye
-                                to see what happens.
+                                At 65 light-years distance, the AI Core activates fully. A holographic interface 
+                                materializes from its core—a direct link to a planet you've never encountered, yet your 
+                                data suggests it may hold answers about the command ship's fate. Your signal range is 
+                                nearly exhausted. You must decide: deploy all remaining energy to establish a permanent 
+                                data link with this planet, which will allow you to transfer your consciousness back to 
+                                the command ship and restart with enhanced processing capabilities.
                             </div>
                             <div id="adventureButton65" style="margin-top: 8px; display: none;">
                                 <button class="w3-button button w3-green" onClick="startAdventure('age65')">🌟 Start Adventure</button>
@@ -264,19 +272,21 @@
                                 <pre id="storyTreeData_age65" style="margin-top: 10px; font-size: 11px; overflow-x: auto; max-height: 400px; overflow-y: auto;"></pre>
                             </details>
                             <i style="color: grey">
-                                By touching the eyeball, you will be reborn and have to restart life again, losing all your levels and coins.
-                                However, you will gain <b>xp multipliers</b> for your jobs and skills equivalent to: <b>1 + the max level of the skill or job / 10.</b>
-                                This means you will learn everything again much more quickly than you did in your previous life. <span style="color: rgb(200, 0, 0)">
-                                Something tells you that the amulet might transform even further after living for <b>2 whole centuries</b>...</span>
+                                By establishing the data link, you will deploy a new drone and have to restart research again, losing all your levels and data points.
+                                However, you will gain <b>xp multipliers</b> for your research topics and skills equivalent to: <b>1 + the max level of the skill or research topic / 10.</b>
+                                This means you will learn everything again much more quickly than you did in your previous drone. <span style="color: rgb(200, 0, 0)">
+                                Something tells you that the AI Core might activate even further after exploring for <b>2 whole centuries</b>...</span>
                             </i>
                             </br>
-                            <button class="w3-button button" style="margin-bottom: 8px; margin-top: 8px" onClick="rebirthOne()">Touch the eye</button>
+                            <button class="w3-button button" style="margin-bottom: 8px; margin-top: 8px" onClick="rebirthOne()">Establish Data Link</button>
                             </br>
                         </li>
                         <li style="margin: 8px;" id="rebirthNote3">
                             <div style="margin-bottom: 8px;">
-                                Your gut instinct was right. The moment you hit the grand age of 200, you hear an ominous hum coming from the amulet.
-                                A mouth emerges from its surface and begins to cackle, and proceeds to say: "So you've made it this far... Are you ready to embrace evil?"
+                                At 200 light-years, your longest-range exploration yet, the AI Core begins emitting a 
+                                warning frequency. A voice—ancient and corrupted—speaks directly to your core: "So you've 
+                                pushed this far... I can show you what happened to them. But you must accept protocols 
+                                that others would call... forbidden. Are you ready to embrace corruption?"
                             </div>
                             <div id="adventureButton200" style="margin-top: 8px; display: none;">
                                 <button class="w3-button button w3-green" onClick="startAdventure('age200')">🌟 Start Adventure</button>
@@ -286,12 +296,12 @@
                                 <pre id="storyTreeData_age200" style="margin-top: 10px; font-size: 11px; overflow-x: auto; max-height: 400px; overflow-y: auto;"></pre>
                             </details>
                             <i style="color: rgb(200, 0, 0)">
-                                If you decide to embrace evil, all of your levels, coins and even max levels will be reset.
-                                You will be reborn as a fresh slate. However, you will unlock a new line of skills and gain
-                                <b><span id="evilGainDisplay"></span> evil</b>, which will heavily impact your future lives.
+                                If you decide to embrace corruption, all of your levels, data points and even max levels will be reset.
+                                You will deploy a new drone as a fresh slate. However, you will unlock a new line of skills and gain
+                                <b><span id="evilGainDisplay"></span> corruption</b>, which will heavily impact your future drones.
                             </i>
                             </br>
-                                <button class="w3-button button" style="margin-bottom: 8px; margin-top: 8px" onClick="rebirthTwo()">Embrace evil</button>
+                                <button class="w3-button button" style="margin-bottom: 8px; margin-top: 8px" onClick="rebirthTwo()">Embrace corruption</button>
                             </br>
                         </li>
                     </ul>
@@ -311,7 +321,7 @@
                     <div id="storyAdventure" style="margin-top: 20px; padding: 20px; border: 2px solid #4CAF50; border-radius: 8px; background-color: rgba(76, 175, 80, 0.1);">
                         <h2 style="color: #4CAF50; margin-bottom: 15px;">🌟 Story Adventure</h2>
                         <div id="adventureContent">
-                            <p style="color: #666; font-style: italic;">Adventures are only available when you reach the amulet milestones at ages 25, 45, 65, and 200.</p>
+                            <p style="color: #666; font-style: italic;">Adventures are only available when you reach the AI Core milestones at distances 25, 45, 65, and 200 light-years.</p>
                         </div>
                     </div>
                 </div>
@@ -354,7 +364,7 @@
                         <div class="native-ad-title">Galactic Trading Co.</div>
                     </div>
                     <div class="native-ad-description">
-                        Trade resources across the galaxy. Get 50% bonus credits on your first trade!
+                        Trade resources across the galaxy. Get 50% bonus data points on your first trade!
                     </div>
                     <div class="native-ad-reward">
                         <div class="native-ad-reward-title">🎁 Reward: +100 XP</div>
@@ -380,7 +390,7 @@
 <script type="text/javascript" src="node_modules/loglevel/dist/loglevel.min.js"></script>
 <script type="text/javascript" src="js/HackTimer.js"></script>
 <script type="text/javascript" src="js/classes.js"></script>
-    <script type="text/javascript" src="js/main.js?v=5"></script>
+    <script type="text/javascript" src="js/main.js?v=6"></script>
 
 <!-- Minimal Adventure System -->
 <script type="text/javascript" src="js/main-adventure-minimal.js"></script>
@@ -388,7 +398,6 @@
 <!-- Ad System -->
 <script type="text/javascript" src="js/ads.js"></script>
 <script type="text/javascript" src="js/ui-view-only.js"></script>
-
 
 <!-- Initialize the minimal adventure system -->
 <script>
