@@ -20,7 +20,7 @@
 		var container = document.createElement('div');
 		container.className = 'big-counter';
 		container.id = 'sci-fi-big-counter';
-		container.innerHTML = '<div class="big-counter-value" id="sci-fi-counter-value">0</div><div class="big-counter-label">Credits</div>';
+		container.innerHTML = '<div class="big-counter-value" id="sci-fi-counter-value">0</div><div class="big-counter-label">Data Points</div>';
 		coinDisplay.insertAdjacentElement('afterend', container);
 		return container;
 	}
@@ -137,7 +137,7 @@
 		wrapper.className = 'charts-container';
 		wrapper.id = 'sci-fi-charts-classic';
 		wrapper.innerHTML = '' +
-			'<div class="chart-panel"><div class="chart-title">Credits Over Time</div>' +
+			'<div class="chart-panel"><div class="chart-title">Data Points Over Time</div>' +
 			'<canvas class="chart-canvas" id="sci-fi-line-chart-classic" width="400" height="200"></canvas></div>' +
 			'<div class="chart-panel"><div class="chart-title">Income vs Expense (avg)</div>' +
 			'<canvas class="chart-canvas" id="sci-fi-bar-chart-classic" width="400" height="200"></canvas></div>';

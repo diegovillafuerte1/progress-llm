@@ -51,7 +51,7 @@ class SciFiUI {
       const counterHTML = `
         <div class="big-counter" id="sci-fi-big-counter">
           <div class="big-counter-value" id="sci-fi-counter-value">0</div>
-          <div class="big-counter-label">Credits</div>
+          <div class="big-counter-label">Data Points</div>
         </div>
       `;
       // Insert AFTER the original coinDisplay to avoid breaking its expected children
@@ -292,7 +292,7 @@ class SciFiUI {
     const chartsHTML = `
       <div class="charts-container" id="sci-fi-charts">
         <div class="chart-panel">
-          <div class="chart-title">Credits Over Time</div>
+          <div class="chart-title">Data Points Over Time</div>
           <canvas class="chart-canvas" id="sci-fi-line-chart" width="400" height="200"></canvas>
         </div>
         <div class="chart-panel">

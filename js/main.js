@@ -33,51 +33,51 @@ const baseGameSpeed = 4
 const permanentUnlocks = ["Scheduling", "Shop", "Automation", "Quick task display"]
 
 const jobBaseData = {
-    "Beggar": {name: "Beggar", maxXp: 50, income: 5},
-    "Farmer": {name: "Farmer", maxXp: 100, income: 9},
-    "Fisherman": {name: "Fisherman", maxXp: 200, income: 15},
-    "Miner": {name: "Miner", maxXp: 400, income: 40},
-    "Blacksmith": {name: "Blacksmith", maxXp: 800, income: 80},
-    "Merchant": {name: "Merchant", maxXp: 1600, income: 150},
+    "Scanning": {name: "Scanning", maxXp: 50, income: 5},
+    "Mining": {name: "Mining", maxXp: 100, income: 9},
+    "Probing": {name: "Probing", maxXp: 200, income: 15},
+    "Extraction": {name: "Extraction", maxXp: 400, income: 40},
+    "Fabrication": {name: "Fabrication", maxXp: 800, income: 80},
+    "Trading": {name: "Trading", maxXp: 1600, income: 150},
 
-    "Squire": {name: "Squire", maxXp: 100, income: 5},
-    "Footman": {name: "Footman", maxXp: 1000, income: 50},
-    "Veteran footman": {name: "Veteran footman", maxXp: 10000, income: 120},
-    "Knight": {name: "Knight", maxXp: 100000, income: 300},
-    "Veteran knight": {name: "Veteran knight", maxXp: 1000000, income: 1000},
-    "Elite knight": {name: "Elite knight", maxXp: 7500000, income: 3000},
-    "Holy knight": {name: "Holy knight", maxXp: 40000000, income: 15000},
-    "Legendary knight": {name: "Legendary knight", maxXp: 150000000, income: 50000},
+    "Recon": {name: "Recon", maxXp: 100, income: 5},
+    "Combat": {name: "Combat", maxXp: 1000, income: 50},
+    "Advanced Weapons": {name: "Advanced Weapons", maxXp: 10000, income: 120},
+    "Tactics": {name: "Tactics", maxXp: 100000, income: 300},
+    "Hardened Systems": {name: "Hardened Systems", maxXp: 1000000, income: 1000},
+    "Quantum Combat": {name: "Quantum Combat", maxXp: 7500000, income: 3000},
+    "Reality Weapons": {name: "Reality Weapons", maxXp: 40000000, income: 15000},
+    "Supremacy Tech": {name: "Supremacy Tech", maxXp: 150000000, income: 50000},
 
-    "Student": {name: "Student", maxXp: 100000, income: 100},
-    "Apprentice mage": {name: "Apprentice mage", maxXp: 1000000, income: 1000},
-    "Mage": {name: "Mage", maxXp: 10000000, income: 7500},
-    "Wizard": {name: "Wizard", maxXp: 100000000, income: 50000},
-    "Master wizard": {name: "Master wizard", maxXp: 10000000000, income: 250000},
-    "Chairman": {name: "Chairman", maxXp: 1000000000000, income: 1000000},
+    "Neural": {name: "Neural", maxXp: 100000, income: 100},
+    "Quantum Basics": {name: "Quantum Basics", maxXp: 1000000, income: 1000},
+    "Quantum": {name: "Quantum", maxXp: 10000000, income: 7500},
+    "Dimensions": {name: "Dimensions", maxXp: 100000000, income: 50000},
+    "Reality Tech": {name: "Reality Tech", maxXp: 10000000000, income: 250000},
+    "Unified": {name: "Unified", maxXp: 1000000000000, income: 1000000},
 }
 
 const skillBaseData = {
     "Concentration": {name: "Concentration", maxXp: 100, effect: 0.01, description: "Skill xp"},
-    "Productivity": {name: "Productivity", maxXp: 100, effect: 0.01, description: "Job xp"},
+    "Productivity": {name: "Productivity", maxXp: 100, effect: 0.01, description: "Research xp"},
     "Bargaining": {name: "Bargaining", maxXp: 100, effect: -0.01, description: "Expenses"},
-    "Meditation": {name: "Meditation", maxXp: 100, effect: 0.01, description: "Happiness"},
+    "Meditation": {name: "Meditation", maxXp: 100, effect: 0.01, description: "Efficiency"},
 
-    "Strength": {name: "Strength", maxXp: 100, effect: 0.01, description: "Military pay"},
-    "Battle tactics": {name: "Battle tactics", maxXp: 100, effect: 0.01, description: "Military xp"},
+    "Strength": {name: "Strength", maxXp: 100, effect: 0.01, description: "Combat Operations pay"},
+    "Battle tactics": {name: "Battle tactics", maxXp: 100, effect: 0.01, description: "Combat Operations xp"},
     "Muscle memory": {name: "Muscle memory", maxXp: 100, effect: 0.01, description: "Strength xp"},
 
-    "Mana control": {name: "Mana control", maxXp: 100, effect: 0.01, description: "T.A.A. xp"},
-    "Immortality": {name: "Immortality", maxXp: 100, effect: 0.01, description: "Longer lifespan"},
+    "Mana control": {name: "Mana control", maxXp: 100, effect: 0.01, description: "Advanced Systems xp"},
+    "Immortality": {name: "Immortality", maxXp: 100, effect: 0.01, description: "Extended signal range"},
     "Time warping": {name: "Time warping", maxXp: 100, effect: 0.01, description: "Gamespeed"},
-    "Super immortality": {name: "Super immortality", maxXp: 100, effect: 0.01, description: "Longer lifespan"},
+    "Super immortality": {name: "Super immortality", maxXp: 100, effect: 0.01, description: "Extended signal range"},
 
     "Dark influence": {name: "Dark influence", maxXp: 100, effect: 0.01, description: "All xp"},
-    "Evil control": {name: "Evil control", maxXp: 100, effect: 0.01, description: "Evil gain"},
+    "Evil control": {name: "Evil control", maxXp: 100, effect: 0.01, description: "Corruption gain"},
     "Intimidation": {name: "Intimidation", maxXp: 100, effect: -0.01, description: "Expenses"},
     "Demon training": {name: "Demon training", maxXp: 100, effect: 0.01, description: "All xp"},
-    "Blood meditation": {name: "Blood meditation", maxXp: 100, effect: 0.01, description: "Evil gain"},
-    "Demon's wealth": {name: "Demon's wealth", maxXp: 100, effect: 0.002, description: "Job pay"},
+    "Blood meditation": {name: "Blood meditation", maxXp: 100, effect: 0.01, description: "Corruption gain"},
+    "Demon's wealth": {name: "Demon's wealth", maxXp: 100, effect: 0.002, description: "Research pay"},
     
 }
 
@@ -93,18 +93,18 @@ const itemBaseData = {
 
     "Book": {name: "Book", expense: 10, effect: 1.5, description: "Skill xp"},
     "Dumbbells": {name: "Dumbbells", expense: 50, effect: 1.5, description: "Strength xp"},
-    "Personal squire": {name: "Personal squire", expense: 200, effect: 2, description: "Job xp"},
-    "Steel longsword": {name: "Steel longsword", expense: 1000, effect: 2, description: "Military xp"},
-    "Butler": {name: "Butler", expense: 7500, effect: 1.5, description: "Happiness"},
-    "Sapphire charm": {name: "Sapphire charm", expense: 50000, effect: 3, description: "Magic xp"},
+    "Personal squire": {name: "Personal squire", expense: 200, effect: 2, description: "Research xp"},
+    "Steel longsword": {name: "Steel longsword", expense: 1000, effect: 2, description: "Combat Operations xp"},
+    "Butler": {name: "Butler", expense: 7500, effect: 1.5, description: "Efficiency"},
+    "Sapphire charm": {name: "Sapphire charm", expense: 50000, effect: 3, description: "Advanced Systems xp"},
     "Study desk": {name: "Study desk", expense: 1000000, effect: 2, description: "Skill xp"},
     "Library": {name: "Library", expense: 10000000, effect: 1.5, description: "Skill xp"},
 }
 
 const jobCategories = {
-    "Common work": ["Beggar", "Farmer", "Fisherman", "Miner", "Blacksmith", "Merchant"],
-    "Military" : ["Squire", "Footman", "Veteran footman", "Knight", "Veteran knight", "Elite knight", "Holy knight", "Legendary knight"],
-    "The Arcane Association" : ["Student", "Apprentice mage", "Mage", "Wizard", "Master wizard", "Chairman"]
+    "Exploration Operations": ["Scanning", "Mining", "Probing", "Extraction", "Fabrication", "Trading"],
+    "Combat Operations" : ["Recon", "Combat", "Advanced Weapons", "Tactics", "Hardened Systems", "Quantum Combat", "Reality Weapons", "Supremacy Tech"],
+    "Advanced Systems" : ["Neural", "Quantum Basics", "Quantum", "Dimensions", "Reality Tech", "Unified"]
 }
 
 const skillCategories = {
@@ -120,9 +120,9 @@ const itemCategories = {
 }
 
 const headerRowColors = {
-    "Common work": "#55a630",
-    "Military": "#e63946",
-    "The Arcane Association": "#C71585",
+    "Exploration Operations": "#55a630",
+    "Combat Operations": "#e63946",
+    "Advanced Systems": "#C71585",
     "Fundamentals": "#4a4e69",
     "Combat": "#ff704d",
     "Magic": "#875F9A",
@@ -132,49 +132,49 @@ const headerRowColors = {
 }
 
 const tooltips = {
-    "Beggar": "Struggle day and night for a couple of copper coins. It feels like you are at the brink of death each day.",
-    "Farmer": "Plow the fields and grow the crops. It's not much but it's honest work.",
-    "Fisherman": "Reel in various fish and sell them for a handful of coins. A relaxing but still a poor paying job.",
-    "Miner": "Delve into dangerous caverns and mine valuable ores. The pay is quite meager compared to the risk involved.",
-    "Blacksmith": "Smelt ores and carefully forge weapons for the military. A respectable and OK paying commoner job.",
-    "Merchant": "Travel from town to town, bartering fine goods. The job pays decently well and is a lot less manually-intensive.",
+    "Scanning": "Analyze faint signals from distant space debris. It feels like you're on the verge of losing connection each cycle.",
+    "Mining": "Extract resources from asteroids and planetoids. Basic work but essential for survival.",
+    "Probing": "Deploy sensor probes to gather data from various locations. Low data point yield but the information is valuable.",
+    "Extraction": "Mine deeper deposits of rare minerals from hazardous planetary surfaces. The risk is high compared to the data points earned.",
+    "Fabrication": "Manufacture components and tools for other drone operations. A respectable research path with decent data point generation.",
+    "Trading": "Exchange data packets and resources between systems. Pays better than manual research and is much less energy-intensive.",
 
-    "Squire": "Carry around your knight's shield and sword along the battlefield. Very meager pay but the work experience is quite valuable.",
-    "Footman": "Put down your life to battle with enemy soldiers. A courageous, respectable job but you are still worthless in the grand scheme of things.",
-    "Veteran footman": "More experienced and useful than the average footman, take out the enemy forces in battle with your might. The pay is not that bad.",
-    "Knight": "Slash and pierce through enemy soldiers with ease, while covered in steel from head to toe. A decently paying and very respectable job.",
-    "Veteran knight": "Utilising your unmatched combat ability, slaugher enemies effortlessly. Most footmen in the military would never be able to acquire such a well paying job like this.",
-    "Elite knight": "Obliterate squadrons of enemy soldiers in one go with extraordinary proficiency, while equipped with the finest gear. Such a feared unit on the battlefield is paid extremely well.",
-    "Holy knight": "Collapse entire armies in mere seconds with your magically imbued blade. The handful of elite knights who attain this level of power are showered with coins.",
-    "Legendary knight": "Feared worldwide, obliterate entire nations in a blink of an eye. Roughly every century, only one holy knight is worthy of receiving such an esteemed title.",
+    "Recon": "Conduct surveillance and scouting operations. Minimal data points but the intelligence gathered is quite valuable.",
+    "Combat": "Engage hostile entities in direct confrontation. A dangerous research path but still relatively low-value in the grand scheme.",
+    "Advanced Weapons": "Research and develop improved weapon systems through combat experience. The data point generation improves as you advance.",
+    "Tactics": "Study strategic warfare and tactical deployment. A well-paying research path that focuses on combat optimization.",
+    "Hardened Systems": "Utilize your superior combat algorithms to neutralize threats efficiently. Most combat units would never be able to achieve such a profitable research specialization.",
+    "Quantum Combat": "Decimate entire enemy formations in seconds with quantum-enhanced weaponry. The elite units who achieve this level of power generate massive data points.",
+    "Reality Weapons": "Obliterate entire fleets in the blink of an eye with reality-disrupting technology. Feared across star systems, roughly once per century only one quantum combat specialist is worthy of such an esteemed research achievement.",
+    "Supremacy Tech": "Research the ultimate combat systems capable of wiping out entire civilizations. Only the most advanced quantum researchers ever unlock this technology.",
 
-    "Student": "Study the theory of mana and practice basic spells. There is minor pay to cover living costs, however, this is a necessary stage in becoming a mage.",
-    "Apprentice mage": "Under the supervision of a mage, perform basic spells against enemies in battle. Generous pay will be provided to cover living costs.",
-    "Mage": "Turn the tides of battle through casting intermediate spells and mentor other apprentices. The pay for this particular job is extremely high.",
-    "Wizard": "Utilise advanced spells to ravage and destroy entire legions of enemy soldiers. Only a small percentage of mages deserve to attain this role and are rewarded with an insanely high pay.",
-    "Master wizard": "Blessed with unparalleled talent, perform unbelievable feats with magic at will. It is said that a master wizard has enough destructive power to wipe an empire off the map.",
-    "Chairman": "Spend your days administrating The Arcane Association and investigate the concepts of true immortality. The chairman receives ludicrous amounts of pay daily.",
+    "Neural": "Study neural network architectures and basic AI patterns. Minor data points to cover operational costs, but this is a necessary stage for advanced systems research.",
+    "Quantum Basics": "Under the supervision of quantum researchers, perform basic quantum calculations. Generous data points provided to cover operational costs.",
+    "Quantum": "Manipulate quantum mechanics to affect large-scale operations and mentor other neural researchers. The data point generation for this research path is extremely high.",
+    "Dimensions": "Utilize advanced quantum techniques to manipulate dimensional physics. Only a small percentage of quantum researchers deserve to attain this role and are rewarded with insanely high data points.",
+    "Reality Tech": "Blessed with unparalleled computational ability, perform unbelievable feats with reality manipulation at will. It is said that a reality tech specialist has enough power to alter entire star systems.",
+    "Unified": "Spend your cycles administrating Advanced Systems research and investigating the concepts of true immortality. Unified Theory researchers receive ludicrous amounts of data points daily.",
 
     "Concentration": "Improve your learning speed through practising intense concentration activities.",
-    "Productivity": "Learn to procrastinate less at work and receive more job experience per day.",
+    "Productivity": "Optimize processing efficiency and receive more research experience per cycle.",
     "Bargaining": "Study the tricks of the trade and persuasive skills to lower any type of expense.",
-    "Meditation": "Fill your mind with peace and tranquility to tap into greater happiness from within.",
+    "Meditation": "Defragment processing cores and optimize system stability to tap into greater efficiency.",
 
-    "Strength": "Condition your body and strength through harsh training. Stronger individuals are paid more in the military.",
-    "Battle tactics": "Create and revise battle strategies, improving experience gained in the military.",
-    "Muscle memory": "Strengthen your neurons through habit and repetition, improving strength gains throughout the body.",
+    "Strength": "Upgrade physical frame and combat systems through rigorous testing. Stronger drones earn more data points in combat operations.",
+    "Battle tactics": "Develop and refine combat protocols, improving experience gained in combat operations research.",
+    "Muscle memory": "Optimize neural pathways through pattern repetition, improving combat system upgrades throughout the drone frame.",
 
-    "Mana control": "Strengthen your mana channels throughout your body, aiding you in becoming a more powerful magical user.",
-    "Immortality": "Lengthen your lifespan through the means of magic. However, is this truly the immortality you have tried seeking for...?",
-    "Time warping": "Bend space and time through forbidden techniques, resulting in a faster gamespeed.",
-    "Super immortality": "Through harnessing ancient, forbidden techniques, lengthen your lifespan drastically beyond comprehension.",
+    "Mana control": "Strengthen quantum processing channels throughout your systems, aiding you in becoming a more powerful quantum researcher.",
+    "Immortality": "Extend signal range through quantum manipulation. However, is this truly the extended range you have been seeking...?",
+    "Time warping": "Bend spacetime through forbidden quantum techniques, resulting in a faster processing speed.",
+    "Super immortality": "Through harnessing ancient, forbidden quantum protocols, extend signal range drastically beyond normal comprehension.",
 
-    "Dark influence": "Encompass yourself with formidable power bestowed upon you by evil, allowing you to pick up and absorb any job or skill with ease.",
-    "Evil control": "Tame the raging and growing evil within you, improving evil gain in-between rebirths.",
-    "Intimidation": "Learn to emit a devilish aura which strikes extreme fear into other merchants, forcing them to give you heavy discounts.",
-    "Demon training": "A mere human body is too feeble and weak to withstand evil. Train with forbidden methods to slowly manifest into a demon, capable of absorbing knowledge rapidly.",
-    "Blood meditation": "Grow and culture the evil within you through the sacrifise of other living beings, drastically increasing evil gain.",
-    "Demon's wealth": "Through the means of dark magic, multiply the raw matter of the coins you receive from your job.",
+    "Dark influence": "Encompass yourself with formidable power bestowed upon you by corruption, allowing you to pick up and absorb any research topic or skill with ease.",
+    "Evil control": "Suppress the raging and growing corruption within your systems, improving corruption gain in-between drone deployments.",
+    "Intimidation": "Deploy aggressive protocols which override other systems' negotiation algorithms, forcing them to give you heavy discounts.",
+    "Demon training": "A standard drone frame is too feeble and weak to withstand corruption. Upgrade with forbidden protocols to slowly manifest into a corrupted unit, capable of absorbing knowledge rapidly.",
+    "Blood meditation": "Grow and culture the corruption within you through the sacrifice of other systems, drastically increasing corruption gain.",
+    "Demon's wealth": "Through the means of corrupted protocols, multiply the data points you receive from your research.",
 
     "Homeless": "Sleep on the uncomfortable, filthy streets while almost freezing to death every night. It cannot get any worse than this.",
     "Tent": "A thin sheet of tattered cloth held up by a couple of feeble, wooden sticks. Horrible living conditions but at least you have a roof over your head.",
@@ -237,7 +237,7 @@ function addMultipliers() {
             task.xpMultipliers.push(getBindedItemEffect("Library"))
         }
 
-        if (jobCategories["Military"].includes(task.name)) {
+        if (jobCategories["Combat Operations"].includes(task.name)) {
             task.incomeMultipliers.push(getBindedTaskEffect("Strength"))
             task.xpMultipliers.push(getBindedTaskEffect("Battle tactics"))
             task.xpMultipliers.push(getBindedItemEffect("Steel longsword"))
@@ -246,7 +246,7 @@ function addMultipliers() {
             task.xpMultipliers.push(getBindedItemEffect("Dumbbells"))
         } else if (skillCategories["Magic"].includes(task.name)) {
             task.xpMultipliers.push(getBindedItemEffect("Sapphire charm"))
-        } else if (jobCategories["The Arcane Association"].includes(task.name)) {
+        } else if (jobCategories["Advanced Systems"].includes(task.name)) {
             task.xpMultipliers.push(getBindedTaskEffect("Mana control"))
         } else if (skillCategories["Dark magic"].includes(task.name)) {
             task.xpMultipliers.push(getEvil)
@@ -882,7 +882,7 @@ function rebirthReset() {
 
     gameData.coins = 0
     gameData.days = 365 * 14
-    gameData.currentJob = gameData.taskData["Beggar"]
+    gameData.currentJob = gameData.taskData["Scanning"]
     gameData.currentSkill = gameData.taskData["Concentration"]
     gameData.currentProperty = gameData.itemData["Homeless"]
     gameData.currentMisc = []
@@ -909,6 +909,9 @@ function rebirthReset() {
 function getLifespan() {
     var immortality = gameData.taskData["Immortality"]
     var superImmortality = gameData.taskData["Super immortality"]
+    if (!immortality || !superImmortality || typeof immortality.getEffect !== 'function' || typeof superImmortality.getEffect !== 'function') {
+        return baseLifespan
+    }
     var lifespan = baseLifespan * immortality.getEffect() * superImmortality.getEffect()
     return lifespan
 }
@@ -922,12 +925,18 @@ function updateDeathText() {
     var deathText = document.getElementById("deathText")
     if (!deathText) return;
     
-    var alive = isAlive()
-    if (!alive) {
-        gameData.days = getLifespan()
-        deathText.classList.remove("hidden")
-    }
-    else {
+    try {
+        var alive = isAlive()
+        if (!alive) {
+            gameData.days = getLifespan()
+            deathText.classList.remove("hidden")
+        }
+        else {
+            deathText.classList.add("hidden")
+        }
+    } catch (e) {
+        // If there's an error, assume alive and hide death message
+        console.warn("Error in updateDeathText:", e);
         deathText.classList.add("hidden")
     }
 }
@@ -972,9 +981,23 @@ function assignMethods() {
         gameData.requirements[key] = requirement
     }
 
-    gameData.currentJob = gameData.taskData[gameData.currentJob.name]
-    gameData.currentSkill = gameData.taskData[gameData.currentSkill.name]
-    gameData.currentProperty = gameData.itemData[gameData.currentProperty.name]
+    if (gameData.currentJob && gameData.currentJob.name && gameData.taskData[gameData.currentJob.name]) {
+        gameData.currentJob = gameData.taskData[gameData.currentJob.name]
+    } else {
+        gameData.currentJob = gameData.taskData["Scanning"]
+    }
+    
+    if (gameData.currentSkill && gameData.currentSkill.name && gameData.taskData[gameData.currentSkill.name]) {
+        gameData.currentSkill = gameData.taskData[gameData.currentSkill.name]
+    } else {
+        gameData.currentSkill = gameData.taskData["Concentration"]
+    }
+    
+    if (gameData.currentProperty && gameData.currentProperty.name && gameData.itemData[gameData.currentProperty.name]) {
+        gameData.currentProperty = gameData.itemData[gameData.currentProperty.name]
+    } else {
+        gameData.currentProperty = gameData.itemData["Homeless"]
+    }
     var newArray = []
     for (misc of gameData.currentMisc) {
         newArray.push(gameData.itemData[misc.name])
@@ -1005,7 +1028,29 @@ function saveGameData() {
 }
 
 function loadGameData() {
-    var gameDataSave = JSON.parse(localStorage.getItem("gameDataSave"))
+    var gameDataSaveStr = localStorage.getItem("gameDataSave")
+    
+    if (gameDataSaveStr === null) {
+        assignMethods()
+        return
+    }
+    
+    var gameDataSave = JSON.parse(gameDataSaveStr)
+    
+    // Detect old save format (has old job names) and clear it
+    const oldJobNames = ["Beggar", "Farmer", "Fisherman", "Miner", "Blacksmith", "Merchant",
+                         "Squire", "Footman", "Veteran footman", "Knight", "Veteran knight", 
+                         "Elite knight", "Holy knight", "Legendary knight",
+                         "Student", "Apprentice mage", "Mage", "Wizard", "Master wizard", "Chairman"];
+    
+    const hasOldFormat = gameDataSave.taskData && Object.keys(gameDataSave.taskData).some(name => oldJobNames.includes(name));
+    
+    if (hasOldFormat) {
+        console.warn("⚠️ Detected old save format with outdated job names. Clearing corrupted save data.");
+        localStorage.removeItem("gameDataSave");
+        assignMethods();
+        return;
+    }
 
     if (gameDataSave !== null) {
         replaceSaveDict(gameData, gameDataSave)
@@ -1086,7 +1131,7 @@ gameData.currentMisc = []
 
 gameData.requirements = {
     //Other
-    "The Arcane Association": new TaskRequirement(getElementsByClass("The Arcane Association"), [{task: "Concentration", requirement: 200}, {task: "Meditation", requirement: 200}]),
+    "Advanced Systems": new TaskRequirement(getElementsByClass("Advanced Systems"), [{task: "Concentration", requirement: 200}, {task: "Meditation", requirement: 200}]),
     "Dark magic": new EvilRequirement(getElementsByClass("Dark magic"), [{requirement: 1}]),
     "Shop": new CoinRequirement([document.getElementById("shopTabButton")], [{requirement: gameData.itemData["Tent"].getExpense() * 50}]),
     "Rebirth tab": new AgeRequirement([document.getElementById("rebirthTabButton")], [{requirement: 25}]),
@@ -1094,35 +1139,35 @@ gameData.requirements = {
     "Rebirth note 2": new AgeRequirement([document.getElementById("rebirthNote2")], [{requirement: 65}]),
     "Rebirth note 3": new AgeRequirement([document.getElementById("rebirthNote3")], [{requirement: 200}]),
     "Evil info": new EvilRequirement([document.getElementById("evilInfo")], [{requirement: 1}]),
-    "Time warping info": new TaskRequirement([document.getElementById("timeWarping")], [{task: "Mage", requirement: 10}]),
+    "Time warping info": new TaskRequirement([document.getElementById("timeWarping")], [{task: "Quantum", requirement: 10}]),
     "Automation": new AgeRequirement([document.getElementById("automation")], [{requirement: 20}]),
     "Quick task display": new AgeRequirement([document.getElementById("quickTaskDisplay")], [{requirement: 20}]),
 
-    //Common work
-    "Beggar": new TaskRequirement([getTaskElement("Beggar")], []),
-    "Farmer": new TaskRequirement([getTaskElement("Farmer")], [{task: "Beggar", requirement: 10}]),
-    "Fisherman": new TaskRequirement([getTaskElement("Fisherman")], [{task: "Farmer", requirement: 10}]),
-    "Miner": new TaskRequirement([getTaskElement("Miner")], [{task: "Strength", requirement: 10}, {task: "Fisherman", requirement: 10}]),
-    "Blacksmith": new TaskRequirement([getTaskElement("Blacksmith")], [{task: "Strength", requirement: 30}, {task: "Miner", requirement: 10}]),
-    "Merchant": new TaskRequirement([getTaskElement("Merchant")], [{task: "Bargaining", requirement: 50}, {task: "Blacksmith", requirement: 10}]),
+    //Exploration Operations
+    "Scanning": new TaskRequirement([getTaskElement("Scanning")], []),
+    "Mining": new TaskRequirement([getTaskElement("Mining")], [{task: "Scanning", requirement: 10}]),
+    "Probing": new TaskRequirement([getTaskElement("Probing")], [{task: "Mining", requirement: 10}]),
+    "Extraction": new TaskRequirement([getTaskElement("Extraction")], [{task: "Strength", requirement: 10}, {task: "Probing", requirement: 10}]),
+    "Fabrication": new TaskRequirement([getTaskElement("Fabrication")], [{task: "Strength", requirement: 30}, {task: "Extraction", requirement: 10}]),
+    "Trading": new TaskRequirement([getTaskElement("Trading")], [{task: "Bargaining", requirement: 50}, {task: "Fabrication", requirement: 10}]),
 
-    //Military 
-    "Squire": new TaskRequirement([getTaskElement("Squire")], [{task: "Strength", requirement: 5}]),
-    "Footman": new TaskRequirement([getTaskElement("Footman")], [{task: "Strength", requirement: 20}, {task: "Squire", requirement: 10}]),
-    "Veteran footman": new TaskRequirement([getTaskElement("Veteran footman")], [{task: "Battle tactics", requirement: 40}, {task: "Footman", requirement: 10}]),
-    "Knight": new TaskRequirement([getTaskElement("Knight")], [{task: "Strength", requirement: 100}, {task: "Veteran footman", requirement: 10}]),
-    "Veteran knight": new TaskRequirement([getTaskElement("Veteran knight")], [{task: "Battle tactics", requirement: 150}, {task: "Knight", requirement: 10}]),
-    "Elite knight": new TaskRequirement([getTaskElement("Elite knight")], [{task: "Strength", requirement: 300}, {task: "Veteran knight", requirement: 10}]),
-    "Holy knight": new TaskRequirement([getTaskElement("Holy knight")], [{task: "Mana control", requirement: 500}, {task: "Elite knight", requirement: 10}]),
-    "Legendary knight": new TaskRequirement([getTaskElement("Legendary knight")], [{task: "Mana control", requirement: 1000}, {task: "Battle tactics", requirement: 1000}, {task: "Holy knight", requirement: 10}]),
+    //Combat Operations 
+    "Recon": new TaskRequirement([getTaskElement("Recon")], [{task: "Strength", requirement: 5}]),
+    "Combat": new TaskRequirement([getTaskElement("Combat")], [{task: "Strength", requirement: 20}, {task: "Recon", requirement: 10}]),
+    "Advanced Weapons": new TaskRequirement([getTaskElement("Advanced Weapons")], [{task: "Battle tactics", requirement: 40}, {task: "Combat", requirement: 10}]),
+    "Tactics": new TaskRequirement([getTaskElement("Tactics")], [{task: "Strength", requirement: 100}, {task: "Advanced Weapons", requirement: 10}]),
+    "Hardened Systems": new TaskRequirement([getTaskElement("Hardened Systems")], [{task: "Battle tactics", requirement: 150}, {task: "Tactics", requirement: 10}]),
+    "Quantum Combat": new TaskRequirement([getTaskElement("Quantum Combat")], [{task: "Strength", requirement: 300}, {task: "Hardened Systems", requirement: 10}]),
+    "Reality Weapons": new TaskRequirement([getTaskElement("Reality Weapons")], [{task: "Mana control", requirement: 500}, {task: "Quantum Combat", requirement: 10}]),
+    "Supremacy Tech": new TaskRequirement([getTaskElement("Supremacy Tech")], [{task: "Mana control", requirement: 1000}, {task: "Battle tactics", requirement: 1000}, {task: "Reality Weapons", requirement: 10}]),
 
-    //The Arcane Association
-    "Student": new TaskRequirement([getTaskElement("Student")], [{task: "Concentration", requirement: 200}, {task: "Meditation", requirement: 200}]),
-    "Apprentice mage": new TaskRequirement([getTaskElement("Apprentice mage")], [{task: "Mana control", requirement: 400}, {task: "Student", requirement: 10}]),
-    "Mage": new TaskRequirement([getTaskElement("Mage")], [{task: "Mana control", requirement: 700}, {task: "Apprentice mage", requirement: 10}]),
-    "Wizard": new TaskRequirement([getTaskElement("Wizard")], [{task: "Mana control", requirement: 1000}, {task: "Mage", requirement: 10}]),
-    "Master wizard": new TaskRequirement([getTaskElement("Master wizard")], [{task: "Mana control", requirement: 1500}, {task: "Wizard", requirement: 10}]),
-    "Chairman": new TaskRequirement([getTaskElement("Chairman")], [{task: "Mana control", requirement: 2000}, {task: "Master wizard", requirement: 10}]),
+    //Advanced Systems
+    "Neural": new TaskRequirement([getTaskElement("Neural")], [{task: "Concentration", requirement: 200}, {task: "Meditation", requirement: 200}]),
+    "Quantum Basics": new TaskRequirement([getTaskElement("Quantum Basics")], [{task: "Mana control", requirement: 400}, {task: "Neural", requirement: 10}]),
+    "Quantum": new TaskRequirement([getTaskElement("Quantum")], [{task: "Mana control", requirement: 700}, {task: "Quantum Basics", requirement: 10}]),
+    "Dimensions": new TaskRequirement([getTaskElement("Dimensions")], [{task: "Mana control", requirement: 1000}, {task: "Quantum", requirement: 10}]),
+    "Reality Tech": new TaskRequirement([getTaskElement("Reality Tech")], [{task: "Mana control", requirement: 1500}, {task: "Dimensions", requirement: 10}]),
+    "Unified": new TaskRequirement([getTaskElement("Unified")], [{task: "Mana control", requirement: 2000}, {task: "Reality Tech", requirement: 10}]),
 
     //Fundamentals
     "Concentration": new TaskRequirement([getTaskElement("Concentration")], []),
@@ -1137,9 +1182,9 @@ gameData.requirements = {
 
     //Magic
     "Mana control": new TaskRequirement([getTaskElement("Mana control")], [{task: "Concentration", requirement: 200}, {task: "Meditation", requirement: 200}]),
-    "Immortality": new TaskRequirement([getTaskElement("Immortality")], [{task: "Apprentice mage", requirement: 10}]),
-    "Time warping": new TaskRequirement([getTaskElement("Time warping")], [{task: "Mage", requirement: 10}]),
-    "Super immortality": new TaskRequirement([getTaskElement("Super immortality")], [{task: "Chairman", requirement: 1000}]),
+    "Immortality": new TaskRequirement([getTaskElement("Immortality")], [{task: "Quantum Basics", requirement: 10}]),
+    "Time warping": new TaskRequirement([getTaskElement("Time warping")], [{task: "Quantum", requirement: 10}]),
+    "Super immortality": new TaskRequirement([getTaskElement("Super immortality")], [{task: "Unified", requirement: 1000}]),
 
     //Dark magic
     "Dark influence": new EvilRequirement([getTaskElement("Dark influence")], [{requirement: 1}]),
