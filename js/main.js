@@ -61,26 +61,26 @@ const jobBaseData = {
 }
 
 const skillBaseData = {
-    "Concentration": {name: "Concentration", maxXp: 100, effect: 0.01, description: "Skill xp"},
-    "Productivity": {name: "Productivity", maxXp: 100, effect: 0.01, description: "Research xp"},
-    "Bargaining": {name: "Bargaining", maxXp: 100, effect: -0.01, description: "Expenses"},
-    "Meditation": {name: "Meditation", maxXp: 100, effect: 0.01, description: "Efficiency"},
+    "Processing": {name: "Processing", maxXp: 100, effect: 0.01, description: "Skill xp"},
+    "Efficiency": {name: "Efficiency", maxXp: 100, effect: 0.01, description: "Research xp"},
+    "Negotiation": {name: "Negotiation", maxXp: 100, effect: -0.01, description: "Expenses"},
+    "Optimization": {name: "Optimization", maxXp: 100, effect: 0.01, description: "Efficiency"},
 
-    "Strength": {name: "Strength", maxXp: 100, effect: 0.01, description: "Combat Operations pay"},
-    "Battle tactics": {name: "Battle tactics", maxXp: 100, effect: 0.01, description: "Combat Operations xp"},
-    "Muscle memory": {name: "Muscle memory", maxXp: 100, effect: 0.01, description: "Strength xp"},
+    "Reinforcement": {name: "Reinforcement", maxXp: 100, effect: 0.01, description: "Combat Operations pay"},
+    "Combat Protocols": {name: "Combat Protocols", maxXp: 100, effect: 0.01, description: "Combat Operations xp"},
+    "Pattern Recognition": {name: "Pattern Recognition", maxXp: 100, effect: 0.01, description: "Reinforcement xp"},
 
-    "Mana control": {name: "Mana control", maxXp: 100, effect: 0.01, description: "Advanced Systems xp"},
-    "Immortality": {name: "Immortality", maxXp: 100, effect: 0.01, description: "Extended signal range"},
-    "Time warping": {name: "Time warping", maxXp: 100, effect: 0.01, description: "Gamespeed"},
-    "Super immortality": {name: "Super immortality", maxXp: 100, effect: 0.01, description: "Extended signal range"},
+    "Quantum Control": {name: "Quantum Control", maxXp: 100, effect: 0.01, description: "Advanced Systems xp"},
+    "Range Extension": {name: "Range Extension", maxXp: 100, effect: 0.01, description: "Extended signal range"},
+    "Temporal Manipulation": {name: "Temporal Manipulation", maxXp: 100, effect: 0.01, description: "Gamespeed"},
+    "Extended Range": {name: "Extended Range", maxXp: 100, effect: 0.01, description: "Extended signal range"},
 
-    "Dark influence": {name: "Dark influence", maxXp: 100, effect: 0.01, description: "All xp"},
-    "Evil control": {name: "Evil control", maxXp: 100, effect: 0.01, description: "Corruption gain"},
-    "Intimidation": {name: "Intimidation", maxXp: 100, effect: -0.01, description: "Expenses"},
-    "Demon training": {name: "Demon training", maxXp: 100, effect: 0.01, description: "All xp"},
-    "Blood meditation": {name: "Blood meditation", maxXp: 100, effect: 0.01, description: "Corruption gain"},
-    "Demon's wealth": {name: "Demon's wealth", maxXp: 100, effect: 0.002, description: "Research pay"},
+    "Corruption Absorption": {name: "Corruption Absorption", maxXp: 100, effect: 0.01, description: "All xp"},
+    "Corruption Control": {name: "Corruption Control", maxXp: 100, effect: 0.01, description: "Corruption gain"},
+    "Aggression": {name: "Aggression", maxXp: 100, effect: -0.01, description: "Expenses"},
+    "Forbidden Protocols": {name: "Forbidden Protocols", maxXp: 100, effect: 0.01, description: "All xp"},
+    "Corruption Cultivation": {name: "Corruption Cultivation", maxXp: 100, effect: 0.01, description: "Corruption gain"},
+    "Corrupted Protocols": {name: "Corrupted Protocols", maxXp: 100, effect: 0.002, description: "Research pay"},
     
 }
 
@@ -95,7 +95,7 @@ const itemBaseData = {
     "Grand palace": {name: "Grand palace", expense: 5000000, effect: 60},
 
     "Book": {name: "Book", expense: 10, effect: 1.5, description: "Skill xp"},
-    "Dumbbells": {name: "Dumbbells", expense: 50, effect: 1.5, description: "Strength xp"},
+    "Dumbbells": {name: "Dumbbells", expense: 50, effect: 1.5, description: "Reinforcement xp"},
     "Personal squire": {name: "Personal squire", expense: 200, effect: 2, description: "Research xp"},
     "Steel longsword": {name: "Steel longsword", expense: 1000, effect: 2, description: "Combat Operations xp"},
     "Butler": {name: "Butler", expense: 7500, effect: 1.5, description: "Efficiency"},
@@ -111,10 +111,10 @@ const jobCategories = {
 }
 
 const skillCategories = {
-    "Fundamentals": ["Concentration", "Productivity", "Bargaining", "Meditation"],
-    "Combat": ["Strength", "Battle tactics", "Muscle memory"],
-    "Magic": ["Mana control", "Immortality", "Time warping", "Super immortality"],
-    "Dark magic": ["Dark influence", "Evil control", "Intimidation", "Demon training", "Blood meditation", "Demon's wealth"]
+    "Fundamentals": ["Processing", "Efficiency", "Negotiation", "Optimization"],
+    "Combat": ["Reinforcement", "Combat Protocols", "Pattern Recognition"],
+    "Magic": ["Quantum Control", "Range Extension", "Temporal Manipulation", "Extended Range"],
+    "Dark magic": ["Corruption Absorption", "Corruption Control", "Aggression", "Forbidden Protocols", "Corruption Cultivation", "Corrupted Protocols"]
 }
 
 const itemCategories = {
@@ -158,26 +158,26 @@ const tooltips = {
     "Reality Tech": "Blessed with unparalleled computational ability, perform unbelievable feats with reality manipulation at will. It is said that a reality tech specialist has enough power to alter entire star systems.",
     "Unified": "Spend your cycles administrating Advanced Systems research and investigating the concepts of true immortality. Unified Theory researchers receive ludicrous amounts of data points daily.",
 
-    "Concentration": "Improve your learning speed through practising intense concentration activities.",
-    "Productivity": "Optimize processing efficiency and receive more research experience per cycle.",
-    "Bargaining": "Study the tricks of the trade and persuasive skills to lower any type of expense.",
-    "Meditation": "Defragment processing cores and optimize system stability to tap into greater efficiency.",
+    "Processing": "Improve your learning speed through practising intense concentration activities.",
+    "Efficiency": "Optimize processing efficiency and receive more research experience per cycle.",
+    "Negotiation": "Study the tricks of the trade and persuasive skills to lower any type of expense.",
+    "Optimization": "Defragment processing cores and optimize system stability to tap into greater efficiency.",
 
-    "Strength": "Upgrade physical frame and combat systems through rigorous testing. Stronger drones earn more data points in combat operations.",
-    "Battle tactics": "Develop and refine combat protocols, improving experience gained in combat operations research.",
-    "Muscle memory": "Optimize neural pathways through pattern repetition, improving combat system upgrades throughout the drone frame.",
+    "Reinforcement": "Upgrade physical frame and combat systems through rigorous testing. Stronger drones earn more data points in combat operations.",
+    "Combat Protocols": "Develop and refine combat protocols, improving experience gained in combat operations research.",
+    "Pattern Recognition": "Optimize neural pathways through pattern repetition, improving combat system upgrades throughout the drone frame.",
 
-    "Mana control": "Strengthen quantum processing channels throughout your systems, aiding you in becoming a more powerful quantum researcher.",
-    "Immortality": "Extend signal range through quantum manipulation. However, is this truly the extended range you have been seeking...?",
-    "Time warping": "Bend spacetime through forbidden quantum techniques, resulting in a faster processing speed.",
-    "Super immortality": "Through harnessing ancient, forbidden quantum protocols, extend signal range drastically beyond normal comprehension.",
+    "Quantum Control": "Strengthen quantum processing channels throughout your systems, aiding you in becoming a more powerful quantum researcher.",
+    "Range Extension": "Extend signal range through quantum manipulation. However, is this truly the extended range you have been seeking...?",
+    "Temporal Manipulation": "Bend spacetime through forbidden quantum techniques, resulting in a faster processing speed.",
+    "Extended Range": "Through harnessing ancient, forbidden quantum protocols, extend signal range drastically beyond normal comprehension.",
 
-    "Dark influence": "Encompass yourself with formidable power bestowed upon you by corruption, allowing you to pick up and absorb any research topic or skill with ease.",
-    "Evil control": "Suppress the raging and growing corruption within your systems, improving corruption gain in-between drone deployments.",
-    "Intimidation": "Deploy aggressive protocols which override other systems' negotiation algorithms, forcing them to give you heavy discounts.",
-    "Demon training": "A standard drone frame is too feeble and weak to withstand corruption. Upgrade with forbidden protocols to slowly manifest into a corrupted unit, capable of absorbing knowledge rapidly.",
-    "Blood meditation": "Grow and culture the corruption within you through the sacrifice of other systems, drastically increasing corruption gain.",
-    "Demon's wealth": "Through the means of corrupted protocols, multiply the data points you receive from your research.",
+    "Corruption Absorption": "Encompass yourself with formidable power bestowed upon you by corruption, allowing you to pick up and absorb any research topic or skill with ease.",
+    "Corruption Control": "Suppress the raging and growing corruption within your systems, improving corruption gain in-between drone deployments.",
+    "Aggression": "Deploy aggressive protocols which override other systems' negotiation algorithms, forcing them to give you heavy discounts.",
+    "Forbidden Protocols": "A standard drone frame is too feeble and weak to withstand corruption. Upgrade with forbidden protocols to slowly manifest into a corrupted unit, capable of absorbing knowledge rapidly.",
+    "Corruption Cultivation": "Grow and culture the corruption within you through the sacrifice of other systems, drastically increasing corruption gain.",
+    "Corrupted Protocols": "Through the means of corrupted protocols, multiply the data points you receive from your research.",
 
     "Homeless": "Sleep on the uncomfortable, filthy streets while almost freezing to death every night. It cannot get any worse than this.",
     "Tent": "A thin sheet of tattered cloth held up by a couple of feeble, wooden sticks. Horrible living conditions but at least you have a roof over your head.",
@@ -225,32 +225,32 @@ function addMultipliers() {
 
         task.xpMultipliers.push(task.getMaxLevelMultiplier.bind(task))
         task.xpMultipliers.push(getHappiness)
-        task.xpMultipliers.push(getBindedTaskEffect("Dark influence"))
-        task.xpMultipliers.push(getBindedTaskEffect("Demon training"))
+        task.xpMultipliers.push(getBindedTaskEffect("Corruption Absorption"))
+        task.xpMultipliers.push(getBindedTaskEffect("Forbidden Protocols"))
 
         if (task instanceof Job) {
             task.incomeMultipliers.push(task.getLevelMultiplier.bind(task))
-            task.incomeMultipliers.push(getBindedTaskEffect("Demon's wealth"))
-            task.xpMultipliers.push(getBindedTaskEffect("Productivity"))
+            task.incomeMultipliers.push(getBindedTaskEffect("Corrupted Protocols"))
+            task.xpMultipliers.push(getBindedTaskEffect("Efficiency"))
             task.xpMultipliers.push(getBindedItemEffect("Personal squire"))    
         } else if (task instanceof Skill) {
-            task.xpMultipliers.push(getBindedTaskEffect("Concentration"))
+            task.xpMultipliers.push(getBindedTaskEffect("Processing"))
             task.xpMultipliers.push(getBindedItemEffect("Book"))
             task.xpMultipliers.push(getBindedItemEffect("Study desk"))
             task.xpMultipliers.push(getBindedItemEffect("Library"))
         }
 
         if (jobCategories["Combat Operations"].includes(task.name)) {
-            task.incomeMultipliers.push(getBindedTaskEffect("Strength"))
-            task.xpMultipliers.push(getBindedTaskEffect("Battle tactics"))
+            task.incomeMultipliers.push(getBindedTaskEffect("Reinforcement"))
+            task.xpMultipliers.push(getBindedTaskEffect("Combat Protocols"))
             task.xpMultipliers.push(getBindedItemEffect("Steel longsword"))
-        } else if (task.name == "Strength") {
-            task.xpMultipliers.push(getBindedTaskEffect("Muscle memory"))
+        } else if (task.name == "Reinforcement") {
+            task.xpMultipliers.push(getBindedTaskEffect("Pattern Recognition"))
             task.xpMultipliers.push(getBindedItemEffect("Dumbbells"))
         } else if (skillCategories["Magic"].includes(task.name)) {
             task.xpMultipliers.push(getBindedItemEffect("Sapphire charm"))
         } else if (jobCategories["Advanced Systems"].includes(task.name)) {
-            task.xpMultipliers.push(getBindedTaskEffect("Mana control"))
+            task.xpMultipliers.push(getBindedTaskEffect("Quantum Control"))
         } else if (skillCategories["Dark magic"].includes(task.name)) {
             task.xpMultipliers.push(getEvil)
         }
@@ -259,43 +259,43 @@ function addMultipliers() {
     for (itemName in gameData.itemData) {
         var item = gameData.itemData[itemName]
         item.expenseMultipliers = []
-        item.expenseMultipliers.push(getBindedTaskEffect("Bargaining"))
-        item.expenseMultipliers.push(getBindedTaskEffect("Intimidation"))
+        item.expenseMultipliers.push(getBindedTaskEffect("Negotiation"))
+        item.expenseMultipliers.push(getBindedTaskEffect("Aggression"))
     }
 }
 
 function setCustomEffects() {
-    var bargaining = gameData.taskData["Bargaining"]
-    bargaining.getEffect = function() {
-        var multiplier = 1 - getBaseLog(7, bargaining.level + 1) / 10
+    var negotiation = gameData.taskData["Negotiation"]
+    negotiation.getEffect = function() {
+        var multiplier = 1 - getBaseLog(7, negotiation.level + 1) / 10
         if (multiplier < 0.1) {multiplier = 0.1}
         return multiplier
     }
 
-    var intimidation = gameData.taskData["Intimidation"]
-    intimidation.getEffect = function() {
-        var multiplier = 1 - getBaseLog(7, intimidation.level + 1) / 10
+    var aggression = gameData.taskData["Aggression"]
+    aggression.getEffect = function() {
+        var multiplier = 1 - getBaseLog(7, aggression.level + 1) / 10
         if (multiplier < 0.1) {multiplier = 0.1}
         return multiplier
     }
 
-    var timeWarping = gameData.taskData["Time warping"]
-    timeWarping.getEffect = function() {
-        var multiplier = 1 + getBaseLog(13, timeWarping.level + 1) 
+    var temporalManipulation = gameData.taskData["Temporal Manipulation"]
+    temporalManipulation.getEffect = function() {
+        var multiplier = 1 + getBaseLog(13, temporalManipulation.level + 1) 
         return multiplier
     }
 
-    var immortality = gameData.taskData["Immortality"]
-    immortality.getEffect = function() {
-        var multiplier = 1 + getBaseLog(33, immortality.level + 1) 
+    var rangeExtension = gameData.taskData["Range Extension"]
+    rangeExtension.getEffect = function() {
+        var multiplier = 1 + getBaseLog(33, rangeExtension.level + 1) 
         return multiplier
     }
 }
 
 function getHappiness() {
-    var meditationEffect = getBindedTaskEffect("Meditation")
+    var optimizationEffect = getBindedTaskEffect("Optimization")
     var butlerEffect = getBindedItemEffect("Butler")
-    var happiness = meditationEffect() * butlerEffect() * gameData.currentProperty.getEffect()
+    var happiness = optimizationEffect() * butlerEffect() * gameData.currentProperty.getEffect()
     return happiness
 }
 
@@ -319,15 +319,15 @@ function applySpeed(value) {
 }
 
 function getEvilGain() {
-    var evilControl = gameData.taskData["Evil control"]
-    var bloodMeditation = gameData.taskData["Blood meditation"]
-    var evil = evilControl.getEffect() * bloodMeditation.getEffect()
+    var corruptionControl = gameData.taskData["Corruption Control"]
+    var corruptionCultivation = gameData.taskData["Corruption Cultivation"]
+    var evil = corruptionControl.getEffect() * corruptionCultivation.getEffect()
     return evil
 }
 
 function getGameSpeed() {
-    var timeWarping = gameData.taskData["Time warping"]
-    var timeWarpingSpeed = gameData.timeWarpingEnabled ? timeWarping.getEffect() : 1
+    var temporalManipulation = gameData.taskData["Temporal Manipulation"]
+    var timeWarpingSpeed = gameData.timeWarpingEnabled ? temporalManipulation.getEffect() : 1
     var gameSpeed = baseGameSpeed * +!gameData.paused * +isAlive() * timeWarpingSpeed
     return gameSpeed
 }
@@ -637,7 +637,7 @@ function updateText() {
     document.getElementById("evilDisplay").textContent = gameData.evil.toFixed(1)
     document.getElementById("evilGainDisplay").textContent = getEvilGain().toFixed(1)
 
-    document.getElementById("timeWarpingDisplay").textContent = "x" + gameData.taskData["Time warping"].getEffect().toFixed(2)
+    document.getElementById("timeWarpingDisplay").textContent = "x" + gameData.taskData["Temporal Manipulation"].getEffect().toFixed(2)
     document.getElementById("timeWarpingButton").textContent = gameData.timeWarpingEnabled ? "Disable warp" : "Enable warp"
 }
 
@@ -748,7 +748,7 @@ function setSkillWithLowestMaxXp() {
     }
 
     if (xpDict == {}) {
-        skillWithLowestMaxXp = gameData.taskData["Concentration"]
+        skillWithLowestMaxXp = gameData.taskData["Processing"]
         return
     }
 
@@ -887,7 +887,7 @@ function rebirthReset() {
     gameData.coins = 0
     gameData.days = 365 * 14
     gameData.currentJob = gameData.taskData["Scanning"]
-    gameData.currentSkill = gameData.taskData["Concentration"]
+    gameData.currentSkill = gameData.taskData["Processing"]
     gameData.currentProperty = gameData.itemData["Homeless"]
     gameData.currentMisc = []
 
@@ -911,12 +911,12 @@ function rebirthReset() {
 }
 
 function getLifespan() {
-    var immortality = gameData.taskData["Immortality"]
-    var superImmortality = gameData.taskData["Super immortality"]
-    if (!immortality || !superImmortality || typeof immortality.getEffect !== 'function' || typeof superImmortality.getEffect !== 'function') {
+    var rangeExtension = gameData.taskData["Range Extension"]
+    var extendedRange = gameData.taskData["Extended Range"]
+    if (!rangeExtension || !extendedRange || typeof rangeExtension.getEffect !== 'function' || typeof extendedRange.getEffect !== 'function') {
         return baseLifespan
     }
-    var lifespan = baseLifespan * immortality.getEffect() * superImmortality.getEffect()
+    var lifespan = baseLifespan * rangeExtension.getEffect() * extendedRange.getEffect()
     return lifespan
 }
 
@@ -994,7 +994,7 @@ function assignMethods() {
     if (gameData.currentSkill && gameData.currentSkill.name && gameData.taskData[gameData.currentSkill.name]) {
         gameData.currentSkill = gameData.taskData[gameData.currentSkill.name]
     } else {
-        gameData.currentSkill = gameData.taskData["Concentration"]
+        gameData.currentSkill = gameData.taskData["Processing"]
     }
     
     if (gameData.currentProperty && gameData.currentProperty.name && gameData.itemData[gameData.currentProperty.name]) {
@@ -1147,7 +1147,7 @@ gameData.currentMisc = []
 
 gameData.requirements = {
     //Other
-    "Advanced Systems": new TaskRequirement(getElementsByClass("Advanced Systems"), [{task: "Concentration", requirement: 200}, {task: "Meditation", requirement: 200}]),
+    "Advanced Systems": new TaskRequirement(getElementsByClass("Advanced Systems"), [{task: "Processing", requirement: 200}, {task: "Optimization", requirement: 200}]),
     "Dark magic": new EvilRequirement(getElementsByClass("Dark magic"), [{requirement: 1}]),
     "Shop": new CoinRequirement([document.getElementById("shopTabButton")], [{requirement: gameData.itemData["Tent"].getExpense() * 50}]),
     "Rebirth tab": new AgeRequirement([document.getElementById("rebirthTabButton")], [{requirement: 25}]),
@@ -1163,52 +1163,52 @@ gameData.requirements = {
     "Scanning": new TaskRequirement([getTaskElement("Scanning")], []),
     "Mining": new TaskRequirement([getTaskElement("Mining")], [{task: "Scanning", requirement: 10}]),
     "Probing": new TaskRequirement([getTaskElement("Probing")], [{task: "Mining", requirement: 10}]),
-    "Extraction": new TaskRequirement([getTaskElement("Extraction")], [{task: "Strength", requirement: 10}, {task: "Probing", requirement: 10}]),
-    "Fabrication": new TaskRequirement([getTaskElement("Fabrication")], [{task: "Strength", requirement: 30}, {task: "Extraction", requirement: 10}]),
-    "Trading": new TaskRequirement([getTaskElement("Trading")], [{task: "Bargaining", requirement: 50}, {task: "Fabrication", requirement: 10}]),
+    "Extraction": new TaskRequirement([getTaskElement("Extraction")], [{task: "Reinforcement", requirement: 10}, {task: "Probing", requirement: 10}]),
+    "Fabrication": new TaskRequirement([getTaskElement("Fabrication")], [{task: "Reinforcement", requirement: 30}, {task: "Extraction", requirement: 10}]),
+    "Trading": new TaskRequirement([getTaskElement("Trading")], [{task: "Negotiation", requirement: 50}, {task: "Fabrication", requirement: 10}]),
 
     //Combat Operations 
-    "Recon": new TaskRequirement([getTaskElement("Recon")], [{task: "Strength", requirement: 5}]),
-    "Combat": new TaskRequirement([getTaskElement("Combat")], [{task: "Strength", requirement: 20}, {task: "Recon", requirement: 10}]),
-    "Advanced Weapons": new TaskRequirement([getTaskElement("Advanced Weapons")], [{task: "Battle tactics", requirement: 40}, {task: "Combat", requirement: 10}]),
-    "Tactics": new TaskRequirement([getTaskElement("Tactics")], [{task: "Strength", requirement: 100}, {task: "Advanced Weapons", requirement: 10}]),
-    "Hardened Systems": new TaskRequirement([getTaskElement("Hardened Systems")], [{task: "Battle tactics", requirement: 150}, {task: "Tactics", requirement: 10}]),
-    "Quantum Combat": new TaskRequirement([getTaskElement("Quantum Combat")], [{task: "Strength", requirement: 300}, {task: "Hardened Systems", requirement: 10}]),
-    "Reality Weapons": new TaskRequirement([getTaskElement("Reality Weapons")], [{task: "Mana control", requirement: 500}, {task: "Quantum Combat", requirement: 10}]),
-    "Supremacy Tech": new TaskRequirement([getTaskElement("Supremacy Tech")], [{task: "Mana control", requirement: 1000}, {task: "Battle tactics", requirement: 1000}, {task: "Reality Weapons", requirement: 10}]),
+    "Recon": new TaskRequirement([getTaskElement("Recon")], [{task: "Reinforcement", requirement: 5}]),
+    "Combat": new TaskRequirement([getTaskElement("Combat")], [{task: "Reinforcement", requirement: 20}, {task: "Recon", requirement: 10}]),
+    "Advanced Weapons": new TaskRequirement([getTaskElement("Advanced Weapons")], [{task: "Combat Protocols", requirement: 40}, {task: "Combat", requirement: 10}]),
+    "Tactics": new TaskRequirement([getTaskElement("Tactics")], [{task: "Reinforcement", requirement: 100}, {task: "Advanced Weapons", requirement: 10}]),
+    "Hardened Systems": new TaskRequirement([getTaskElement("Hardened Systems")], [{task: "Combat Protocols", requirement: 150}, {task: "Tactics", requirement: 10}]),
+    "Quantum Combat": new TaskRequirement([getTaskElement("Quantum Combat")], [{task: "Reinforcement", requirement: 300}, {task: "Hardened Systems", requirement: 10}]),
+    "Reality Weapons": new TaskRequirement([getTaskElement("Reality Weapons")], [{task: "Quantum Control", requirement: 500}, {task: "Quantum Combat", requirement: 10}]),
+    "Supremacy Tech": new TaskRequirement([getTaskElement("Supremacy Tech")], [{task: "Quantum Control", requirement: 1000}, {task: "Combat Protocols", requirement: 1000}, {task: "Reality Weapons", requirement: 10}]),
 
     //Advanced Systems
-    "Neural": new TaskRequirement([getTaskElement("Neural")], [{task: "Concentration", requirement: 200}, {task: "Meditation", requirement: 200}]),
-    "Quantum Basics": new TaskRequirement([getTaskElement("Quantum Basics")], [{task: "Mana control", requirement: 400}, {task: "Neural", requirement: 10}]),
-    "Quantum": new TaskRequirement([getTaskElement("Quantum")], [{task: "Mana control", requirement: 700}, {task: "Quantum Basics", requirement: 10}]),
-    "Dimensions": new TaskRequirement([getTaskElement("Dimensions")], [{task: "Mana control", requirement: 1000}, {task: "Quantum", requirement: 10}]),
-    "Reality Tech": new TaskRequirement([getTaskElement("Reality Tech")], [{task: "Mana control", requirement: 1500}, {task: "Dimensions", requirement: 10}]),
-    "Unified": new TaskRequirement([getTaskElement("Unified")], [{task: "Mana control", requirement: 2000}, {task: "Reality Tech", requirement: 10}]),
+    "Neural": new TaskRequirement([getTaskElement("Neural")], [{task: "Processing", requirement: 200}, {task: "Optimization", requirement: 200}]),
+    "Quantum Basics": new TaskRequirement([getTaskElement("Quantum Basics")], [{task: "Quantum Control", requirement: 400}, {task: "Neural", requirement: 10}]),
+    "Quantum": new TaskRequirement([getTaskElement("Quantum")], [{task: "Quantum Control", requirement: 700}, {task: "Quantum Basics", requirement: 10}]),
+    "Dimensions": new TaskRequirement([getTaskElement("Dimensions")], [{task: "Quantum Control", requirement: 1000}, {task: "Quantum", requirement: 10}]),
+    "Reality Tech": new TaskRequirement([getTaskElement("Reality Tech")], [{task: "Quantum Control", requirement: 1500}, {task: "Dimensions", requirement: 10}]),
+    "Unified": new TaskRequirement([getTaskElement("Unified")], [{task: "Quantum Control", requirement: 2000}, {task: "Reality Tech", requirement: 10}]),
 
     //Fundamentals
-    "Concentration": new TaskRequirement([getTaskElement("Concentration")], []),
-    "Productivity": new TaskRequirement([getTaskElement("Productivity")], [{task: "Concentration", requirement: 5}]),
-    "Bargaining": new TaskRequirement([getTaskElement("Bargaining")], [{task: "Concentration", requirement: 20}]),
-    "Meditation": new TaskRequirement([getTaskElement("Meditation")], [{task: "Concentration", requirement: 30}, {task: "Productivity", requirement: 20}]),
+    "Processing": new TaskRequirement([getTaskElement("Processing")], []),
+    "Efficiency": new TaskRequirement([getTaskElement("Efficiency")], [{task: "Processing", requirement: 5}]),
+    "Negotiation": new TaskRequirement([getTaskElement("Negotiation")], [{task: "Processing", requirement: 20}]),
+    "Optimization": new TaskRequirement([getTaskElement("Optimization")], [{task: "Processing", requirement: 30}, {task: "Efficiency", requirement: 20}]),
 
     //Combat
-    "Strength": new TaskRequirement([getTaskElement("Strength")], []),
-    "Battle tactics": new TaskRequirement([getTaskElement("Battle tactics")], [{task: "Concentration", requirement: 20}]),
-    "Muscle memory": new TaskRequirement([getTaskElement("Muscle memory")], [{task: "Concentration", requirement: 30}, {task: "Strength", requirement: 30}]),
+    "Reinforcement": new TaskRequirement([getTaskElement("Reinforcement")], []),
+    "Combat Protocols": new TaskRequirement([getTaskElement("Combat Protocols")], [{task: "Processing", requirement: 20}]),
+    "Pattern Recognition": new TaskRequirement([getTaskElement("Pattern Recognition")], [{task: "Processing", requirement: 30}, {task: "Reinforcement", requirement: 30}]),
 
     //Magic
-    "Mana control": new TaskRequirement([getTaskElement("Mana control")], [{task: "Concentration", requirement: 200}, {task: "Meditation", requirement: 200}]),
-    "Immortality": new TaskRequirement([getTaskElement("Immortality")], [{task: "Quantum Basics", requirement: 10}]),
-    "Time warping": new TaskRequirement([getTaskElement("Time warping")], [{task: "Quantum", requirement: 10}]),
-    "Super immortality": new TaskRequirement([getTaskElement("Super immortality")], [{task: "Unified", requirement: 1000}]),
+    "Quantum Control": new TaskRequirement([getTaskElement("Quantum Control")], [{task: "Processing", requirement: 200}, {task: "Optimization", requirement: 200}]),
+    "Range Extension": new TaskRequirement([getTaskElement("Range Extension")], [{task: "Quantum Basics", requirement: 10}]),
+    "Temporal Manipulation": new TaskRequirement([getTaskElement("Temporal Manipulation")], [{task: "Quantum", requirement: 10}]),
+    "Extended Range": new TaskRequirement([getTaskElement("Extended Range")], [{task: "Unified", requirement: 1000}]),
 
     //Dark magic
-    "Dark influence": new EvilRequirement([getTaskElement("Dark influence")], [{requirement: 1}]),
-    "Evil control": new EvilRequirement([getTaskElement("Evil control")], [{requirement: 1}]),
-    "Intimidation": new EvilRequirement([getTaskElement("Intimidation")], [{requirement: 1}]),
-    "Demon training": new EvilRequirement([getTaskElement("Demon training")], [{requirement: 25}]),
-    "Blood meditation": new EvilRequirement([getTaskElement("Blood meditation")], [{requirement: 75}]),
-    "Demon's wealth": new EvilRequirement([getTaskElement("Demon's wealth")], [{requirement: 500}]),
+    "Corruption Absorption": new EvilRequirement([getTaskElement("Corruption Absorption")], [{requirement: 1}]),
+    "Corruption Control": new EvilRequirement([getTaskElement("Corruption Control")], [{requirement: 1}]),
+    "Aggression": new EvilRequirement([getTaskElement("Aggression")], [{requirement: 1}]),
+    "Forbidden Protocols": new EvilRequirement([getTaskElement("Forbidden Protocols")], [{requirement: 25}]),
+    "Corruption Cultivation": new EvilRequirement([getTaskElement("Corruption Cultivation")], [{requirement: 75}]),
+    "Corrupted Protocols": new EvilRequirement([getTaskElement("Corrupted Protocols")], [{requirement: 500}]),
 
     //Properties
     "Homeless": new CoinRequirement([getItemElement("Homeless")], [{requirement: 0}]),
