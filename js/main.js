@@ -85,23 +85,23 @@ const skillBaseData = {
 }
 
 const itemBaseData = {
-    "Homeless": {name: "Homeless", expense: 0, effect: 1},
-    "Tent": {name: "Tent", expense: 15, effect: 1.4},
-    "Wooden hut": {name: "Wooden hut", expense: 100, effect: 2},
-    "Cottage": {name: "Cottage", expense: 750, effect: 3.5},
-    "House": {name: "House", expense: 3000, effect: 6},
-    "Large house": {name: "Large house", expense: 25000, effect: 12},
-    "Small palace": {name: "Small palace", expense: 300000, effect: 25},
-    "Grand palace": {name: "Grand palace", expense: 5000000, effect: 60},
+    "Pod": {name: "Pod", expense: 0, effect: 1},
+    "Scout": {name: "Scout", expense: 15, effect: 1.4},
+    "Scout Pod": {name: "Scout Pod", expense: 100, effect: 2},
+    "Bay": {name: "Bay", expense: 750, effect: 3.5},
+    "Hold": {name: "Hold", expense: 3000, effect: 6},
+    "Cargo Bay": {name: "Cargo Bay", expense: 25000, effect: 12},
+    "Command Pod": {name: "Command Pod", expense: 300000, effect: 25},
+    "Command Bay": {name: "Command Bay", expense: 5000000, effect: 60},
 
-    "Book": {name: "Book", expense: 10, effect: 1.5, description: "Skill xp"},
-    "Dumbbells": {name: "Dumbbells", expense: 50, effect: 1.5, description: "Reinforcement xp"},
-    "Personal squire": {name: "Personal squire", expense: 200, effect: 2, description: "Research xp"},
-    "Steel longsword": {name: "Steel longsword", expense: 1000, effect: 2, description: "Combat Operations xp"},
-    "Butler": {name: "Butler", expense: 7500, effect: 1.5, description: "Efficiency"},
-    "Sapphire charm": {name: "Sapphire charm", expense: 50000, effect: 3, description: "Advanced Systems xp"},
-    "Study desk": {name: "Study desk", expense: 1000000, effect: 2, description: "Skill xp"},
-    "Library": {name: "Library", expense: 10000000, effect: 1.5, description: "Skill xp"},
+    "Scanner": {name: "Scanner", expense: 10, effect: 1.5, description: "Skill xp"},
+    "Thruster": {name: "Thruster", expense: 50, effect: 1.5, description: "Reinforcement xp"},
+    "Auto Pilot": {name: "Auto Pilot", expense: 200, effect: 2, description: "Research xp"},
+    "Plasma Cannon": {name: "Plasma Cannon", expense: 1000, effect: 2, description: "Combat Operations xp"},
+    "Core": {name: "Core", expense: 7500, effect: 1.5, description: "Efficiency"},
+    "Quantum Core": {name: "Quantum Core", expense: 50000, effect: 3, description: "Advanced Systems xp"},
+    "Nav Computer": {name: "Nav Computer", expense: 1000000, effect: 2, description: "Skill xp"},
+    "Mainframe": {name: "Mainframe", expense: 10000000, effect: 1.5, description: "Skill xp"},
 }
 
 const jobCategories = {
@@ -118,8 +118,8 @@ const skillCategories = {
 }
 
 const itemCategories = {
-    "Properties": ["Homeless", "Tent", "Wooden hut", "Cottage", "House", "Large house", "Small palace", "Grand palace"],
-    "Misc": ["Book", "Dumbbells", "Personal squire", "Steel longsword", "Butler", "Sapphire charm", "Study desk", "Library"]
+    "Properties": ["Pod", "Scout", "Scout Pod", "Bay", "Hold", "Cargo Bay", "Command Pod", "Command Bay"],
+    "Misc": ["Scanner", "Thruster", "Auto Pilot", "Plasma Cannon", "Core", "Quantum Core", "Nav Computer", "Mainframe"]
 }
 
 const headerRowColors = {
@@ -179,23 +179,23 @@ const tooltips = {
     "Corruption Cultivation": "Grow and culture the corruption within you through the sacrifice of other systems, drastically increasing corruption gain.",
     "Corrupted Protocols": "Through the means of corrupted protocols, multiply the data points you receive from your research.",
 
-    "Homeless": "Sleep on the uncomfortable, filthy streets while almost freezing to death every night. It cannot get any worse than this.",
-    "Tent": "A thin sheet of tattered cloth held up by a couple of feeble, wooden sticks. Horrible living conditions but at least you have a roof over your head.",
-    "Wooden hut": "Shabby logs and dirty hay glued together with horse manure. Much more sturdy than a tent, however, the stench isn't very pleasant.",
-    "Cottage": "Structured with a timber frame and a thatched roof. Provides decent living conditions for a fair price.",
-    "House": "A building formed from stone bricks and sturdy timber, which contains a few rooms. Although quite expensive, it is a comfortable abode.",
-    "Large house": "Much larger than a regular house, which boasts even more rooms and multiple floors. The building is quite spacious but comes with a hefty price tag.",
-    "Small palace": "A very rich and meticulously built structure rimmed with fine metals such as silver. Extremely high expenses to maintain for a lavish lifestyle.",
-    "Grand palace": "A grand residence completely composed of gold and silver. Provides the utmost luxurious and comfortable living conditions possible for a ludicrous price.",
+    "Pod": "A basic drone pod with minimal functionality. Provides the bare minimum for operation.",
+    "Scout": "A small scout drone with basic sensors. Lightweight and mobile but limited capabilities.",
+    "Scout Pod": "An upgraded scout pod with enhanced scanning arrays. More capable than a basic scout but still compact.",
+    "Bay": "A standard cargo bay providing decent storage capacity. Functional and reasonably priced.",
+    "Hold": "A reinforced cargo hold with multiple compartments. Spacious and well-organized for larger operations.",
+    "Cargo Bay": "A massive cargo bay with advanced loading systems. Extremely spacious but expensive to maintain.",
+    "Command Pod": "A sophisticated command pod with advanced command interfaces. Luxurious and high-tech for elite operations.",
+    "Command Bay": "The ultimate command bay with the finest systems and materials. Provides the most luxurious and advanced command center possible.",
 
-    "Book": "A place to write down all your thoughts and discoveries, allowing you to learn a lot more quickly.",
-    "Dumbbells": "Heavy tools used in strenuous exercise to toughen up and accumulate strength even faster than before. ",
-    "Personal squire": "Assists you in completing day to day activities, giving you more time to be productive at work.",
-    "Steel longsword": "A fine blade used to slay enemies even quicker in combat and therefore gain more experience.",
-    "Butler": "Keeps your household clean at all times and also prepares three delicious meals per day, leaving you in a happier, stress-free mood.",
-    "Sapphire charm": "Embedded with a rare sapphire, this charm activates more mana channels within your body, providing a much easier time learning magic.",
-    "Study desk": "A dedicated area which provides many fine stationary and equipment designed for furthering your progress in research.",
-    "Library": "Stores a collection of books, each containing vast amounts of information from basic life skills to complex magic spells.",
+    "Scanner": "A sensor array that analyzes and records data, allowing you to learn software systems more quickly.",
+    "Thruster": "High-powered propulsion systems used to enhance movement and accumulate reinforcement capabilities faster.",
+    "Auto Pilot": "An automated navigation system that assists with routine operations, giving you more time for research activities.",
+    "Plasma Cannon": "Advanced weapon systems used to eliminate threats even quicker in combat and therefore gain more experience.",
+    "Core": "An AI processing core that manages operations at all times and optimizes workflows, leaving you with better efficiency and reduced system load.",
+    "Quantum Core": "Embedded with quantum processors, this core activates advanced processing channels within your systems, providing a much easier time learning advanced software.",
+    "Nav Computer": "A dedicated navigation system which provides many computational tools and interfaces designed for furthering your progress in research.",
+    "Mainframe": "Stores a vast processing network, each node containing vast amounts of information from basic operations to complex quantum algorithms.",
 }
 
 const units = ["", "k", "M", "B", "T", "q", "Q", "Sx", "Sp", "Oc"];
@@ -232,23 +232,23 @@ function addMultipliers() {
             task.incomeMultipliers.push(task.getLevelMultiplier.bind(task))
             task.incomeMultipliers.push(getBindedTaskEffect("Corrupted Protocols"))
             task.xpMultipliers.push(getBindedTaskEffect("Efficiency"))
-            task.xpMultipliers.push(getBindedItemEffect("Personal squire"))    
+            task.xpMultipliers.push(getBindedItemEffect("Auto Pilot"))    
         } else if (task instanceof Skill) {
             task.xpMultipliers.push(getBindedTaskEffect("Processing"))
-            task.xpMultipliers.push(getBindedItemEffect("Book"))
-            task.xpMultipliers.push(getBindedItemEffect("Study desk"))
-            task.xpMultipliers.push(getBindedItemEffect("Library"))
+            task.xpMultipliers.push(getBindedItemEffect("Scanner"))
+            task.xpMultipliers.push(getBindedItemEffect("Nav Computer"))
+            task.xpMultipliers.push(getBindedItemEffect("Mainframe"))
         }
 
         if (jobCategories["Combat Operations"].includes(task.name)) {
             task.incomeMultipliers.push(getBindedTaskEffect("Reinforcement"))
             task.xpMultipliers.push(getBindedTaskEffect("Combat Protocols"))
-            task.xpMultipliers.push(getBindedItemEffect("Steel longsword"))
+            task.xpMultipliers.push(getBindedItemEffect("Plasma Cannon"))
         } else if (task.name == "Reinforcement") {
             task.xpMultipliers.push(getBindedTaskEffect("Pattern Recognition"))
-            task.xpMultipliers.push(getBindedItemEffect("Dumbbells"))
+            task.xpMultipliers.push(getBindedItemEffect("Thruster"))
         } else if (skillCategories["Magic"].includes(task.name)) {
-            task.xpMultipliers.push(getBindedItemEffect("Sapphire charm"))
+            task.xpMultipliers.push(getBindedItemEffect("Quantum Core"))
         } else if (jobCategories["Advanced Systems"].includes(task.name)) {
             task.xpMultipliers.push(getBindedTaskEffect("Quantum Control"))
         } else if (skillCategories["Dark magic"].includes(task.name)) {
@@ -294,8 +294,8 @@ function setCustomEffects() {
 
 function getHappiness() {
     var optimizationEffect = getBindedTaskEffect("Optimization")
-    var butlerEffect = getBindedItemEffect("Butler")
-    var happiness = optimizationEffect() * butlerEffect() * gameData.currentProperty.getEffect()
+    var coreEffect = getBindedItemEffect("Core")
+    var happiness = optimizationEffect() * coreEffect() * gameData.currentProperty.getEffect()
     return happiness
 }
 
@@ -351,7 +351,7 @@ function getExpense() {
 
 function goBankrupt() {
     gameData.coins = 0
-    gameData.currentProperty = gameData.itemData["Homeless"]
+    gameData.currentProperty = gameData.itemData["Pod"]
     gameData.currentMisc = []
 }
 
@@ -564,32 +564,40 @@ function updateRequiredRows(data, categoryType) {
 }
 
 function updateTaskRows() {
-    for (key in gameData.taskData) {
-        var task = gameData.taskData[key]
-        var row = document.getElementById("row " + task.name)
-        row.getElementsByClassName("level")[0].textContent = task.level
-        row.getElementsByClassName("xpGain")[0].textContent = format(task.getXpGain())
-        row.getElementsByClassName("xpLeft")[0].textContent = format(task.getXpLeft())
+	for (key in gameData.taskData) {
+		var task = gameData.taskData[key]
+		var row = document.getElementById("row " + task.name)
+		if (!row) continue; // Skip if row doesn't exist yet
 
-        var maxLevel = row.getElementsByClassName("maxLevel")[0]
-        maxLevel.textContent = task.maxLevel
-        gameData.rebirthOneCount > 0 ? maxLevel.classList.remove("hidden") : maxLevel.classList.add("hidden")
+		var maxLevel = row.getElementsByClassName("maxLevel")[0]
+        if (maxLevel) {
+            maxLevel.textContent = task.maxLevel
+            gameData.rebirthOneCount > 0 ? maxLevel.classList.remove("hidden") : maxLevel.classList.add("hidden")
+        }
 
         var progressFill = row.getElementsByClassName("progressFill")[0]
-        progressFill.style.width = task.xp / task.getMaxXp() * 100 + "%"
-        task == gameData.currentJob || task == gameData.currentSkill ? progressFill.classList.add("current") : progressFill.classList.remove("current")
+        if (progressFill) {
+            progressFill.style.width = task.xp / task.getMaxXp() * 100 + "%"
+            task == gameData.currentJob || task == gameData.currentSkill ? progressFill.classList.add("current") : progressFill.classList.remove("current")
+        }
 
         var valueElement = row.getElementsByClassName("value")[0]
-        valueElement.getElementsByClassName("income")[0].style.display = task instanceof Job
-        valueElement.getElementsByClassName("effect")[0].style.display = task instanceof Skill
+        if (valueElement) {
+            var incomeEl = valueElement.getElementsByClassName("income")[0]
+            var effectEl = valueElement.getElementsByClassName("effect")[0]
+            if (incomeEl) incomeEl.style.display = task instanceof Job ? "block" : "none"
+            if (effectEl) effectEl.style.display = task instanceof Skill ? "block" : "none"
+
+            if (task instanceof Job && incomeEl) {
+                formatCoins(task.getIncome(), incomeEl)
+            } else if (task instanceof Skill && effectEl) {
+                effectEl.textContent = task.getEffectDescription()
+            }
+        }
 
         var skipSkillElement = row.getElementsByClassName("skipSkill")[0]
-        skipSkillElement.style.display = task instanceof Skill && autoLearnElement.checked ? "block" : "none"
-
-        if (task instanceof Job) {
-            formatCoins(task.getIncome(), valueElement.getElementsByClassName("income")[0])
-        } else {
-            valueElement.getElementsByClassName("effect")[0].textContent = task.getEffectDescription()
+        if (skipSkillElement) {
+            skipSkillElement.style.display = task instanceof Skill && autoLearnElement.checked ? "block" : "none"
         }
     }
 }
@@ -888,7 +896,7 @@ function rebirthReset() {
     gameData.days = 365 * 14
     gameData.currentJob = gameData.taskData["Scanning"]
     gameData.currentSkill = gameData.taskData["Processing"]
-    gameData.currentProperty = gameData.itemData["Homeless"]
+    gameData.currentProperty = gameData.itemData["Pod"]
     gameData.currentMisc = []
 
     for (taskName in gameData.taskData) {
@@ -1000,7 +1008,7 @@ function assignMethods() {
     if (gameData.currentProperty && gameData.currentProperty.name && gameData.itemData[gameData.currentProperty.name]) {
         gameData.currentProperty = gameData.itemData[gameData.currentProperty.name]
     } else {
-        gameData.currentProperty = gameData.itemData["Homeless"]
+        gameData.currentProperty = gameData.itemData["Pod"]
     }
     var newArray = []
     for (misc of gameData.currentMisc) {
@@ -1149,7 +1157,7 @@ gameData.requirements = {
     //Other
     "Advanced Systems": new TaskRequirement(getElementsByClass("Advanced Systems"), [{task: "Processing", requirement: 200}, {task: "Optimization", requirement: 200}]),
     "Dark magic": new EvilRequirement(getElementsByClass("Dark magic"), [{requirement: 1}]),
-    "Shop": new CoinRequirement([document.getElementById("shopTabButton")], [{requirement: gameData.itemData["Tent"].getExpense() * 50}]),
+    "Shop": new CoinRequirement([document.getElementById("shopTabButton")], [{requirement: gameData.itemData["Scout"].getExpense() * 50}]),
     "Rebirth tab": new AgeRequirement([document.getElementById("rebirthTabButton")], [{requirement: 25}]),
     "Rebirth note 1": new AgeRequirement([document.getElementById("rebirthNote1")], [{requirement: 45}]),
     "Rebirth note 2": new AgeRequirement([document.getElementById("rebirthNote2")], [{requirement: 65}]),
@@ -1211,24 +1219,24 @@ gameData.requirements = {
     "Corrupted Protocols": new EvilRequirement([getTaskElement("Corrupted Protocols")], [{requirement: 500}]),
 
     //Properties
-    "Homeless": new CoinRequirement([getItemElement("Homeless")], [{requirement: 0}]),
-    "Tent": new CoinRequirement([getItemElement("Tent")], [{requirement: 0}]),
-    "Wooden hut": new CoinRequirement([getItemElement("Wooden hut")], [{requirement: gameData.itemData["Wooden hut"].getExpense() * 100}]),
-    "Cottage": new CoinRequirement([getItemElement("Cottage")], [{requirement: gameData.itemData["Cottage"].getExpense() * 100}]),
-    "House": new CoinRequirement([getItemElement("House")], [{requirement: gameData.itemData["House"].getExpense() * 100}]),
-    "Large house": new CoinRequirement([getItemElement("Large house")], [{requirement: gameData.itemData["Large house"].getExpense() * 100}]),
-    "Small palace": new CoinRequirement([getItemElement("Small palace")], [{requirement: gameData.itemData["Small palace"].getExpense() * 100}]),
-    "Grand palace": new CoinRequirement([getItemElement("Grand palace")], [{requirement: gameData.itemData["Grand palace"].getExpense() * 100}]),
+    "Pod": new CoinRequirement([getItemElement("Pod")], [{requirement: 0}]),
+    "Scout": new CoinRequirement([getItemElement("Scout")], [{requirement: 0}]),
+    "Scout Pod": new CoinRequirement([getItemElement("Scout Pod")], [{requirement: gameData.itemData["Scout Pod"].getExpense() * 100}]),
+    "Bay": new CoinRequirement([getItemElement("Bay")], [{requirement: gameData.itemData["Bay"].getExpense() * 100}]),
+    "Hold": new CoinRequirement([getItemElement("Hold")], [{requirement: gameData.itemData["Hold"].getExpense() * 100}]),
+    "Cargo Bay": new CoinRequirement([getItemElement("Cargo Bay")], [{requirement: gameData.itemData["Cargo Bay"].getExpense() * 100}]),
+    "Command Pod": new CoinRequirement([getItemElement("Command Pod")], [{requirement: gameData.itemData["Command Pod"].getExpense() * 100}]),
+    "Command Bay": new CoinRequirement([getItemElement("Command Bay")], [{requirement: gameData.itemData["Command Bay"].getExpense() * 100}]),
 
     //Misc
-    "Book": new CoinRequirement([getItemElement("Book")], [{requirement: 0}]),
-    "Dumbbells": new CoinRequirement([getItemElement("Dumbbells")], [{requirement: gameData.itemData["Dumbbells"].getExpense() * 100}]),
-    "Personal squire": new CoinRequirement([getItemElement("Personal squire")], [{requirement: gameData.itemData["Personal squire"].getExpense() * 100}]),
-    "Steel longsword": new CoinRequirement([getItemElement("Steel longsword")], [{requirement: gameData.itemData["Steel longsword"].getExpense() * 100}]),
-    "Butler": new CoinRequirement([getItemElement("Butler")], [{requirement: gameData.itemData["Butler"].getExpense() * 100}]),
-    "Sapphire charm": new CoinRequirement([getItemElement("Sapphire charm")], [{requirement: gameData.itemData["Sapphire charm"].getExpense() * 100}]),
-    "Study desk": new CoinRequirement([getItemElement("Study desk")], [{requirement: gameData.itemData["Study desk"].getExpense() * 100}]),
-    "Library": new CoinRequirement([getItemElement("Library")], [{requirement: gameData.itemData["Library"].getExpense() * 100}]), 
+    "Scanner": new CoinRequirement([getItemElement("Scanner")], [{requirement: 0}]),
+    "Thruster": new CoinRequirement([getItemElement("Thruster")], [{requirement: gameData.itemData["Thruster"].getExpense() * 100}]),
+    "Auto Pilot": new CoinRequirement([getItemElement("Auto Pilot")], [{requirement: gameData.itemData["Auto Pilot"].getExpense() * 100}]),
+    "Plasma Cannon": new CoinRequirement([getItemElement("Plasma Cannon")], [{requirement: gameData.itemData["Plasma Cannon"].getExpense() * 100}]),
+    "Core": new CoinRequirement([getItemElement("Core")], [{requirement: gameData.itemData["Core"].getExpense() * 100}]),
+    "Quantum Core": new CoinRequirement([getItemElement("Quantum Core")], [{requirement: gameData.itemData["Quantum Core"].getExpense() * 100}]),
+    "Nav Computer": new CoinRequirement([getItemElement("Nav Computer")], [{requirement: gameData.itemData["Nav Computer"].getExpense() * 100}]),
+    "Mainframe": new CoinRequirement([getItemElement("Mainframe")], [{requirement: gameData.itemData["Mainframe"].getExpense() * 100}]), 
 }
 
 tempData["requirements"] = {}
@@ -1267,3 +1275,500 @@ if (autoLearnElement) {
 setInterval(update, 1000 / updateSpeed)
 setInterval(saveGameData, 3000)
 setInterval(setSkillWithLowestMaxXp, 1000)
+
+// ========================================
+// UI Enhancements (formerly ui-view-only.js)
+// ========================================
+// View-only UI enhancements for classic index.html
+// Adds a sci-fi Big Counter as a sibling after #coinDisplay without modifying game logic DOM
+
+function formatNumber(num) {
+	if (num < 1000) return String(num);
+	if (num < 1e6) return (num / 1e3).toFixed(1) + 'K';
+	if (num < 1e9) return (num / 1e6).toFixed(1) + 'M';
+	if (num < 1e12) return (num / 1e9).toFixed(1) + 'B';
+	return (num / 1e12).toFixed(1) + 'T';
+}
+
+function ensureBigCounter() {
+	return document.getElementById('sci-fi-big-counter');
+}
+
+function ensureRateChip() {
+	return document.getElementById('sci-fi-rate-chip');
+}
+
+function animateValue(el, from, to, duration) {
+	var start = performance.now();
+	function step(now) {
+		var p = Math.min((now - start) / duration, 1);
+		var eased = 1 - Math.pow(1 - p, 3);
+		var val = Math.floor(from + (to - from) * eased);
+		el.textContent = formatNumber(val);
+		if (p < 1) requestAnimationFrame(step);
+	}
+	requestAnimationFrame(step);
+}
+
+var animateValueImpl = animateValue;
+
+function startUpdater() {
+	var container = ensureBigCounter();
+	if (!container) return;
+	var valueEl = document.getElementById('sci-fi-counter-value');
+	if (!valueEl) return;
+
+	var chip = ensureRateChip();
+	var chipValue = document.getElementById('sci-fi-rate-value');
+	var chipTrend = document.getElementById('sci-fi-rate-trend');
+
+	// Charts (read-only, 1 FPS)
+	var charts = ensureChartsContainer();
+	var lineCanvas = charts && document.getElementById('sci-fi-line-chart-classic');
+	var barCanvas = charts && document.getElementById('sci-fi-bar-chart-classic');
+	var history = [];
+
+	var last = 0;
+	var lastTick = 0;
+	var lastChart = 0;
+	var toastHost = ensureToastContainer();
+
+	function loop(now) {
+		// throttle to ~30 FPS
+		if (now - lastTick >= 33) {
+			if (typeof window !== 'undefined' && window.gameData && typeof window.gameData.coins === 'number') {
+				var current = window.gameData.coins;
+				if (current !== last) {
+					animateValueImpl(valueEl, last, current, 300);
+					last = current;
+				}
+			}
+			// Update rate chip if helpers are available
+			if (chip && chipValue && chipTrend && typeof window.getIncome === 'function' && typeof window.getExpense === 'function') {
+				var rate = window.getIncome() - window.getExpense();
+				chipValue.textContent = formatNumber(Math.abs(Math.floor(rate)));
+				chipTrend.className = 'rate-chip-trend' + (rate < 0 ? ' negative' : '');
+			}
+			// Charts sample once per second
+			if (charts && now - lastChart >= 1000 && window.gameData && typeof window.getIncome === 'function' && typeof window.getExpense === 'function') {
+				lastChart = now;
+				history.push({
+					t: now,
+					coins: window.gameData.coins,
+					income: window.getIncome(),
+					expense: window.getExpense()
+				});
+				if (history.length > 3600) history.shift();
+				if (lineCanvas) drawLine(lineCanvas, history);
+				if (barCanvas) drawBars(barCanvas, history);
+			}
+			// Achievement toast scan (UI-only, non-intrusive)
+			if (toastHost && window.gameData && window.gameData.requirements) {
+				for (var key in window.gameData.requirements) {
+					var req = window.gameData.requirements[key];
+					if (req && req.completed && !req.uiNotified) {
+						showToast('Achievement', key + ' unlocked');
+						req.uiNotified = true;
+					}
+				}
+			}
+			// Update inline meta rows (lightweight)
+			updateInlineMeta();
+			lastTick = now;
+		}
+		requestAnimationFrame(loop);
+	}
+	requestAnimationFrame(loop);
+}
+
+function ensureChartsContainer() {
+	return document.getElementById('sci-fi-charts-classic');
+}
+
+function drawLine(canvas, data) {
+	var ctx = canvas.getContext('2d');
+	var w = canvas.width, h = canvas.height;
+	ctx.clearRect(0, 0, w, h);
+	if (!data || data.length < 2) return;
+	// gridlines
+	ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+	ctx.lineWidth = 1;
+	for (var g = 1; g < 5; g++) {
+		var gy = (g / 5) * h;
+		ctx.beginPath();
+		ctx.moveTo(0, gy);
+		ctx.lineTo(w, gy);
+		ctx.stroke();
+	}
+	var max = -Infinity, min = Infinity;
+	for (var i = 0; i < data.length; i++) {
+		if (data[i].coins > max) max = data[i].coins;
+		if (data[i].coins < min) min = data[i].coins;
+	}
+	var range = Math.max(1, max - min);
+	ctx.strokeStyle = '#00ff88';
+	ctx.lineWidth = 2;
+	ctx.beginPath();
+	for (var j = 0; j < data.length; j++) {
+		var x = (j / (data.length - 1)) * w;
+		var y = h - ((data[j].coins - min) / range) * h;
+		if (j === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+	}
+	ctx.stroke();
+}
+
+function drawBars(canvas, data) {
+	var ctx = canvas.getContext('2d');
+	var w = canvas.width, h = canvas.height;
+	ctx.clearRect(0, 0, w, h);
+	if (!data || data.length < 1) return;
+	// average last 60 samples (~60s)
+	var N = Math.min(60, data.length);
+	var sumInc = 0, sumExp = 0;
+	for (var i = data.length - N; i < data.length; i++) {
+		sumInc += data[i].income;
+		sumExp += data[i].expense;
+	}
+	var avgInc = sumInc / N;
+	var avgExp = sumExp / N;
+	var maxVal = Math.max(1, avgInc, avgExp);
+	var incH = (avgInc / maxVal) * h * 0.8;
+	var expH = (avgExp / maxVal) * h * 0.8;
+	ctx.fillStyle = '#00ff88';
+	ctx.fillRect(w * 0.15, h - incH, w * 0.25, incH);
+	ctx.fillStyle = '#ff4444';
+	ctx.fillRect(w * 0.60, h - expH, w * 0.25, expH);
+}
+
+function ensureToastContainer() {
+	return document.getElementById('sci-fi-toast-container');
+}
+
+function showToast(title, message) {
+	var host = ensureToastContainer();
+	var toast = document.createElement('div');
+	toast.className = 'toast success';
+	toast.innerHTML = '<div class="toast-header"><div class="toast-title">' + title + '</div>' +
+		'<button class="toast-close" aria-label="Close">×</button></div>' +
+		'<div class="toast-message">' + message + '</div>';
+	host.appendChild(toast);
+	var close = toast.querySelector('.toast-close');
+	if (close) close.addEventListener('click', function(){ toast.remove(); });
+	setTimeout(function(){ if (toast.parentNode) toast.remove(); }, 3000);
+}
+
+function drawPrestigePreviewChart(canvas, mult) {
+	var ctx = canvas.getContext('2d');
+	var w = canvas.width, h = canvas.height;
+	ctx.clearRect(0, 0, w, h);
+	var base = [0, 1, 2, 3, 4, 5, 6];
+	ctx.lineWidth = 2;
+	ctx.strokeStyle = '#8884ff';
+	ctx.beginPath();
+	for (var i = 0; i < base.length; i++) {
+		var x = (i / (base.length - 1)) * w;
+		var y = h - (base[i] / 6) * h;
+		if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+	}
+	ctx.stroke();
+	ctx.strokeStyle = '#00ff88';
+	ctx.beginPath();
+	for (var j = 0; j < base.length; j++) {
+		var x2 = (j / (base.length - 1)) * w;
+		var y2 = h - (Math.min(6, base[j] * mult) / 6) * h;
+		if (j === 0) ctx.moveTo(x2, y2); else ctx.lineTo(x2, y2);
+	}
+	ctx.stroke();
+}
+
+function injectPrestigePreview() {
+	var rebirthTab = document.getElementById('rebirth');
+	if (!rebirthTab) return;
+	if (document.getElementById('sci-fi-prestige-preview-btn')) return;
+
+	var btn = document.createElement('button');
+	btn.className = 'control-button';
+	btn.id = 'sci-fi-prestige-preview-btn';
+	btn.textContent = 'Preview Prestige';
+	btn.style.margin = '8px 0';
+	rebirthTab.insertAdjacentElement('afterbegin', btn);
+
+	var overlay = document.createElement('div');
+	overlay.id = 'sci-fi-prestige-modal';
+	overlay.style.display = 'none';
+	overlay.style.position = 'fixed';
+	overlay.style.inset = '0';
+	overlay.style.background = 'rgba(0,0,0,0.6)';
+	overlay.style.zIndex = '1050';
+
+	var card = document.createElement('div');
+	card.className = 'prestige-card';
+	card.style.maxWidth = '520px';
+	card.style.margin = '10vh auto';
+	card.style.boxShadow = '0 20px 40px rgba(0,0,0,0.5)';
+	card.innerHTML = '' +
+		'<div class="prestige-card-title">Prestige Preview</div>' +
+		'<div class="prestige-card-shards" id="sci-fi-preview-shards">0</div>' +
+		'<div class="prestige-card-multiplier" id="sci-fi-preview-mult">x1.0 projected multiplier</div>' +
+		'<div class="chart-title" style="margin-top:8px">Projected Growth (UI-only)</div>' +
+		'<canvas class="chart-canvas" id="sci-fi-preview-chart" width="420" height="160"></canvas>' +
+		'<div style="margin-top:12px; display:flex; gap:8px; justify-content:center;">' +
+			'<button class="control-button" id="sci-fi-preview-close">Close</button>' +
+			'<button class="control-button" id="sci-fi-preview-focus">Focus Amulet Action</button>' +
+		'</div>';
+
+	overlay.appendChild(card);
+	document.body.appendChild(overlay);
+
+	btn.addEventListener('click', function () {
+		var shardsEl = document.getElementById('sci-fi-preview-shards');
+		var multEl = document.getElementById('sci-fi-preview-mult');
+		var currentShards = 0;
+		var multiplier = 1.0;
+		if (window.gameData) {
+			var r1 = Number(window.gameData.rebirthOneCount || 0);
+			var r2 = Number(window.gameData.rebirthTwoCount || 0);
+			currentShards = Math.floor(r1 + r2);
+			multiplier = 1 + currentShards / 10;
+		}
+		if (shardsEl) shardsEl.textContent = String(currentShards);
+		if (multEl) multEl.textContent = 'x' + multiplier.toFixed(1) + ' projected multiplier';
+		var canvas = document.getElementById('sci-fi-preview-chart');
+		if (canvas) drawPrestigePreviewChart(canvas, multiplier);
+		overlay.style.display = 'block';
+	});
+
+	card.querySelector('#sci-fi-preview-close').addEventListener('click', function(){ overlay.style.display = 'none'; });
+	card.querySelector('#sci-fi-preview-focus').addEventListener('click', function(){
+		var touchBtn = document.querySelector('#rebirth button.w3-button.button');
+		if (touchBtn && touchBtn.scrollIntoView) touchBtn.scrollIntoView({ behavior: 'smooth', block: 'center' });
+		overlay.style.display = 'none';
+	});
+}
+
+// Attach detail drawers to rows and item buttons (UI-only)
+function attachDetailDrawers() {
+	try {
+		var overlay = document.createElement('div');
+		overlay.className = 'sci-drawer-overlay';
+		overlay.id = 'sci-drawer-overlay';
+		overlay.style.display = 'none'; // Explicitly hidden on creation
+		var card = document.createElement('div');
+		card.className = 'sci-drawer-card';
+		card.innerHTML = '<div class="sci-drawer-title" id="sci-drawer-title">Details</div>'+
+			'<div class="sci-drawer-row"><span>Level</span><span id="sci-drawer-level">-</span></div>'+
+			'<div class="sci-drawer-row"><span>XP/day</span><span id="sci-drawer-xp">-</span></div>'+
+			'<div class="sci-drawer-row"><span>Next XP</span><span id="sci-drawer-next">-</span></div>'+
+			'<div class="sci-drawer-actions"><button class="control-button" id="sci-drawer-close">Close</button></div>';
+		overlay.appendChild(card);
+		document.body.appendChild(overlay);
+		overlay.addEventListener('click', function(e){ if (e.target === overlay) overlay.style.display='none'; });
+		card.querySelector('#sci-drawer-close').addEventListener('click', function(){ overlay.style.display='none'; });
+
+		function openDrawerForTask(name) {
+			var title = document.getElementById('sci-drawer-title');
+			var l = document.getElementById('sci-drawer-level');
+			var x = document.getElementById('sci-drawer-xp');
+			var n = document.getElementById('sci-drawer-next');
+			title.textContent = name;
+			if (window.gameData && window.gameData.taskData && window.gameData.taskData[name]) {
+				var t = window.gameData.taskData[name];
+				l.textContent = String(t.level);
+				x.textContent = String(t.getXpGain());
+				n.textContent = String(t.getMaxXp());
+			} else {
+				l.textContent = x.textContent = n.textContent = '-';
+			}
+			overlay.style.display = 'block';
+		}
+
+		var rows = document.querySelectorAll('tr');
+		rows.forEach(function(r){
+			var bar = r.querySelector('.progress-bar');
+			if (!bar) return;
+			var nameEl = r.querySelector('.progress-text.name');
+			var name = nameEl && nameEl.textContent ? nameEl.textContent.replace(/ lvl.*$/,'') : null;
+			if (!name) return;
+			var timer;
+			bar.addEventListener('mousedown', function(){ timer = setTimeout(function(){ openDrawerForTask(name); }, 500); });
+			bar.addEventListener('mouseup', function(){ clearTimeout(timer); });
+			bar.addEventListener('mouseleave', function(){ clearTimeout(timer); });
+			bar.addEventListener('touchstart', function(){ timer = setTimeout(function(){ openDrawerForTask(name); }, 600); }, {passive:true});
+			bar.addEventListener('touchend', function(){ clearTimeout(timer); });
+			bar.addEventListener('touchcancel', function(){ clearTimeout(timer); });
+		});
+
+		var itemBtns = document.querySelectorAll('.item-button');
+		itemBtns.forEach(function(btn){
+			btn.addEventListener('click', function(e){
+				var nmEl = btn.querySelector('.name');
+				var nm = nmEl ? nmEl.textContent : 'Item';
+				var title = document.getElementById('sci-drawer-title');
+				title.textContent = nm;
+				document.getElementById('sci-drawer-level').textContent = '-';
+				var exp = btn.closest('tr') && btn.closest('tr').querySelector('.expense');
+				document.getElementById('sci-drawer-xp').textContent = exp ? exp.textContent.trim() : '-';
+				document.getElementById('sci-drawer-next').textContent = '-';
+				overlay.style.display = 'block';
+				e.stopPropagation();
+			});
+		});
+	} catch(e) { /* no-op */ }
+}
+
+// Floating tooltips (non-intrusive): reuse existing .tooltip .tooltipText content
+var floatingTooltipElement = null;
+
+function ensureFloatingTooltip() {
+	if (floatingTooltipElement) return floatingTooltipElement;
+	floatingTooltipElement = document.createElement('div');
+	floatingTooltipElement.id = 'sci-fi-floating-tooltip';
+	floatingTooltipElement.style.position = 'fixed';
+	floatingTooltipElement.style.pointerEvents = 'none';
+	floatingTooltipElement.style.background = 'rgba(0,0,0,0.85)';
+	floatingTooltipElement.style.color = '#fff';
+	floatingTooltipElement.style.padding = '8px 10px';
+	floatingTooltipElement.style.borderRadius = '6px';
+	floatingTooltipElement.style.fontSize = '12px';
+	floatingTooltipElement.style.maxWidth = '260px';
+	floatingTooltipElement.style.zIndex = '1070';
+	floatingTooltipElement.style.transform = 'translate(-9999px, -9999px)';
+	document.body.appendChild(floatingTooltipElement);
+	return floatingTooltipElement;
+}
+
+function showFloatingTip(html, x, y) {
+	var el = ensureFloatingTooltip();
+	el.innerHTML = html;
+	positionFloatingTip(x, y);
+}
+
+function positionFloatingTip(x, y) {
+	var el = ensureFloatingTooltip();
+	var offsetX = 14, offsetY = 14;
+	var left = x + offsetX;
+	var top = y + offsetY;
+	var rect = { w: el.offsetWidth, h: el.offsetHeight };
+	var vw = window.innerWidth, vh = window.innerHeight;
+	if (left + rect.w > vw - 8) left = x - rect.w - offsetX;
+	if (top + rect.h > vh - 8) top = y - rect.h - offsetY;
+	el.style.transform = 'translate(' + left + 'px,' + top + 'px)';
+}
+
+function hideFloatingTip() {
+	if (!floatingTooltipElement) return;
+	floatingTooltipElement.style.transform = 'translate(-9999px, -9999px)';
+}
+
+function bindFloatingTooltips() {
+	document.addEventListener('mousemove', function(e) {
+		// If a tooltip is visible, track pointer
+		if (floatingTooltipElement && floatingTooltipElement.style.transform && floatingTooltipElement.style.transform.indexOf('-9999px') === -1) {
+			positionFloatingTip(e.clientX, e.clientY);
+		}
+	});
+	document.addEventListener('mouseenter', function(e) {
+		var t = e.target;
+		var container = t.closest && t.closest('.tooltip');
+		if (!container) return;
+		var textEl = container.querySelector('.tooltipText');
+		if (textEl && textEl.textContent) {
+			showFloatingTip(textEl.textContent, e.clientX, e.clientY);
+		}
+	}, true);
+	document.addEventListener('mouseleave', function(e) {
+		var t = e.target;
+		if (t.closest && t.closest('.tooltip')) hideFloatingTip();
+	}, true);
+}
+
+
+// Add inline meta and category badges
+function updateInlineMeta() {
+	try {
+		var jobTable = document.getElementById('jobTable');
+		var skillTable = document.getElementById('skillTable');
+		[jobTable, skillTable].forEach(function(table){
+			if (!table) return;
+			var rows = table.querySelectorAll('tr');
+			var currentCategory = null;
+			rows.forEach(function(r){
+				if (r.classList.contains('headerRow')) {
+					var catCell = r.querySelector('.category');
+					currentCategory = catCell ? catCell.textContent.trim() : null;
+					return;
+				}
+				var bar = r.querySelector('.progress-bar');
+				if (!bar) return;
+				// Remove old category badges
+				var oldBadge = r.querySelector('.sci-badge');
+				if (oldBadge) oldBadge.remove();
+				// meta
+				if (!r.__metaEl) {
+					var meta = document.createElement('div');
+					meta.className = 'sci-meta';
+					r.__metaEl = meta;
+					var firstCell2 = r.cells && r.cells[0];
+					if (firstCell2) firstCell2.appendChild(meta);
+				}
+				// Get level and XP values from task object (level and XP columns were removed from table)
+				var lvl = '-';
+				var xpDay = '-';
+				var nextXp = '-';
+				if (window.gameData && window.gameData.taskData) {
+					var taskName = r.id ? r.id.replace('row ', '') : null;
+					if (taskName && window.gameData.taskData[taskName]) {
+						var task = window.gameData.taskData[taskName];
+						lvl = String(task.level || '-');
+						xpDay = typeof task.getXpGain === 'function' ? formatNumber(task.getXpGain()) : '-';
+						nextXp = typeof task.getXpLeft === 'function' ? formatNumber(task.getXpLeft()) : '-';
+					}
+				}
+				r.__metaEl.innerHTML = '<strong>Lvl ' + lvl + '</strong> • Xp/day ' + xpDay + ' • Next ' + nextXp;
+			});
+		});
+		// Items: active/equipped chip
+		var itemTable = document.getElementById('itemTable');
+		if (itemTable) {
+			var irows = itemTable.querySelectorAll('tr');
+			irows.forEach(function(r){
+				var btn = r.querySelector('.item-button');
+				if (!btn) return;
+				var chip = r.__activeChip;
+				if (!chip) {
+					chip = document.createElement('span');
+					chip.className = 'sci-chip';
+					chip.textContent = 'Equipped';
+					r.__activeChip = chip;
+					var firstCell = r.cells && r.cells[0];
+					if (firstCell) firstCell.appendChild(chip);
+				}
+				var dot = r.querySelector('.active');
+				var isActive = dot && window.getComputedStyle(dot).backgroundColor !== 'rgb(255, 255, 255)';
+				chip.style.display = isActive ? 'inline-flex' : 'none';
+			});
+		}
+	} catch(e) { /* no-op */ }
+}
+
+// Add a non-intrusive class to tables that contain headerRow, for rounded styling via CSS
+function markRoundedTables() {
+	var headerRows = document.querySelectorAll('tr.headerRow');
+	headerRows.forEach(function(hr){
+		var table = hr.closest('table');
+		if (table && !table.classList.contains('sci-rounded-table')) {
+			table.classList.add('sci-rounded-table');
+		}
+	});
+}
+
+// Initialize UI enhancements
+var mq = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)');
+if (mq && mq.matches) {
+	animateValueImpl = function (el, _from, to) { el.textContent = formatNumber(Math.floor(to)); };
+}
+startUpdater();
+injectPrestigePreview();
+bindFloatingTooltips();
+markRoundedTables();
+attachDetailDrawers();
