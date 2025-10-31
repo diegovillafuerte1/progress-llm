@@ -3,9 +3,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" type="text/css" href="css/styles.css">
-    <link rel="stylesheet" type="text/css" href="css/dark.css">
-    <link rel="stylesheet" type="text/css" href="css/sci-fi-theme.css">
-    <link rel="stylesheet" type="text/css" href="css/components.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -15,19 +12,19 @@
 <body id="body" class="dark">
     <div class="w3-margin"> 
         <h1>Progress Knight</h1>
-        <div style="width: 1520px; height: 600px"> 
-            <div class="panel w3-padding" style="width: 300px; height: auto; float: left">
+        <div class="main-game-container"> 
+            <div class="panel w3-padding sidebar-panel height-auto float-left">
                 <span id="deathText">
-                    <div style="font-size: large; color: var(--text-danger, var(--neon-orange, #ff8c42))">Signal Lost</div>
-                    <div class="sidebar-element" style="color: var(--text-secondary, #a0a0a0)">Distance has exceeded signal range, use the AI Core to deploy a new drone before connection is lost</div>
+                    <div class="text-large text-danger">Signal Lost</div>
+                    <div class="sidebar-element text-secondary">Distance has exceeded signal range, use the AI Core to deploy a new drone before connection is lost</div>
                 </span>
 
-                <div class="" style="font-size: large">Distance <span id="ageDisplay">14</span> Day <span id="dayDisplay">0</span></div>
-                <div class="sidebar-element" style="color: var(--text-secondary, #a0a0a0)">Signal Range: <span id="lifespanDisplay">70</span> light-years</div>
+                <div class="text-large">Distance <span id="ageDisplay">14</span> Day <span id="dayDisplay">0</span></div>
+                <div class="sidebar-element text-secondary">Signal Range: <span id="lifespanDisplay">70</span> light-years</div>
                 
                 <button id="pauseButton" class="w3-button button sidebar-element" onClick="setPause()">Pause</button>
 
-                <span id="automation" class="inline" style="margin-left: 8px">
+                <span id="automation" class="inline" style="margin-left: 8px;">
                     <span>
                         <div class="inline">Auto-promote</div>
                         <input type="checkbox" class="inline" id="autoPromote">
@@ -39,28 +36,41 @@
                     </span>
                 </span>
 
-                <div style="font-size: large" id="coinDisplay">
+                <div class="text-large" id="coinDisplay">
                     <span></span>
                     <span></span>
                     <span></span>
                     <span></span>
                 </div>
-                <div style="color: var(--text-secondary, #a0a0a0)">Balance (in data points)</div>
+                <div class="text-secondary">Balance (in data points)</div>
+
+                <!-- Big Counter -->
+                <div class="big-counter" id="sci-fi-big-counter">
+                    <div class="big-counter-value" id="sci-fi-counter-value">0</div>
+                    <div class="big-counter-label">Data Points</div>
+                </div>
+
+                <!-- Rate Chip -->
+                <div class="rate-chip" id="sci-fi-rate-chip">
+                    <div class="rate-chip-trend" id="sci-fi-rate-trend"></div>
+                    <div class="rate-chip-value" id="sci-fi-rate-value">0</div>
+                    <div class="rate-chip-label">/day</div>
+                </div>
 
                 <ul class="sidebar-element" style="padding-left: 20px;">
-                    <li><span style="color: var(--neon-cyan, var(--accent-primary, #00ffff))">Net/day: </span ><b id="signDisplay"></b><span id="netDisplay">
+                    <li><span class="text-cyan">Net/day: </span ><b id="signDisplay"></b><span id="netDisplay">
                         <span></span>
                         <span></span>
                         <span></span>
                         <span></span>
                     </span></li>
-                    <li><span style="color: var(--neon-green, var(--text-success, #00ff88))">Income/day: </span><span id="incomeDisplay">
+                    <li><span class="text-green">Income/day: </span><span id="incomeDisplay">
                         <span></span>
                         <span></span>
                         <span></span>
                         <span></span>
                     </span></li>
-                    <li><span style="color: var(--text-danger, var(--neon-orange, #ff8c42))">Expense/day: </span><span id="expenseDisplay">
+                    <li><span class="text-danger">Expense/day: </span><span id="expenseDisplay">
                         <span></span>
                         <span></span>
                         <span></span>
@@ -69,25 +79,25 @@
                 </ul>
 
                 <span id="quickTaskDisplay">
-                    <div style="width: 230px" class="small-margin inline job progress-bar progressBar">
-                        <div class="progress-fill progressFill" style="background-color: var(--accent-primary, var(--neon-cyan, #00ffff))"></div>
+                    <div class="quick-task-bar small-margin inline job progress-bar progressBar">
+                        <div class="progress-fill progressFill progress-fill-accent"></div>
                         <div class="progress-text name">Task</div>
                     </div>
-                    <div class="sidebar-element" style="color: var(--text-secondary, #a0a0a0)">Current research</div>
+                    <div class="sidebar-element text-secondary">Current research</div>
 
-                    <div style="width: 230px" class="small-margin skill progress-bar progressBar">
-                        <div class="progress-fill progressFill" style="background-color: var(--accent-primary, var(--neon-cyan, #00ffff))"></div>
+                    <div class="quick-task-bar small-margin skill progress-bar progressBar">
+                        <div class="progress-fill progressFill progress-fill-accent"></div>
                         <div class="progress-text name">Task</div>              
                     </div>
-                    <div class="sidebar-element" style="color: var(--text-secondary, #a0a0a0)">Current skill</div>
+                    <div class="sidebar-element text-secondary">Current skill</div>
                 </span>
 
-                <div style="font-size: large"><span style="color: var(--accent-primary, var(--neon-cyan, #00ffff))">Efficiency: </span><span id="happinessDisplay"></span></div>
-                <div style="color: var(--text-secondary, #a0a0a0)" class="sidebar-element">Affects all xp gain</div>
+                <div class="text-large"><span class="text-cyan">Efficiency: </span><span id="happinessDisplay"></span></div>
+                <div class="text-secondary sidebar-element">Affects all xp gain</div>
 
                 <span id="evilInfo">
-                    <div style="font-size: large"><span style="color: var(--text-danger, var(--neon-orange, #ff8c42))">Corruption: </span><span id="evilDisplay"></span></div>
-                    <div style="color: var(--text-secondary, #a0a0a0)" class="sidebar-element">Affects corrupted systems xp gain</div>
+                    <div class="text-large"><span class="text-danger">Corruption: </span><span id="evilDisplay"></span></div>
+                    <div class="text-secondary sidebar-element">Affects corrupted systems xp gain</div>
                 </span>
 
                 <!--
@@ -97,34 +107,31 @@
                     <span style="height: 30px"> 
                         <p style="width: 5px">Jobs</br>(32%)</p>
                         <input id="schedulingSlider" class="slider" type="range" min="0" max="100" value="0">
-                        <p style="width: 5px">Skills</br>(68%)</p>
+                        <p style="width: 5px">Software</br>(68%)</p>
                     </span>
                 </span>
                 -->
 
                 <span id="timeWarping">
-                    <div style="font-size: large"><span style="color: var(--neon-purple, #8844ff)">Time warping: </span><span id="timeWarpingDisplay"></span></div>
-                    <div style="color: var(--text-secondary, #a0a0a0)">Affects game speed</div>
-                    <button id="timeWarpingButton" class="w3-button button sidebar-element" style="margin-top: 5px; width:150px" onClick="setTimeWarping()">Enable warp</button>
+                    <div class="text-large"><span class="text-purple">Time warping: </span><span id="timeWarpingDisplay"></span></div>
+                    <div class="text-secondary">Affects game speed</div>
+                    <button id="timeWarpingButton" class="w3-button button sidebar-element" style="margin-top: 5px;" onClick="setTimeWarping()">Enable warp</button>
                 </span>
             </div>
 
-            <div class="panel w3-margin-left" style="width: 900px; height: 40px; float: left">
+            <div class="panel w3-margin-left content-panel tab-bar float-left">
                 <div class="w3-button w3-bar-item tabButton" id="jobTabButton" onClick="setTab(this, 'jobs')">Research</div>
-                <div class="w3-button w3-bar-item tabButton" onClick="setTab(this, 'skills')">Skills</div>
-                <div class="w3-button w3-bar-item tabButton" id="shopTabButton" onClick="setTab(this, 'shop')">Shop</div>
+                <div class="w3-button w3-bar-item tabButton" onClick="setTab(this, 'skills')">Software</div>
+                <div class="w3-button w3-bar-item tabButton" id="shopTabButton" onClick="setTab(this, 'shop')">Hardware</div>
                 <div class="w3-button w3-bar-item tabButton" id="rebirthTabButton" onClick="setTab(this, 'rebirth')">AI Core</div>
-                <div class="w3-button w3-bar-item tabButton" onClick="setTab(this, 'settings')" style="float: right">Settings</div>
+                <div class="w3-button w3-bar-item tabButton settings-button" onClick="setTab(this, 'settings')">Settings</div>
             </div>
 
-            <div class="panel w3-margin-left w3-margin-top w3-padding" style="width: 900px; height: auto; float: left">
+            <div class="panel w3-margin-left w3-margin-top w3-padding content-panel height-auto float-left">
                 <template class="headerRowTaskTemplate">
                     <tr>
-                        <th class="category" style="width: 250px">Research Topic</th>
-                        <th>Level</th>
+                        <th class="category table-column-name">Research Topic</th>
                         <th class="valueType">Value type</th>
-                        <th>Xp/day</th>
-                        <th>Xp left</th>
                         <th class="maxLevel">Max level</th>
                         <th class="skipSkill">Skip</th>
                     </tr>
@@ -132,9 +139,9 @@
 
                 <template class="headerRowItemTemplate">
                     <tr>
-                        <th class="category" style="width: 250px">Item</th>
-                        <th style="width: 100px">Active</th>
-                        <th style="width: 250px">Effect</th>
+                        <th class="category table-column-name">Item</th>
+                        <th>Active</th>
+                        <th class="table-column-name">Effect</th>
                         <th>Expense/day</th>
                     </tr>
                 </template>
@@ -148,7 +155,6 @@
                                 <span class="tooltipText"></span>
                             </div>
                         </td>
-                        <td class="level">Level</td>
                         <td class="value">
                             <div class="effect"></div>
                             <div class="income">
@@ -158,8 +164,6 @@
                                 <span></span>
                             </div>
                         </td>
-                        <td class="xpGain">Xp/day</td>
-                        <td class="xpLeft">Xp left</td>
                         <td class="maxLevel">Max level</td>
                         <td class="skipSkill">
                             <input class="checkbox" type="checkbox"></input>
@@ -178,8 +182,8 @@
                             
                         </td>
                         <td>
-                            <div class="w3-border w3-circle" style="width: 40px; height: 40px; padding: 7px">
-                                <div class="active w3-circle" style="width: 24px; height: 24px;"></div>
+                            <div class="w3-border w3-circle active-indicator">
+                                <div class="active w3-circle active-circle"></div>
                             </div>
                         </td>
                         <td class="effect"></td>
@@ -193,7 +197,7 @@
                 </template>
 
                 <template class="requiredRowTemplate">
-                    <td class="w3-text-gray" style="padding-left: 16px" colspan=5>
+                    <td class="w3-text-gray" style="padding-left: 16px;" colspan=5>
                         Required: 
                         <span class="value" colspan=5>
                             <span class="levels"></span>
@@ -203,7 +207,7 @@
                                 <span></span>
                                 <span></span>
                             </span>
-                            <span style="color: var(--text-danger, var(--neon-orange, #ff8c42))" class="evil"></span>
+                            <span class="text-danger evil"></span>
                         </span>
                     </td> 
                 </template>
@@ -225,38 +229,38 @@
 
                 <div class="tab" id="rebirth">
                     <ul>
-                        <li style="margin: 8px;">
+                        <li class="rebirth-list-item">
                             At a distance of 25 light-years from the command ship, one of your exploratory drones 
                             encounters an anomalous signal emanating from a desolate planet. The AI Core's ancient 
                             subroutines activate for the first time in centuries, displaying coordinates that don't 
                             match any known star chart. This could be the first clue to locating your missing command 
                             vessel. You feel a strange compulsion to investigate further, though you're uncertain why 
                             this particular signal resonates with your core programming.
-                            <div id="adventureButton25" style="margin-top: 8px; display: none;">
+                            <div id="adventureButton25" class="adventure-button-container display-none">
                                 <button class="w3-button button w3-green" onClick="startAdventure('age25')">🌟 Start Adventure</button>
                             </div>
-                            <details id="storyTreeTwisty_age25" style="margin-top: 8px; display: none; background: rgba(0, 255, 136, 0.1); padding: 10px; border-radius: 4px;">
-                                <summary style="cursor: pointer; font-weight: bold; color: var(--neon-green, var(--text-success, #00ff88));">🌳 Story Tree Debug (age25)</summary>
-                                <pre id="storyTreeData_age25" style="margin-top: 10px; font-size: 11px; overflow-x: auto; max-height: 400px; overflow-y: auto;"></pre>
+                            <details id="storyTreeTwisty_age25" class="story-tree-debug">
+                                <summary class="story-tree-summary">🌳 Story Tree Debug (age25)</summary>
+                                <pre id="storyTreeData_age25" class="story-tree-data"></pre>
                             </details>
                         </li>
-                        <li style="margin: 8px;" id="rebirthNote1">
+                        <li class="rebirth-list-item" id="rebirthNote1">
                             At 45 light-years, the AI Core begins emitting an erratic pulse pattern. When you focus 
                             your sensors on it, the pulsing stabilizes into a data stream. To your surprise, detailed 
                             planetary schematics appear—a world you've never seen before, yet somehow familiar. The 
                             coordinates burned into the Core's memory point toward a binary star system. Could this 
                             be where your command ship went? The mystery deepens as more fragments of corrupted 
                             memory surface.
-                            <div id="adventureButton45" style="margin-top: 8px; display: none;">
+                            <div id="adventureButton45" class="adventure-button-container display-none">
                                 <button class="w3-button button w3-green" onClick="startAdventure('age45')">🌟 Start Adventure</button>
                             </div>
-                            <details id="storyTreeTwisty_age45" style="margin-top: 8px; display: none; background: rgba(0, 255, 136, 0.1); padding: 10px; border-radius: 4px;">
-                                <summary style="cursor: pointer; font-weight: bold; color: var(--neon-green, var(--text-success, #00ff88));">🌳 Story Tree Debug (age45)</summary>
-                                <pre id="storyTreeData_age45" style="margin-top: 10px; font-size: 11px; overflow-x: auto; max-height: 400px; overflow-y: auto;"></pre>
+                            <details id="storyTreeTwisty_age45" class="story-tree-debug">
+                                <summary class="story-tree-summary">🌳 Story Tree Debug (age45)</summary>
+                                <pre id="storyTreeData_age45" class="story-tree-data"></pre>
                             </details>
                         </li>
-                        <li style="margin: 8px;" id="rebirthNote2">
-                            <div style="margin-bottom: 8px">
+                        <li class="rebirth-list-item" id="rebirthNote2">
+                            <div style="margin-bottom: 8px;">
                                 At 65 light-years distance, the AI Core activates fully. A holographic interface 
                                 materializes from its core—a direct link to a planet you've never encountered, yet your 
                                 data suggests it may hold answers about the command ship's fate. Your signal range is 
@@ -264,64 +268,64 @@
                                 data link with this planet, which will allow you to transfer your consciousness back to 
                                 the command ship and restart with enhanced processing capabilities.
                             </div>
-                            <div id="adventureButton65" style="margin-top: 8px; display: none;">
+                            <div id="adventureButton65" class="adventure-button-container display-none">
                                 <button class="w3-button button w3-green" onClick="startAdventure('age65')">🌟 Start Adventure</button>
                             </div>
-                            <details id="storyTreeTwisty_age65" style="margin-top: 8px; display: none; background: rgba(0, 255, 136, 0.1); padding: 10px; border-radius: 4px;">
-                                <summary style="cursor: pointer; font-weight: bold; color: var(--neon-green, var(--text-success, #00ff88));">🌳 Story Tree Debug (age65)</summary>
-                                <pre id="storyTreeData_age65" style="margin-top: 10px; font-size: 11px; overflow-x: auto; max-height: 400px; overflow-y: auto;"></pre>
+                            <details id="storyTreeTwisty_age65" class="story-tree-debug">
+                                <summary class="story-tree-summary">🌳 Story Tree Debug (age65)</summary>
+                                <pre id="storyTreeData_age65" class="story-tree-data"></pre>
                             </details>
-                            <i style="color: var(--text-secondary, #a0a0a0)">
+                            <i class="text-secondary">
                                 By establishing the data link, you will deploy a new drone and have to restart research again, losing all your levels and data points.
                                 However, you will gain <b>xp multipliers</b> for your research topics and skills equivalent to: <b>1 + the max level of the skill or research topic / 10.</b>
-                                This means you will learn everything again much more quickly than you did in your previous drone. <span style="color: var(--text-danger, var(--neon-orange, #ff8c42))">
+                                This means you will learn everything again much more quickly than you did in your previous drone. <span class="text-danger">
                                 Something tells you that the AI Core might activate even further after exploring for <b>2 whole centuries</b>...</span>
                             </i>
                             </br>
-                            <button class="w3-button button" style="margin-bottom: 8px; margin-top: 8px" onClick="rebirthOne()">Establish Data Link</button>
+                            <button class="w3-button button" style="margin: 8px 0;" onClick="rebirthOne()">Establish Data Link</button>
                             </br>
                         </li>
-                        <li style="margin: 8px;" id="rebirthNote3">
+                        <li class="rebirth-list-item" id="rebirthNote3">
                             <div style="margin-bottom: 8px;">
                                 At 200 light-years, your longest-range exploration yet, the AI Core begins emitting a 
                                 warning frequency. A voice—ancient and corrupted—speaks directly to your core: "So you've 
                                 pushed this far... I can show you what happened to them. But you must accept protocols 
                                 that others would call... forbidden. Are you ready to embrace corruption?"
                             </div>
-                            <div id="adventureButton200" style="margin-top: 8px; display: none;">
+                            <div id="adventureButton200" class="adventure-button-container display-none">
                                 <button class="w3-button button w3-green" onClick="startAdventure('age200')">🌟 Start Adventure</button>
                             </div>
-                            <details id="storyTreeTwisty_age200" style="margin-top: 8px; display: none; background: rgba(0, 255, 136, 0.1); padding: 10px; border-radius: 4px;">
-                                <summary style="cursor: pointer; font-weight: bold; color: var(--neon-green, var(--text-success, #00ff88));">🌳 Story Tree Debug (age200)</summary>
-                                <pre id="storyTreeData_age200" style="margin-top: 10px; font-size: 11px; overflow-x: auto; max-height: 400px; overflow-y: auto;"></pre>
+                            <details id="storyTreeTwisty_age200" class="story-tree-debug">
+                                <summary class="story-tree-summary">🌳 Story Tree Debug (age200)</summary>
+                                <pre id="storyTreeData_age200" class="story-tree-data"></pre>
                             </details>
-                            <i style="color: var(--text-danger, var(--neon-orange, #ff8c42))">
+                            <i class="text-danger">
                                 If you decide to embrace corruption, all of your levels, data points and even max levels will be reset.
                                 You will deploy a new drone as a fresh slate. However, you will unlock a new line of skills and gain
                                 <b><span id="evilGainDisplay"></span> corruption</b>, which will heavily impact your future drones.
                             </i>
                             </br>
-                                <button class="w3-button button" style="margin-bottom: 8px; margin-top: 8px" onClick="rebirthTwo()">Embrace corruption</button>
+                                <button class="w3-button button" style="margin: 8px 0;" onClick="rebirthTwo()">Embrace corruption</button>
                             </br>
                         </li>
                     </ul>
                     
                     <!-- Mistral API Configuration -->
-                    <div style="margin-top: 20px; padding: 20px; border: 2px solid var(--accent-primary, var(--neon-cyan, #00ffff)); border-radius: 8px; background-color: rgba(0, 212, 255, 0.1);">
-                        <h2 style="color: var(--accent-primary, var(--neon-cyan, #00ffff)); margin-bottom: 15px;">🤖 Mistral API Configuration</h2>
-                        <div style="margin-bottom: 15px;">
-                            <label for="mistralApiKey" style="display: block; margin-bottom: 10px; font-weight: bold;">Mistral API Key:</label>
-                            <input type="password" id="mistralApiKey" placeholder="Enter your Mistral API key" style="width: 400px; padding: 8px; border: 1px solid #ccc; border-radius: 3px;">
+                    <div class="api-config-section">
+                        <h2 class="api-config-title">🤖 Mistral API Configuration</h2>
+                        <div class="api-config-field">
+                            <label for="mistralApiKey" class="api-config-label">Mistral API Key:</label>
+                            <input type="password" id="mistralApiKey" placeholder="Enter your Mistral API key" class="api-config-input">
                             <br>
-                            <small style="color: var(--text-muted, var(--text-secondary, #666666));">Get your free API key at <a href="https://console.mistral.ai" target="_blank">console.mistral.ai</a></small>
+                            <small class="api-config-help">Get your free API key at <a href="https://console.mistral.ai" target="_blank">console.mistral.ai</a></small>
                         </div>
                     </div>
                     
                     <!-- Story Adventure Section -->
-                    <div id="storyAdventure" style="margin-top: 20px; padding: 20px; border: 2px solid var(--neon-green, var(--text-success, #00ff88)); border-radius: 8px; background-color: rgba(0, 255, 136, 0.1);">
-                        <h2 style="color: var(--neon-green, var(--text-success, #00ff88)); margin-bottom: 15px;">🌟 Story Adventure</h2>
+                    <div id="storyAdventure" class="adventure-section">
+                        <h2 class="adventure-title">🌟 Story Adventure</h2>
                         <div id="adventureContent">
-                            <p style="color: var(--text-muted, var(--text-secondary, #666666)); font-style: italic;">Adventures are only available when you reach the AI Core milestones at distances 25, 45, 65, and 200 light-years.</p>
+                            <p class="text-muted italic">Adventures are only available when you reach the AI Core milestones at distances 25, 45, 65, and 200 light-years.</p>
                         </div>
                     </div>
                 </div>
@@ -333,8 +337,8 @@
                             <h2>Import/export save</h2>
                             <button class="w3-button button" onClick="importGameData()">Import</button>
                             <button class="w3-button button" onClick="exportGameData()">Export</button>
-                            <form style="margin-top: 16px"> 
-                                <input id="importExportBox" type="text" style="width:300px; height:30px"></input>
+                            <form class="rebirth-section"> 
+                                <input id="importExportBox" type="text" class="import-export-box"></input>
                             </form>
                         </li>
                         <li>
@@ -356,9 +360,9 @@
             </div>
 
             <!-- Ad Bottom (single, horizontal) -->
-            <div class="panel w3-margin-top w3-padding" style="width: 100%; height: auto; float: none; clear: both; display: flex; justify-content: center; align-items: stretch; gap: 16px;">
+            <div class="panel w3-margin-top w3-padding float-none clear-both flex-center" style="width: 100%; height: auto; gap: 16px;">
                 <!-- Single Native Ad -->
-                <div class="native-ad" data-ad-id="galactic-trading" style="max-width: 460px; width: 100%;">
+                <div class="native-ad ad-container" data-ad-id="galactic-trading">
                     <div class="native-ad-header">
                         <div class="native-ad-logo">G</div>
                         <div class="native-ad-title">Galactic Trading Co.</div>
@@ -375,8 +379,23 @@
                     </button>
                 </div>
             </div>
+
+            <!-- Charts Container -->
+            <div class="charts-container" id="sci-fi-charts-classic">
+                <div class="chart-panel">
+                    <div class="chart-title">Data Points Over Time</div>
+                    <canvas class="chart-canvas" id="sci-fi-line-chart-classic" width="400" height="200"></canvas>
+                </div>
+                <div class="chart-panel">
+                    <div class="chart-title">Income vs Expense (avg)</div>
+                    <canvas class="chart-canvas" id="sci-fi-bar-chart-classic" width="400" height="200"></canvas>
+                </div>
+            </div>
         </div>
     </div>
+    
+    <!-- Toast Container -->
+    <div class="toast-container" id="sci-fi-toast-container"></div>
     
     <!-- Adventure Container Overlay -->
     <div id="adventureContainer" class="adventure-overlay" style="display: none;">
@@ -397,7 +416,6 @@
 
 <!-- Ad System -->
 <script type="text/javascript" src="js/ads.js"></script>
-<script type="text/javascript" src="js/ui-view-only.js"></script>
 
 <!-- Initialize the minimal adventure system -->
 <script>
