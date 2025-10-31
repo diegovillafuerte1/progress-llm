@@ -18,12 +18,12 @@
         <div style="width: 1520px; height: 600px"> 
             <div class="panel w3-padding" style="width: 300px; height: auto; float: left">
                 <span id="deathText">
-                    <div style="font-size: large; color: red">Signal Lost</div>
-                    <div class="sidebar-element" style="color: gray">Distance has exceeded signal range, use the AI Core to deploy a new drone before connection is lost</div>
+                    <div style="font-size: large; color: var(--text-danger, var(--neon-orange, #ff8c42))">Signal Lost</div>
+                    <div class="sidebar-element" style="color: var(--text-secondary, #a0a0a0)">Distance has exceeded signal range, use the AI Core to deploy a new drone before connection is lost</div>
                 </span>
 
                 <div class="" style="font-size: large">Distance <span id="ageDisplay">14</span> Day <span id="dayDisplay">0</span></div>
-                <div class="sidebar-element" style="color: gray">Signal Range: <span id="lifespanDisplay">70</span> light-years</div>
+                <div class="sidebar-element" style="color: var(--text-secondary, #a0a0a0)">Signal Range: <span id="lifespanDisplay">70</span> light-years</div>
                 
                 <button id="pauseButton" class="w3-button button sidebar-element" onClick="setPause()">Pause</button>
 
@@ -45,22 +45,22 @@
                     <span></span>
                     <span></span>
                 </div>
-                <div style="color: gray">Balance (in data points)</div>
+                <div style="color: var(--text-secondary, #a0a0a0)">Balance (in data points)</div>
 
                 <ul class="sidebar-element" style="padding-left: 20px;">
-                    <li><span style="color: rgb(9, 160, 230)">Net/day: </span ><b id="signDisplay"></b><span id="netDisplay">
+                    <li><span style="color: var(--neon-cyan, var(--accent-primary, #00ffff))">Net/day: </span ><b id="signDisplay"></b><span id="netDisplay">
                         <span></span>
                         <span></span>
                         <span></span>
                         <span></span>
                     </span></li>
-                    <li><span style="color: green">Income/day: </span><span id="incomeDisplay">
+                    <li><span style="color: var(--neon-green, var(--text-success, #00ff88))">Income/day: </span><span id="incomeDisplay">
                         <span></span>
                         <span></span>
                         <span></span>
                         <span></span>
                     </span></li>
-                    <li><span style="color: red">Expense/day: </span><span id="expenseDisplay">
+                    <li><span style="color: var(--text-danger, var(--neon-orange, #ff8c42))">Expense/day: </span><span id="expenseDisplay">
                         <span></span>
                         <span></span>
                         <span></span>
@@ -70,30 +70,30 @@
 
                 <span id="quickTaskDisplay">
                     <div style="width: 230px" class="small-margin inline job progress-bar progressBar">
-                        <div class="progress-fill progressFill" style="background-color:rgb(225, 165, 0)"></div>
+                        <div class="progress-fill progressFill" style="background-color: var(--accent-primary, var(--neon-cyan, #00ffff))"></div>
                         <div class="progress-text name">Task</div>
                     </div>
-                    <div class="sidebar-element" style="color: gray">Current research</div>
+                    <div class="sidebar-element" style="color: var(--text-secondary, #a0a0a0)">Current research</div>
 
                     <div style="width: 230px" class="small-margin skill progress-bar progressBar">
-                        <div class="progress-fill progressFill" style="background-color:rgb(225, 165, 0)"></div>
+                        <div class="progress-fill progressFill" style="background-color: var(--accent-primary, var(--neon-cyan, #00ffff))"></div>
                         <div class="progress-text name">Task</div>              
                     </div>
-                    <div class="sidebar-element" style="color: gray">Current skill</div>
+                    <div class="sidebar-element" style="color: var(--text-secondary, #a0a0a0)">Current skill</div>
                 </span>
 
-                <div style="font-size: large"><span style="color: rgb(15, 105, 207)">Efficiency: </span><span id="happinessDisplay"></span></div>
-                <div style="color: gray" class="sidebar-element">Affects all xp gain</div>
+                <div style="font-size: large"><span style="color: var(--accent-primary, var(--neon-cyan, #00ffff))">Efficiency: </span><span id="happinessDisplay"></span></div>
+                <div style="color: var(--text-secondary, #a0a0a0)" class="sidebar-element">Affects all xp gain</div>
 
                 <span id="evilInfo">
-                    <div style="font-size: large"><span style="color: rgb(200, 0, 0)">Corruption: </span><span id="evilDisplay"></span></div>
-                    <div style="color: gray" class="sidebar-element">Affects corrupted systems xp gain</div>
+                    <div style="font-size: large"><span style="color: var(--text-danger, var(--neon-orange, #ff8c42))">Corruption: </span><span id="evilDisplay"></span></div>
+                    <div style="color: var(--text-secondary, #a0a0a0)" class="sidebar-element">Affects corrupted systems xp gain</div>
                 </span>
 
                 <!--
                 <span id="scheduling">
                     <div style="font-size: large">Scheduling</div>
-                    <div style="color: gray" class="sidebar-element">Schedule time to jobs/skills</div>
+                    <div style="color: var(--text-secondary, #a0a0a0)" class="sidebar-element">Schedule time to jobs/skills</div>
                     <span style="height: 30px"> 
                         <p style="width: 5px">Jobs</br>(32%)</p>
                         <input id="schedulingSlider" class="slider" type="range" min="0" max="100" value="0">
@@ -103,8 +103,8 @@
                 -->
 
                 <span id="timeWarping">
-                    <div style="font-size: large"><span style="color: rgb(204, 34, 219)">Time warping: </span><span id="timeWarpingDisplay"></span></div>
-                    <div style="color: gray">Affects game speed</div>
+                    <div style="font-size: large"><span style="color: var(--neon-purple, #8844ff)">Time warping: </span><span id="timeWarpingDisplay"></span></div>
+                    <div style="color: var(--text-secondary, #a0a0a0)">Affects game speed</div>
                     <button id="timeWarpingButton" class="w3-button button sidebar-element" style="margin-top: 5px; width:150px" onClick="setTimeWarping()">Enable warp</button>
                 </span>
             </div>
@@ -203,7 +203,7 @@
                                 <span></span>
                                 <span></span>
                             </span>
-                            <span style="color: rgb(200, 0, 0)" class="evil"></span>
+                            <span style="color: var(--text-danger, var(--neon-orange, #ff8c42))" class="evil"></span>
                         </span>
                     </td> 
                 </template>
@@ -235,8 +235,8 @@
                             <div id="adventureButton25" style="margin-top: 8px; display: none;">
                                 <button class="w3-button button w3-green" onClick="startAdventure('age25')">🌟 Start Adventure</button>
                             </div>
-                            <details id="storyTreeTwisty_age25" style="margin-top: 8px; display: none; background: rgba(76, 175, 80, 0.1); padding: 10px; border-radius: 4px;">
-                                <summary style="cursor: pointer; font-weight: bold; color: #4CAF50;">🌳 Story Tree Debug (age25)</summary>
+                            <details id="storyTreeTwisty_age25" style="margin-top: 8px; display: none; background: rgba(0, 255, 136, 0.1); padding: 10px; border-radius: 4px;">
+                                <summary style="cursor: pointer; font-weight: bold; color: var(--neon-green, var(--text-success, #00ff88));">🌳 Story Tree Debug (age25)</summary>
                                 <pre id="storyTreeData_age25" style="margin-top: 10px; font-size: 11px; overflow-x: auto; max-height: 400px; overflow-y: auto;"></pre>
                             </details>
                         </li>
@@ -250,8 +250,8 @@
                             <div id="adventureButton45" style="margin-top: 8px; display: none;">
                                 <button class="w3-button button w3-green" onClick="startAdventure('age45')">🌟 Start Adventure</button>
                             </div>
-                            <details id="storyTreeTwisty_age45" style="margin-top: 8px; display: none; background: rgba(76, 175, 80, 0.1); padding: 10px; border-radius: 4px;">
-                                <summary style="cursor: pointer; font-weight: bold; color: #4CAF50;">🌳 Story Tree Debug (age45)</summary>
+                            <details id="storyTreeTwisty_age45" style="margin-top: 8px; display: none; background: rgba(0, 255, 136, 0.1); padding: 10px; border-radius: 4px;">
+                                <summary style="cursor: pointer; font-weight: bold; color: var(--neon-green, var(--text-success, #00ff88));">🌳 Story Tree Debug (age45)</summary>
                                 <pre id="storyTreeData_age45" style="margin-top: 10px; font-size: 11px; overflow-x: auto; max-height: 400px; overflow-y: auto;"></pre>
                             </details>
                         </li>
@@ -267,14 +267,14 @@
                             <div id="adventureButton65" style="margin-top: 8px; display: none;">
                                 <button class="w3-button button w3-green" onClick="startAdventure('age65')">🌟 Start Adventure</button>
                             </div>
-                            <details id="storyTreeTwisty_age65" style="margin-top: 8px; display: none; background: rgba(76, 175, 80, 0.1); padding: 10px; border-radius: 4px;">
-                                <summary style="cursor: pointer; font-weight: bold; color: #4CAF50;">🌳 Story Tree Debug (age65)</summary>
+                            <details id="storyTreeTwisty_age65" style="margin-top: 8px; display: none; background: rgba(0, 255, 136, 0.1); padding: 10px; border-radius: 4px;">
+                                <summary style="cursor: pointer; font-weight: bold; color: var(--neon-green, var(--text-success, #00ff88));">🌳 Story Tree Debug (age65)</summary>
                                 <pre id="storyTreeData_age65" style="margin-top: 10px; font-size: 11px; overflow-x: auto; max-height: 400px; overflow-y: auto;"></pre>
                             </details>
-                            <i style="color: grey">
+                            <i style="color: var(--text-secondary, #a0a0a0)">
                                 By establishing the data link, you will deploy a new drone and have to restart research again, losing all your levels and data points.
                                 However, you will gain <b>xp multipliers</b> for your research topics and skills equivalent to: <b>1 + the max level of the skill or research topic / 10.</b>
-                                This means you will learn everything again much more quickly than you did in your previous drone. <span style="color: rgb(200, 0, 0)">
+                                This means you will learn everything again much more quickly than you did in your previous drone. <span style="color: var(--text-danger, var(--neon-orange, #ff8c42))">
                                 Something tells you that the AI Core might activate even further after exploring for <b>2 whole centuries</b>...</span>
                             </i>
                             </br>
@@ -291,11 +291,11 @@
                             <div id="adventureButton200" style="margin-top: 8px; display: none;">
                                 <button class="w3-button button w3-green" onClick="startAdventure('age200')">🌟 Start Adventure</button>
                             </div>
-                            <details id="storyTreeTwisty_age200" style="margin-top: 8px; display: none; background: rgba(76, 175, 80, 0.1); padding: 10px; border-radius: 4px;">
-                                <summary style="cursor: pointer; font-weight: bold; color: #4CAF50;">🌳 Story Tree Debug (age200)</summary>
+                            <details id="storyTreeTwisty_age200" style="margin-top: 8px; display: none; background: rgba(0, 255, 136, 0.1); padding: 10px; border-radius: 4px;">
+                                <summary style="cursor: pointer; font-weight: bold; color: var(--neon-green, var(--text-success, #00ff88));">🌳 Story Tree Debug (age200)</summary>
                                 <pre id="storyTreeData_age200" style="margin-top: 10px; font-size: 11px; overflow-x: auto; max-height: 400px; overflow-y: auto;"></pre>
                             </details>
-                            <i style="color: rgb(200, 0, 0)">
+                            <i style="color: var(--text-danger, var(--neon-orange, #ff8c42))">
                                 If you decide to embrace corruption, all of your levels, data points and even max levels will be reset.
                                 You will deploy a new drone as a fresh slate. However, you will unlock a new line of skills and gain
                                 <b><span id="evilGainDisplay"></span> corruption</b>, which will heavily impact your future drones.
@@ -307,21 +307,21 @@
                     </ul>
                     
                     <!-- Mistral API Configuration -->
-                    <div style="margin-top: 20px; padding: 20px; border: 2px solid #2196F3; border-radius: 8px; background-color: rgba(33, 150, 243, 0.1);">
-                        <h2 style="color: #2196F3; margin-bottom: 15px;">🤖 Mistral API Configuration</h2>
+                    <div style="margin-top: 20px; padding: 20px; border: 2px solid var(--accent-primary, var(--neon-cyan, #00ffff)); border-radius: 8px; background-color: rgba(0, 212, 255, 0.1);">
+                        <h2 style="color: var(--accent-primary, var(--neon-cyan, #00ffff)); margin-bottom: 15px;">🤖 Mistral API Configuration</h2>
                         <div style="margin-bottom: 15px;">
                             <label for="mistralApiKey" style="display: block; margin-bottom: 10px; font-weight: bold;">Mistral API Key:</label>
                             <input type="password" id="mistralApiKey" placeholder="Enter your Mistral API key" style="width: 400px; padding: 8px; border: 1px solid #ccc; border-radius: 3px;">
                             <br>
-                            <small style="color: #666;">Get your free API key at <a href="https://console.mistral.ai" target="_blank">console.mistral.ai</a></small>
+                            <small style="color: var(--text-muted, var(--text-secondary, #666666));">Get your free API key at <a href="https://console.mistral.ai" target="_blank">console.mistral.ai</a></small>
                         </div>
                     </div>
                     
                     <!-- Story Adventure Section -->
-                    <div id="storyAdventure" style="margin-top: 20px; padding: 20px; border: 2px solid #4CAF50; border-radius: 8px; background-color: rgba(76, 175, 80, 0.1);">
-                        <h2 style="color: #4CAF50; margin-bottom: 15px;">🌟 Story Adventure</h2>
+                    <div id="storyAdventure" style="margin-top: 20px; padding: 20px; border: 2px solid var(--neon-green, var(--text-success, #00ff88)); border-radius: 8px; background-color: rgba(0, 255, 136, 0.1);">
+                        <h2 style="color: var(--neon-green, var(--text-success, #00ff88)); margin-bottom: 15px;">🌟 Story Adventure</h2>
                         <div id="adventureContent">
-                            <p style="color: #666; font-style: italic;">Adventures are only available when you reach the AI Core milestones at distances 25, 45, 65, and 200 light-years.</p>
+                            <p style="color: var(--text-muted, var(--text-secondary, #666666)); font-style: italic;">Adventures are only available when you reach the AI Core milestones at distances 25, 45, 65, and 200 light-years.</p>
                         </div>
                     </div>
                 </div>

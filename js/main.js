@@ -15,6 +15,9 @@ var gameData = {
     currentSkill: null,
     currentProperty: null,
     currentMisc: null,
+
+    autoPromote: false,
+    autoLearn: false,
 }
 
 var tempData = {}
@@ -439,8 +442,9 @@ function createHeaderRow(templates, categoryType, categoryName) {
         headerRow.getElementsByClassName("valueType")[0].textContent = categoryType == jobCategories ? "Income/day" : "Effect"
     }
 
-    headerRow.style.backgroundColor = headerRowColors[categoryName]
-    headerRow.style.color = "#ffffff"
+    // Removed colored background - header rows now use default theme styling
+    // headerRow.style.backgroundColor = headerRowColors[categoryName]
+    headerRow.style.color = "var(--text-primary, #ffffff)"
     headerRow.classList.add(removeSpaces(categoryName))
     headerRow.classList.add("headerRow")
     
@@ -1062,6 +1066,18 @@ function loadGameData() {
     }
 
     assignMethods()
+    
+    // Restore checkbox states after loading
+    // Re-fetch elements in case they weren't available when constants were defined
+    const autoPromoteEl = document.getElementById("autoPromote")
+    const autoLearnEl = document.getElementById("autoLearn")
+    
+    if (autoPromoteEl !== null) {
+        autoPromoteEl.checked = gameData.autoPromote || false
+    }
+    if (autoLearnEl !== null) {
+        autoLearnEl.checked = gameData.autoLearn || false
+    }
 }
 
 function updateUI() {
@@ -1234,6 +1250,20 @@ if (typeof window.initializeCareerBasedAdventures === 'function') {
 }
 
 update()
+// Save checkbox states when changed
+if (autoPromoteElement) {
+    autoPromoteElement.addEventListener('change', function() {
+        gameData.autoPromote = this.checked
+        saveGameData()
+    })
+}
+if (autoLearnElement) {
+    autoLearnElement.addEventListener('change', function() {
+        gameData.autoLearn = this.checked
+        saveGameData()
+    })
+}
+
 setInterval(update, 1000 / updateSpeed)
 setInterval(saveGameData, 3000)
 setInterval(setSkillWithLowestMaxXp, 1000)
