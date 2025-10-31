@@ -50,7 +50,7 @@ async function callMistralAPI(prompt) {
             body: JSON.stringify({
                 model: 'mistral-tiny',
                 messages: [{ role: 'user', content: prompt }],
-                max_tokens: 500,
+                max_tokens: 2000,
                 temperature: 0.8
             })
         });
@@ -190,7 +190,7 @@ WORLD RULES:
 - Evil characters may encounter darker situations
 - Reborn characters have wisdom from previous lives
 
-Generate a short adventure story (100-150 words) appropriate for a ${characterContext.tierName} character.
+Generate a detailed adventure story (300-500 words) appropriate for a ${characterContext.tierName} character.
 Career category: ${config.careerCategory}.
 Include exactly 4 choices with different approaches.
 Format as JSON: {"story": "...", "choices": [{"text": "...", "type": "aggressive"}, {"text": "...", "type": "diplomatic"}, {"text": "...", "type": "cautious"}, {"text": "...", "type": "creative"}]}`;
@@ -253,9 +253,18 @@ function displayAdventure() {
     const adventure = adventureData.currentAdventure;
     if (!adventure) return;
     
+    // Remove any existing adventure display first
+    const existingAdventure = document.getElementById('adventureDisplay');
+    if (existingAdventure) {
+        existingAdventure.remove();
+    }
+    
     // Create adventure display
     const adventureHTML = `
-        <div id="adventureDisplay" style="margin: 20px; padding: 20px; border: 2px solid #4CAF50; border-radius: 8px; background: rgba(76, 175, 80, 0.1);">
+        <div id="adventureDisplay" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); 
+             z-index: 1000; margin: 20px; padding: 20px; border: 2px solid #4CAF50; border-radius: 8px; 
+             background: rgba(20, 20, 20, 0.95); color: #e0e0e0; max-width: 80%; max-height: 80%; 
+             overflow-y: auto; box-shadow: 0 4px 20px rgba(0,0,0,0.5);">
             <h3 style="color: #4CAF50;">🌟 Adventure</h3>
             <p style="margin: 15px 0; line-height: 1.6;">${adventure.story}</p>
             <div style="margin-top: 20px;">
@@ -272,9 +281,8 @@ function displayAdventure() {
         </div>
     `;
     
-    // Insert into main content area
-    const mainContent = document.getElementById('mainContent') || document.body;
-    mainContent.insertAdjacentHTML('beforeend', adventureHTML);
+    // Insert into body as a modal overlay
+    document.body.insertAdjacentHTML('beforeend', adventureHTML);
 }
 
 // Make choice (main function)
@@ -292,19 +300,21 @@ async function makeAdventureChoice(choiceIndex) {
         const rewards = calculateRewards(choice, isSuccess);
         applyAdventureRewards(rewards);
         
-        // Generate continuation
-        const continuation = await generateStoryContinuation(choice, isSuccess);
+        // Generate continuation with follow-up choices
+        const continuationData = await generateStoryContinuation(choice, isSuccess);
         
         // Save to story tree
-        saveToStoryTree(choice, isSuccess, continuation);
+        saveToStoryTree(choice, isSuccess, continuationData);
         
-        // Mark as used
-        adventureData.usedAdventures[adventureData.currentAdventure.milestone] = true;
-        localStorage.setItem('usedAdventures', JSON.stringify(adventureData.usedAdventures));
+        // Update UI with result and follow-up choices
+        displayAdventureResult(continuationData, rewards);
         
-        // Update UI
+        // Don't mark as used yet - allow follow-up choices
+        // adventureData.usedAdventures[adventureData.currentAdventure.milestone] = true;
+        // localStorage.setItem('usedAdventures', JSON.stringify(adventureData.usedAdventures));
+        
+        // Update adventure buttons
         updateAdventureButtons();
-        displayAdventureResult(continuation, rewards);
         
     } catch (error) {
         console.error('Choice Error:', error);
@@ -334,15 +344,17 @@ function applyAdventureRewards(rewards) {
     // Note: UI update handled by main game loop
 }
 
-// Generate story continuation (simplified)
+// Generate story continuation with follow-up choices
 async function generateStoryContinuation(choice, success) {
     const context = generateCharacterContext();
     const outcome = success ? 'successful' : 'failed';
     const prompt = `Continue this adventure story where the character ${outcome} with choice: "${choice.text}".
                    Context: ${context}. 
-                   Provide a brief continuation paragraph.`;
+                   Provide a detailed continuation paragraph (200-300 words) and include exactly 3 follow-up choices.
+                   Format as JSON: {"continuation": "...", "followUpChoices": [{"text": "...", "type": "aggressive"}, {"text": "...", "type": "diplomatic"}, {"text": "...", "type": "cautious"}]}`;
     
-    return await callMistralAPI(prompt);
+    const response = await callMistralAPI(prompt);
+    return JSON.parse(response);
 }
 
 // Save to story tree (simplified)
@@ -363,23 +375,100 @@ function saveToStoryTree(choice, success, continuation) {
     localStorage.setItem('storyTrees', JSON.stringify(adventureData.storyTrees));
 }
 
-// Display adventure result
-function displayAdventureResult(continuation, rewards) {
+// Display adventure result with follow-up choices
+function displayAdventureResult(continuationData, rewards) {
     const resultHTML = `
-        <div style="margin: 20px; padding: 20px; border: 2px solid ${rewards.success ? '#4CAF50' : '#f44336'}; border-radius: 8px; background: rgba(76, 175, 80, 0.1);">
+        <div style="margin: 20px; padding: 20px; border: 2px solid ${rewards.success ? '#4CAF50' : '#f44336'}; border-radius: 8px; background: rgba(76, 175, 80, 0.1); color: #e0e0e0;">
             <h4 style="color: ${rewards.success ? '#4CAF50' : '#f44336'};">
                 ${rewards.success ? '✅ Success!' : '❌ Failure!'}
             </h4>
-            <p style="margin: 15px 0; line-height: 1.6;">${continuation}</p>
+            <p style="margin: 15px 0; line-height: 1.6;">${continuationData.continuation}</p>
             <p style="color: #4CAF50; font-weight: bold;">
                 Gained ${Math.round(rewards.xp)} XP in ${rewards.skill}
             </p>
+            ${continuationData.followUpChoices ? `
+                <div style="margin-top: 20px;">
+                    <h5 style="color: #2196F3; margin-bottom: 15px;">What do you do next?</h5>
+                    ${continuationData.followUpChoices.map((choice, index) => `
+                        <button class="w3-button button" onclick="makeFollowUpChoice(${index})" 
+                                style="display: block; width: 100%; margin: 10px 0; padding: 15px; text-align: left;">
+                            ${choice.text}
+                        </button>
+                    `).join('')}
+                </div>
+            ` : ''}
         </div>
     `;
     
     const adventureDisplay = document.getElementById('adventureDisplay');
     if (adventureDisplay) {
         adventureDisplay.insertAdjacentHTML('beforeend', resultHTML);
+    }
+}
+
+// Handle follow-up choices
+async function makeFollowUpChoice(choiceIndex) {
+    try {
+        const adventureDisplay = document.getElementById('adventureDisplay');
+        if (!adventureDisplay) return;
+        
+        // Get the follow-up choices from the last result
+        const resultDivs = adventureDisplay.querySelectorAll('div[style*="border: 2px solid"]');
+        const lastResult = resultDivs[resultDivs.length - 1];
+        const followUpChoices = lastResult.querySelectorAll('button[onclick*="makeFollowUpChoice"]');
+        
+        if (choiceIndex >= followUpChoices.length) {
+            throw new Error('Invalid follow-up choice');
+        }
+        
+        const choiceText = followUpChoices[choiceIndex].textContent;
+        
+        // Generate final outcome
+        const finalOutcome = await generateFinalOutcome(choiceText);
+        
+        // Mark adventure as used
+        adventureData.usedAdventures[adventureData.currentAdventure.milestone] = true;
+        localStorage.setItem('usedAdventures', JSON.stringify(adventureData.usedAdventures));
+        
+        // Display final outcome
+        displayFinalOutcome(finalOutcome);
+        
+        // Update adventure buttons
+        updateAdventureButtons();
+        
+    } catch (error) {
+        console.error('Follow-up Choice Error:', error);
+        alert(`Follow-up Choice Error: ${error.message}`);
+    }
+}
+
+// Generate final outcome
+async function generateFinalOutcome(choiceText) {
+    const context = generateCharacterContext();
+    const prompt = `Complete this adventure story with the final choice: "${choiceText}".
+                   Context: ${context}. 
+                   Provide a satisfying conclusion (150-200 words) that wraps up the adventure.
+                   Format as JSON: {"conclusion": "..."}`;
+    
+    const response = await callMistralAPI(prompt);
+    return JSON.parse(response);
+}
+
+// Display final outcome
+function displayFinalOutcome(finalOutcome) {
+    const finalHTML = `
+        <div style="margin: 20px; padding: 20px; border: 2px solid #4CAF50; border-radius: 8px; background: rgba(76, 175, 80, 0.1); color: #e0e0e0;">
+            <h4 style="color: #4CAF50;">🏁 Adventure Complete!</h4>
+            <p style="margin: 15px 0; line-height: 1.6;">${finalOutcome.conclusion}</p>
+            <button class="w3-button button" onclick="closeAdventure()" style="margin-top: 15px;">
+                Close Adventure
+            </button>
+        </div>
+    `;
+    
+    const adventureDisplay = document.getElementById('adventureDisplay');
+    if (adventureDisplay) {
+        adventureDisplay.insertAdjacentHTML('beforeend', finalHTML);
     }
 }
 
@@ -455,6 +544,7 @@ function initializeAdventureSystem() {
 // Export functions for global access
 window.startAdventure = startAdventure;
 window.makeAdventureChoice = makeAdventureChoice;
+window.makeFollowUpChoice = makeFollowUpChoice;
 window.closeAdventure = closeAdventure;
 window.saveApiKey = saveApiKey;
 window.updateAdventureButtons = updateAdventureButtons;

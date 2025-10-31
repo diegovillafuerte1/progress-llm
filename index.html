@@ -4,13 +4,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" type="text/css" href="css/styles.css">
     <link rel="stylesheet" type="text/css" href="css/dark.css">
+    <link rel="stylesheet" type="text/css" href="css/sci-fi-theme.css">
+    <link rel="stylesheet" type="text/css" href="css/components.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css"> 
     <title>Progress Knight</title>
 </head>
 <body id="body" class="dark">
     <div class="w3-margin"> 
         <h1>Progress Knight</h1>
-        <div style="width: 1220px; height: 600px"> 
+        <div style="width: 1520px; height: 600px"> 
             <div class="panel w3-padding" style="width: 300px; height: auto; float: left">
                 <span id="deathText">
                     <div style="font-size: large; color: red">Age has caught up to you</div>
@@ -155,10 +160,10 @@
                         </td>
                         <td class="xpGain">Xp/day</td>
                         <td class="xpLeft">Xp left</td>
-                        <td class="maxLevel">
+                        <td class="maxLevel">Max level</td>
+                        <td class="skipSkill">
                             <input class="checkbox" type="checkbox"></input>
                         </td>
-                        <td class="skipSkill">Skip</td>
                     </tr>
                 </template>
 
@@ -339,6 +344,27 @@
                     </ul>
                 </div>
             </div>
+
+            <!-- Ad Bottom (single, horizontal) -->
+            <div class="panel w3-margin-top w3-padding" style="width: 100%; height: auto; float: none; clear: both; display: flex; justify-content: center; align-items: stretch; gap: 16px;">
+                <!-- Single Native Ad -->
+                <div class="native-ad" data-ad-id="galactic-trading" style="max-width: 460px; width: 100%;">
+                    <div class="native-ad-header">
+                        <div class="native-ad-logo">G</div>
+                        <div class="native-ad-title">Galactic Trading Co.</div>
+                    </div>
+                    <div class="native-ad-description">
+                        Trade resources across the galaxy. Get 50% bonus credits on your first trade!
+                    </div>
+                    <div class="native-ad-reward">
+                        <div class="native-ad-reward-title">🎁 Reward: +100 XP</div>
+                        <div class="native-ad-reward-desc">Click to claim your reward</div>
+                    </div>
+                    <button class="native-ad-cta" onclick="clickRewardedAd('galactic-trading')">
+                        Start Trading + Get Reward
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
     
@@ -354,10 +380,15 @@
 <script type="text/javascript" src="node_modules/loglevel/dist/loglevel.min.js"></script>
 <script type="text/javascript" src="js/HackTimer.js"></script>
 <script type="text/javascript" src="js/classes.js"></script>
-<script type="text/javascript" src="js/main.js?v=5"></script>
+    <script type="text/javascript" src="js/main.js?v=5"></script>
 
 <!-- Minimal Adventure System -->
 <script type="text/javascript" src="js/main-adventure-minimal.js"></script>
+
+<!-- Ad System -->
+<script type="text/javascript" src="js/ads.js"></script>
+<script type="text/javascript" src="js/ui-view-only.js"></script>
+
 
 <!-- Initialize the minimal adventure system -->
 <script>
