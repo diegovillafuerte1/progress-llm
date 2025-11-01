@@ -61,7 +61,7 @@ const jobBaseData = {
 }
 
 const skillBaseData = {
-    "Processing": {name: "Processing", maxXp: 100, effect: 0.01, description: "Skill xp"},
+    "Processing": {name: "Processing", maxXp: 100, effect: 0.01, description: "Software xp"},
     "Efficiency": {name: "Efficiency", maxXp: 100, effect: 0.01, description: "Research xp"},
     "Negotiation": {name: "Negotiation", maxXp: 100, effect: -0.01, description: "Expenses"},
     "Optimization": {name: "Optimization", maxXp: 100, effect: 0.01, description: "Efficiency"},
@@ -94,14 +94,14 @@ const itemBaseData = {
     "Command Pod": {name: "Command Pod", expense: 300000, effect: 25},
     "Command Bay": {name: "Command Bay", expense: 5000000, effect: 60},
 
-    "Scanner": {name: "Scanner", expense: 10, effect: 1.5, description: "Skill xp"},
+    "Scanner": {name: "Scanner", expense: 10, effect: 1.5, description: "Software xp"},
     "Thruster": {name: "Thruster", expense: 50, effect: 1.5, description: "Reinforcement xp"},
     "Auto Pilot": {name: "Auto Pilot", expense: 200, effect: 2, description: "Research xp"},
     "Plasma Cannon": {name: "Plasma Cannon", expense: 1000, effect: 2, description: "Combat Operations xp"},
     "Core": {name: "Core", expense: 7500, effect: 1.5, description: "Efficiency"},
     "Quantum Core": {name: "Quantum Core", expense: 50000, effect: 3, description: "Advanced Systems xp"},
-    "Nav Computer": {name: "Nav Computer", expense: 1000000, effect: 2, description: "Skill xp"},
-    "Mainframe": {name: "Mainframe", expense: 10000000, effect: 1.5, description: "Skill xp"},
+    "Nav Computer": {name: "Nav Computer", expense: 1000000, effect: 2, description: "Software xp"},
+    "Mainframe": {name: "Mainframe", expense: 10000000, effect: 1.5, description: "Software xp"},
 }
 
 const jobCategories = {
@@ -172,7 +172,7 @@ const tooltips = {
     "Temporal Manipulation": "Bend spacetime through forbidden quantum techniques, resulting in a faster processing speed.",
     "Extended Range": "Through harnessing ancient, forbidden quantum protocols, extend signal range drastically beyond normal comprehension.",
 
-    "Corruption Absorption": "Encompass yourself with formidable power bestowed upon you by corruption, allowing you to pick up and absorb any research topic or skill with ease.",
+    "Corruption Absorption": "Encompass yourself with formidable power bestowed upon you by corruption, allowing you to pick up and absorb any research topic or software with ease.",
     "Corruption Control": "Suppress the raging and growing corruption within your systems, improving corruption gain in-between drone deployments.",
     "Aggression": "Deploy aggressive protocols which override other systems' negotiation algorithms, forcing them to give you heavy discounts.",
     "Forbidden Protocols": "A standard drone frame is too feeble and weak to withstand corruption. Upgrade with forbidden protocols to slowly manifest into a corrupted unit, capable of absorbing knowledge rapidly.",
@@ -224,7 +224,7 @@ function addMultipliers() {
         if (task instanceof Job) task.incomeMultipliers = []
 
         task.xpMultipliers.push(task.getMaxLevelMultiplier.bind(task))
-        task.xpMultipliers.push(getHappiness)
+        task.xpMultipliers.push(getEfficiency)
         task.xpMultipliers.push(getBindedTaskEffect("Corruption Absorption"))
         task.xpMultipliers.push(getBindedTaskEffect("Forbidden Protocols"))
 
@@ -292,11 +292,11 @@ function setCustomEffects() {
     }
 }
 
-function getHappiness() {
+function getEfficiency() {
     var optimizationEffect = getBindedTaskEffect("Optimization")
     var coreEffect = getBindedItemEffect("Core")
-    var happiness = optimizationEffect() * coreEffect() * gameData.currentProperty.getEffect()
-    return happiness
+    var efficiency = optimizationEffect() * coreEffect() * gameData.currentProperty.getEffect()
+    return efficiency
 }
 
 function getEvil() {
@@ -640,7 +640,7 @@ function updateText() {
     formatCoins(getIncome(), document.getElementById("incomeDisplay"))
     formatCoins(getExpense(), document.getElementById("expenseDisplay"))
 
-    document.getElementById("happinessDisplay").textContent = getHappiness().toFixed(1)
+    document.getElementById("efficiencyDisplay").textContent = getEfficiency().toFixed(1)
 
     document.getElementById("evilDisplay").textContent = gameData.evil.toFixed(1)
     document.getElementById("evilGainDisplay").textContent = getEvilGain().toFixed(1)
@@ -1148,9 +1148,9 @@ createData(gameData.taskData, jobBaseData)
 createData(gameData.taskData, skillBaseData)
 createData(gameData.itemData, itemBaseData) 
 
-gameData.currentJob = gameData.taskData["Beggar"]
-gameData.currentSkill = gameData.taskData["Concentration"]
-gameData.currentProperty = gameData.itemData["Homeless"]
+gameData.currentJob = gameData.taskData["Scanning"]
+gameData.currentSkill = gameData.taskData["Processing"]
+gameData.currentProperty = gameData.itemData["Pod"]
 gameData.currentMisc = []
 
 gameData.requirements = {
