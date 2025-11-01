@@ -21,10 +21,10 @@ const adventureMilestones = {
 }
 
 const choiceTypes = {
-    aggressive: { skill: 'Strength', baseProb: 0.0 },
-    diplomatic: { skill: 'Bargaining', baseProb: 0.0 },
-    cautious: { skill: 'Concentration', baseProb: 0.0 },
-    creative: { skill: 'Concentration', baseProb: 0.0 }
+    aggressive: { skill: 'Reinforcement', baseProb: 0.0 },
+    diplomatic: { skill: 'Negotiation', baseProb: 0.0 },
+    cautious: { skill: 'Processing', baseProb: 0.0 },
+    creative: { skill: 'Processing', baseProb: 0.0 }
 }
 
 const careerBonuses = {
@@ -90,7 +90,7 @@ function calculatePowerLevel() {
     let effectivePower = averageLevel * 10;
     
     // Add combat multiplier for combat skills
-    const combatSkills = ['Strength', 'Battle tactics', 'Muscle memory'];
+    const combatSkills = ['Reinforcement', 'Combat Protocols', 'Pattern Recognition'];
     const combatLevel = combatSkills.reduce((sum, skill) => sum + (skills[skill]?.level || 0), 0);
     const combatMultiplier = Math.min(1 + (combatLevel / 100000), 2.0); // Cap at 2x
     effectivePower *= combatMultiplier;
