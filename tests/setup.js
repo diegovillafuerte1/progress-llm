@@ -1,4 +1,4 @@
-// Jest setup file for Progress Knight tests
+// Jest setup file for Drone Command tests
 // This file runs before each test file
 
 // Mock localStorage

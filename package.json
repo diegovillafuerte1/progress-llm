@@ -1,5 +1,5 @@
 {
-  "name": "progress-knight",
+  "name": "drone-command",
   "version": "1.0.0",
   "description": "A text-based incremental game",
   "main": "index.html",

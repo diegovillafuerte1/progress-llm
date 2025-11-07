@@ -1,6 +1,6 @@
 # Test Suite Documentation
 
-This document provides comprehensive documentation for the Progress Knight test suite, explaining the architecture, patterns, and complex test logic.
+This document provides comprehensive documentation for the Drone Command test suite, explaining the architecture, patterns, and complex test logic.
 
 ## Table of Contents
 
@@ -493,7 +493,7 @@ test('should simulate a complete game cycle', () => {
 
 ## Conclusion
 
-This test suite provides comprehensive coverage of the Progress Knight game logic with:
+This test suite provides comprehensive coverage of the Drone Command game logic with:
 
 - **121+ tests** across 8 test files
 - **Complete class coverage** for all game entities

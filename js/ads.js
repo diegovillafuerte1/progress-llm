@@ -1,4 +1,4 @@
-// Ad System for Progress Knight
+// Ad System for Drone Command
 // Phase 1: Native Ad Implementation
 
 // Ad Performance Tracking
@@ -386,6 +386,8 @@ if (document.readyState === 'loading') {
 } else {
     initAdSystem();
 }
+
+
 
 
 
