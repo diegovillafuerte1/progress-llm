@@ -279,7 +279,7 @@ All notable changes, bug fixes, and feature implementations for Progress-LLM.
 ## [0.1.0] - Initial Fork
 
 ### Added - Core Features from Upstream
-- Original Progress Knight game mechanics
+- Original Drone Command game mechanics
 - Career progression system (Beggar → Chairman)
 - Skill system with XP and levels
 - Job system with income and requirements

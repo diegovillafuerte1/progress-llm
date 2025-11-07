@@ -1,4 +1,4 @@
-# Progress Knight - LLM Integration Roadmap
+# Drone Command - LLM Integration Roadmap
 
 ## Phase 1: Story-Game Integration ✅ (Current Focus)
 

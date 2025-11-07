@@ -1,10 +1,10 @@
-# Progress Knight - LLM Enhanced
+# Drone Command - LLM Enhanced
 
 ### Introduction
-Progress Knight is a text-based incremental game, originally developed by Ihtasham42, now enhanced with AI-powered story adventures using Large Language Models (LLMs). This fork adds dynamic, contextual storytelling that adapts to your character's career path, power level, and choices.
+Drone Command is a text-based incremental game, originally developed by Ihtasham42, now enhanced with AI-powered story adventures using Large Language Models (LLMs). This fork adds dynamic, contextual storytelling that adapts to your character's career path, power level, and choices.
 
-### What is Progress Knight about?
-Progress Knight is a life-sim incremental game set in a fantasy/medieval world, where you progress through career ladders and acquire skills to become the ultimate being. This enhanced version adds AI-generated story adventures that create unique narratives based on your character's development.
+### What is Drone Command about?
+Drone Command is a life-sim incremental game set in a fantasy/medieval world, where you progress through career ladders and acquire skills to become the ultimate being. This enhanced version adds AI-generated story adventures that create unique narratives based on your character's development.
 
 **Core Gameplay:**
 - Start as a beggar and work your way up through various career paths
@@ -20,7 +20,7 @@ Progress Knight is a life-sim incremental game set in a fantasy/medieval world, 
 - **Career-Specific Adventures:** Different story types for each career path
 - **Choice-Based Rewards:** Earn XP based on your adventure performance
 
-### Where can I play Progress Knight?
+### Where can I play Drone Command?
 - **Original Game:** [Github Pages](https://ihtasham42.github.io/progress-knight/)  
 - **Original Game:** [Armor Games](https://armorgames.com/progress-knight-game/19095)
 - **Original Game:** [Crazy Games](https://www.crazygames.com/game/progress-knight)
