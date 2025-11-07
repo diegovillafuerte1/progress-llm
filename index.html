@@ -36,47 +36,35 @@
                     </span>
                 </span>
 
-                <div class="text-large" id="coinDisplay">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                </div>
-                <div class="text-secondary">Balance (in data points)</div>
-
                 <!-- Big Counter -->
                 <div class="big-counter" id="sci-fi-big-counter">
                     <div class="big-counter-value" id="sci-fi-counter-value">0</div>
                     <div class="big-counter-label">Data Points</div>
                 </div>
 
-                <!-- Rate Chip -->
-                <div class="rate-chip" id="sci-fi-rate-chip">
-                    <div class="rate-chip-trend" id="sci-fi-rate-trend"></div>
-                    <div class="rate-chip-value" id="sci-fi-rate-value">0</div>
-                    <div class="rate-chip-label">/day</div>
+                <div class="sidebar-element rate-chip-group">
+                    <div class="rate-chip rate-chip--net" id="netChip">
+                        <div class="rate-chip-trend" id="netTrend"></div>
+                        <div class="rate-chip-value">
+                            <span class="rate-chip-label-text">Net/day</span>
+                            <span class="rate-chip-amount" id="netDisplay"></span>
+                        </div>
+                    </div>
+                    <div class="rate-chip" id="incomeChip">
+                        <div class="rate-chip-trend positive"></div>
+                        <div class="rate-chip-value">
+                            <span class="rate-chip-label-text">Income/day</span>
+                            <span class="rate-chip-amount" id="incomeDisplay"></span>
+                        </div>
+                    </div>
+                    <div class="rate-chip rate-chip--expense" id="expenseChip">
+                        <div class="rate-chip-trend negative"></div>
+                        <div class="rate-chip-value">
+                            <span class="rate-chip-label-text">Expense/day</span>
+                            <span class="rate-chip-amount" id="expenseDisplay"></span>
+                        </div>
+                    </div>
                 </div>
-
-                <ul class="sidebar-element" style="padding-left: 20px;">
-                    <li><span class="text-cyan">Net/day: </span ><b id="signDisplay"></b><span id="netDisplay">
-                        <span></span>
-                        <span></span>
-                        <span></span>
-                        <span></span>
-                    </span></li>
-                    <li><span class="text-green">Income/day: </span><span id="incomeDisplay">
-                        <span></span>
-                        <span></span>
-                        <span></span>
-                        <span></span>
-                    </span></li>
-                    <li><span class="text-danger">Expense/day: </span><span id="expenseDisplay">
-                        <span></span>
-                        <span></span>
-                        <span></span>
-                        <span></span>
-                    </span></li>
-                </ul>
 
                 <span id="quickTaskDisplay">
                     <div class="quick-task-bar small-margin inline job progress-bar progressBar">

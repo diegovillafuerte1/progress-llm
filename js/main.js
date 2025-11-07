@@ -634,11 +634,7 @@ function updateText() {
     document.getElementById("lifespanDisplay").textContent = daysToYears(getLifespan())
     document.getElementById("pauseButton").textContent = gameData.paused ? "Play" : "Pause"
 
-    formatCoins(gameData.coins, document.getElementById("coinDisplay"))
-    setSignDisplay()
-    formatCoins(getNet(), document.getElementById("netDisplay"))
-    formatCoins(getIncome(), document.getElementById("incomeDisplay"))
-    formatCoins(getExpense(), document.getElementById("expenseDisplay"))
+    updateRateChips()
 
     document.getElementById("efficiencyDisplay").textContent = getEfficiency().toFixed(1)
 
@@ -650,17 +646,22 @@ function updateText() {
 }
 
 function setSignDisplay() {
-    var signDisplay = document.getElementById("signDisplay")
-    if (getIncome() > getExpense()) {
-        signDisplay.textContent = "+"
-        signDisplay.style.color = "green"
-    } else if (getExpense() > getIncome()) {
-        signDisplay.textContent = "-"
-        signDisplay.style.color = "red"
-    } else {
-        signDisplay.textContent = ""
-        signDisplay.style.color = "gray"
-    }
+	var netChip = document.getElementById("netChip");
+	var netTrend = document.getElementById("netTrend");
+	if (!netChip || !netTrend) return;
+	netChip.classList.remove("negative", "positive", "neutral");
+	netTrend.classList.remove("negative", "positive", "neutral");
+
+	if (getIncome() > getExpense()) {
+		netChip.classList.add("positive");
+		netTrend.classList.add("positive");
+	} else if (getExpense() > getIncome()) {
+		netChip.classList.add("negative");
+		netTrend.classList.add("negative");
+	} else {
+		netChip.classList.add("neutral");
+		netTrend.classList.add("neutral");
+	}
 }
 
 function getNet() {
@@ -842,6 +843,23 @@ function formatCoins(coins, element) {
     var text = String(Math.floor(leftOver)) + "c"
     element.children[3].textContent = text
     element.children[3].style.color = colors["c"]
+}
+
+function formatDataPoints(value, element) {
+	if (!element) return;
+	var formatted = formatNumber(value);
+	element.textContent = formatted + ' data points';
+}
+
+function updateRateChips() {
+	var netEl = document.getElementById("netDisplay");
+	var incomeEl = document.getElementById("incomeDisplay");
+	var expenseEl = document.getElementById("expenseDisplay");
+
+	formatDataPoints(getNet(), netEl);
+	formatDataPoints(getIncome(), incomeEl);
+	formatDataPoints(getExpense(), expenseEl);
+	setSignDisplay();
 }
 
 function getTaskElement(taskName) {
@@ -1283,11 +1301,12 @@ setInterval(setSkillWithLowestMaxXp, 1000)
 // Adds a sci-fi Big Counter as a sibling after #coinDisplay without modifying game logic DOM
 
 function formatNumber(num) {
-	if (num < 1000) return String(num);
-	if (num < 1e6) return (num / 1e3).toFixed(1) + 'K';
-	if (num < 1e9) return (num / 1e6).toFixed(1) + 'M';
-	if (num < 1e12) return (num / 1e9).toFixed(1) + 'B';
-	return (num / 1e12).toFixed(1) + 'T';
+	if (typeof num !== 'number' || isNaN(num)) return '0';
+	var hasFraction = Math.abs(num % 1) > 0;
+	if (hasFraction) {
+		return num.toLocaleString('en-US', { maximumFractionDigits: 2, minimumFractionDigits: 0 });
+	}
+	return Math.trunc(num).toLocaleString('en-US');
 }
 
 function ensureBigCounter() {
