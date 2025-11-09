@@ -355,13 +355,22 @@ function goBankrupt() {
     gameData.currentMisc = []
 }
 
+function setHidden(element, hidden) {
+	if (!element) return;
+	if (hidden) {
+		element.classList.add('is-hidden');
+	} else {
+		element.classList.remove('is-hidden');
+	}
+}
+
 function setTab(element, selectedTab) {
 
     var tabs = Array.prototype.slice.call(document.getElementsByClassName("tab"))
     tabs.forEach(function(tab) {
-        tab.style.display = "none"
+		setHidden(tab, true)
     })
-    document.getElementById(selectedTab).style.display = "block"
+	setHidden(document.getElementById(selectedTab), false)
 
     var tabButtons = document.getElementsByClassName("tabButton")
     for (tabButton of tabButtons) {
@@ -585,8 +594,8 @@ function updateTaskRows() {
         if (valueElement) {
             var incomeEl = valueElement.getElementsByClassName("income")[0]
             var effectEl = valueElement.getElementsByClassName("effect")[0]
-            if (incomeEl) incomeEl.style.display = task instanceof Job ? "block" : "none"
-            if (effectEl) effectEl.style.display = task instanceof Skill ? "block" : "none"
+            if (incomeEl) setHidden(incomeEl, !(task instanceof Job))
+            if (effectEl) setHidden(effectEl, !(task instanceof Skill))
 
             if (task instanceof Job && incomeEl) {
                 formatCoins(task.getIncome(), incomeEl)
@@ -597,7 +606,7 @@ function updateTaskRows() {
 
         var skipSkillElement = row.getElementsByClassName("skipSkill")[0]
         if (skipSkillElement) {
-            skipSkillElement.style.display = task instanceof Skill && autoLearnElement.checked ? "block" : "none"
+            setHidden(skipSkillElement, !(task instanceof Skill && autoLearnElement.checked))
         }
     }
 }
@@ -610,7 +619,12 @@ function updateItemRows() {
         button.disabled = gameData.coins < item.getExpense()
         var active = row.getElementsByClassName("active")[0]
         var color = itemCategories["Properties"].includes(item.name) ? headerRowColors["Properties"] : headerRowColors["Misc"]
-        active.style.backgroundColor = gameData.currentMisc.includes(item) || item == gameData.currentProperty ? color : "white"
+        var isActive = gameData.currentMisc.includes(item) || item == gameData.currentProperty
+        if (isActive) {
+            active.style.backgroundColor = color
+        } else {
+            active.style.removeProperty('background-color')
+        }
         row.getElementsByClassName("effect")[0].textContent = item.getEffectDescription()
         formatCoins(item.getExpense(), row.getElementsByClassName("expense")[0])
     }
@@ -623,7 +637,7 @@ function updateHeaderRows(categories) {
         var maxLevelElement = headerRow.getElementsByClassName("maxLevel")[0]
         gameData.rebirthOneCount > 0 ? maxLevelElement.classList.remove("hidden") : maxLevelElement.classList.add("hidden")
         var skipSkillElement = headerRow.getElementsByClassName("skipSkill")[0]
-        skipSkillElement.style.display = (categories === skillCategories && autoLearnElement.checked) ? "block" : "none"
+        setHidden(skipSkillElement, !(categories === skillCategories && autoLearnElement.checked))
     }
 }
 
@@ -634,11 +648,7 @@ function updateText() {
     document.getElementById("lifespanDisplay").textContent = daysToYears(getLifespan())
     document.getElementById("pauseButton").textContent = gameData.paused ? "Play" : "Pause"
 
-    formatCoins(gameData.coins, document.getElementById("coinDisplay"))
-    setSignDisplay()
-    formatCoins(getNet(), document.getElementById("netDisplay"))
-    formatCoins(getIncome(), document.getElementById("incomeDisplay"))
-    formatCoins(getExpense(), document.getElementById("expenseDisplay"))
+    updateRateChips()
 
     document.getElementById("efficiencyDisplay").textContent = getEfficiency().toFixed(1)
 
@@ -650,17 +660,22 @@ function updateText() {
 }
 
 function setSignDisplay() {
-    var signDisplay = document.getElementById("signDisplay")
-    if (getIncome() > getExpense()) {
-        signDisplay.textContent = "+"
-        signDisplay.style.color = "green"
-    } else if (getExpense() > getIncome()) {
-        signDisplay.textContent = "-"
-        signDisplay.style.color = "red"
-    } else {
-        signDisplay.textContent = ""
-        signDisplay.style.color = "gray"
-    }
+	var netChip = document.getElementById("netChip");
+	var netTrend = document.getElementById("netTrend");
+	if (!netChip || !netTrend) return;
+	netChip.classList.remove("negative", "positive", "neutral");
+	netTrend.classList.remove("negative", "positive", "neutral");
+
+	if (getIncome() > getExpense()) {
+		netChip.classList.add("positive");
+		netTrend.classList.add("positive");
+	} else if (getExpense() > getIncome()) {
+		netChip.classList.add("negative");
+		netTrend.classList.add("negative");
+	} else {
+		netChip.classList.add("neutral");
+		netTrend.classList.add("neutral");
+	}
 }
 
 function getNet() {
@@ -842,6 +857,23 @@ function formatCoins(coins, element) {
     var text = String(Math.floor(leftOver)) + "c"
     element.children[3].textContent = text
     element.children[3].style.color = colors["c"]
+}
+
+function formatDataPoints(value, element) {
+	if (!element) return;
+	var formatted = formatNumber(value);
+	element.textContent = formatted + ' data points';
+}
+
+function updateRateChips() {
+	var netEl = document.getElementById("netDisplay");
+	var incomeEl = document.getElementById("incomeDisplay");
+	var expenseEl = document.getElementById("expenseDisplay");
+
+	formatDataPoints(getNet(), netEl);
+	formatDataPoints(getIncome(), incomeEl);
+	formatDataPoints(getExpense(), expenseEl);
+	setSignDisplay();
 }
 
 function getTaskElement(taskName) {
@@ -1283,11 +1315,12 @@ setInterval(setSkillWithLowestMaxXp, 1000)
 // Adds a sci-fi Big Counter as a sibling after #coinDisplay without modifying game logic DOM
 
 function formatNumber(num) {
-	if (num < 1000) return String(num);
-	if (num < 1e6) return (num / 1e3).toFixed(1) + 'K';
-	if (num < 1e9) return (num / 1e6).toFixed(1) + 'M';
-	if (num < 1e12) return (num / 1e9).toFixed(1) + 'B';
-	return (num / 1e12).toFixed(1) + 'T';
+	if (typeof num !== 'number' || isNaN(num)) return '0';
+	var hasFraction = Math.abs(num % 1) > 0;
+	if (hasFraction) {
+		return num.toLocaleString('en-US', { maximumFractionDigits: 2, minimumFractionDigits: 0 });
+	}
+	return Math.trunc(num).toLocaleString('en-US');
 }
 
 function ensureBigCounter() {
@@ -1490,22 +1523,14 @@ function injectPrestigePreview() {
 	btn.className = 'control-button';
 	btn.id = 'sci-fi-prestige-preview-btn';
 	btn.textContent = 'Preview Prestige';
-	btn.style.margin = '8px 0';
 	rebirthTab.insertAdjacentElement('afterbegin', btn);
 
 	var overlay = document.createElement('div');
 	overlay.id = 'sci-fi-prestige-modal';
-	overlay.style.display = 'none';
-	overlay.style.position = 'fixed';
-	overlay.style.inset = '0';
-	overlay.style.background = 'rgba(0,0,0,0.6)';
-	overlay.style.zIndex = '1050';
+	overlay.className = 'sci-modal-overlay is-hidden';
 
 	var card = document.createElement('div');
 	card.className = 'prestige-card';
-	card.style.maxWidth = '520px';
-	card.style.margin = '10vh auto';
-	card.style.boxShadow = '0 20px 40px rgba(0,0,0,0.5)';
 	card.innerHTML = '' +
 		'<div class="prestige-card-title">Prestige Preview</div>' +
 		'<div class="prestige-card-shards" id="sci-fi-preview-shards">0</div>' +
@@ -1519,6 +1544,9 @@ function injectPrestigePreview() {
 
 	overlay.appendChild(card);
 	document.body.appendChild(overlay);
+	overlay.addEventListener('click', function(e){
+		if (e.target === overlay) setHidden(overlay, true);
+	});
 
 	btn.addEventListener('click', function () {
 		var shardsEl = document.getElementById('sci-fi-preview-shards');
@@ -1535,14 +1563,14 @@ function injectPrestigePreview() {
 		if (multEl) multEl.textContent = 'x' + multiplier.toFixed(1) + ' projected multiplier';
 		var canvas = document.getElementById('sci-fi-preview-chart');
 		if (canvas) drawPrestigePreviewChart(canvas, multiplier);
-		overlay.style.display = 'block';
+		setHidden(overlay, false);
 	});
 
-	card.querySelector('#sci-fi-preview-close').addEventListener('click', function(){ overlay.style.display = 'none'; });
+	card.querySelector('#sci-fi-preview-close').addEventListener('click', function(){ setHidden(overlay, true); });
 	card.querySelector('#sci-fi-preview-focus').addEventListener('click', function(){
 		var touchBtn = document.querySelector('#rebirth button.w3-button.button');
 		if (touchBtn && touchBtn.scrollIntoView) touchBtn.scrollIntoView({ behavior: 'smooth', block: 'center' });
-		overlay.style.display = 'none';
+		setHidden(overlay, true);
 	});
 }
 
@@ -1550,9 +1578,8 @@ function injectPrestigePreview() {
 function attachDetailDrawers() {
 	try {
 		var overlay = document.createElement('div');
-		overlay.className = 'sci-drawer-overlay';
+		overlay.className = 'sci-drawer-overlay is-hidden';
 		overlay.id = 'sci-drawer-overlay';
-		overlay.style.display = 'none'; // Explicitly hidden on creation
 		var card = document.createElement('div');
 		card.className = 'sci-drawer-card';
 		card.innerHTML = '<div class="sci-drawer-title" id="sci-drawer-title">Details</div>'+
@@ -1562,8 +1589,8 @@ function attachDetailDrawers() {
 			'<div class="sci-drawer-actions"><button class="control-button" id="sci-drawer-close">Close</button></div>';
 		overlay.appendChild(card);
 		document.body.appendChild(overlay);
-		overlay.addEventListener('click', function(e){ if (e.target === overlay) overlay.style.display='none'; });
-		card.querySelector('#sci-drawer-close').addEventListener('click', function(){ overlay.style.display='none'; });
+		overlay.addEventListener('click', function(e){ if (e.target === overlay) setHidden(overlay, true); });
+		card.querySelector('#sci-drawer-close').addEventListener('click', function(){ setHidden(overlay, true); });
 
 		function openDrawerForTask(name) {
 			var title = document.getElementById('sci-drawer-title');
@@ -1579,7 +1606,7 @@ function attachDetailDrawers() {
 			} else {
 				l.textContent = x.textContent = n.textContent = '-';
 			}
-			overlay.style.display = 'block';
+			setHidden(overlay, false);
 		}
 
 		var rows = document.querySelectorAll('tr');
@@ -1609,7 +1636,7 @@ function attachDetailDrawers() {
 				var exp = btn.closest('tr') && btn.closest('tr').querySelector('.expense');
 				document.getElementById('sci-drawer-xp').textContent = exp ? exp.textContent.trim() : '-';
 				document.getElementById('sci-drawer-next').textContent = '-';
-				overlay.style.display = 'block';
+				setHidden(overlay, false);
 				e.stopPropagation();
 			});
 		});
@@ -1618,21 +1645,56 @@ function attachDetailDrawers() {
 
 // Floating tooltips (non-intrusive): reuse existing .tooltip .tooltipText content
 var floatingTooltipElement = null;
+var activeTouchTooltipContainer = null;
+var tooltipOffsets = { x: 14, y: 14 };
+var hoverMediaQuery = null;
+var hoverCapable = true;
+
+function initHoverCapability() {
+	try {
+		if (window.matchMedia) {
+			hoverMediaQuery = window.matchMedia('(hover: hover)');
+			hoverCapable = !hoverMediaQuery || hoverMediaQuery.matches;
+			var handler = function (e) {
+				hoverCapable = !!e.matches;
+				if (!hoverCapable) hideFloatingTip();
+			};
+			if (hoverMediaQuery) {
+				if (typeof hoverMediaQuery.addEventListener === 'function') {
+					hoverMediaQuery.addEventListener('change', handler);
+				} else if (typeof hoverMediaQuery.addListener === 'function') {
+					hoverMediaQuery.addListener(handler);
+				}
+			}
+		}
+	} catch (e) {
+		hoverCapable = true;
+	}
+}
+
+function updateTooltipOffsets() {
+	try {
+		var styles = window.getComputedStyle(document.documentElement);
+		var ox = parseFloat(styles.getPropertyValue('--tooltip-offset-x')) || 14;
+		var oy = parseFloat(styles.getPropertyValue('--tooltip-offset-y')) || 14;
+		tooltipOffsets.x = ox;
+		tooltipOffsets.y = oy;
+	} catch (e) {
+		tooltipOffsets.x = 14;
+		tooltipOffsets.y = 14;
+	}
+}
+
+initHoverCapability();
+updateTooltipOffsets();
 
 function ensureFloatingTooltip() {
 	if (floatingTooltipElement) return floatingTooltipElement;
 	floatingTooltipElement = document.createElement('div');
 	floatingTooltipElement.id = 'sci-fi-floating-tooltip';
-	floatingTooltipElement.style.position = 'fixed';
-	floatingTooltipElement.style.pointerEvents = 'none';
-	floatingTooltipElement.style.background = 'rgba(0,0,0,0.85)';
-	floatingTooltipElement.style.color = '#fff';
-	floatingTooltipElement.style.padding = '8px 10px';
-	floatingTooltipElement.style.borderRadius = '6px';
-	floatingTooltipElement.style.fontSize = '12px';
-	floatingTooltipElement.style.maxWidth = '260px';
-	floatingTooltipElement.style.zIndex = '1070';
-	floatingTooltipElement.style.transform = 'translate(-9999px, -9999px)';
+	floatingTooltipElement.style.left = '-9999px';
+	floatingTooltipElement.style.top = '-9999px';
+	floatingTooltipElement.dataset.visible = 'false';
 	document.body.appendChild(floatingTooltipElement);
 	return floatingTooltipElement;
 }
@@ -1640,45 +1702,139 @@ function ensureFloatingTooltip() {
 function showFloatingTip(html, x, y) {
 	var el = ensureFloatingTooltip();
 	el.innerHTML = html;
+	el.dataset.visible = 'true';
 	positionFloatingTip(x, y);
 }
 
 function positionFloatingTip(x, y) {
 	var el = ensureFloatingTooltip();
-	var offsetX = 14, offsetY = 14;
+	var offsetX = tooltipOffsets.x;
+	var offsetY = tooltipOffsets.y;
 	var left = x + offsetX;
 	var top = y + offsetY;
 	var rect = { w: el.offsetWidth, h: el.offsetHeight };
 	var vw = window.innerWidth, vh = window.innerHeight;
 	if (left + rect.w > vw - 8) left = x - rect.w - offsetX;
 	if (top + rect.h > vh - 8) top = y - rect.h - offsetY;
-	el.style.transform = 'translate(' + left + 'px,' + top + 'px)';
+	el.style.left = Math.max(8, left) + 'px';
+	el.style.top = Math.max(8, top) + 'px';
 }
 
 function hideFloatingTip() {
 	if (!floatingTooltipElement) return;
-	floatingTooltipElement.style.transform = 'translate(-9999px, -9999px)';
+	floatingTooltipElement.style.left = '-9999px';
+	floatingTooltipElement.style.top = '-9999px';
+	floatingTooltipElement.dataset.visible = 'false';
+	activeTouchTooltipContainer = null;
+}
+
+function getTooltipContent(container) {
+	if (!container) return null;
+	var textEl = container.querySelector('.tooltipText');
+	if (!textEl) return null;
+	var html = textEl.innerHTML;
+	return html && html.trim() ? html : null;
 }
 
 function bindFloatingTooltips() {
+	window.addEventListener('resize', updateTooltipOffsets);
+
 	document.addEventListener('mousemove', function(e) {
-		// If a tooltip is visible, track pointer
-		if (floatingTooltipElement && floatingTooltipElement.style.transform && floatingTooltipElement.style.transform.indexOf('-9999px') === -1) {
+		// If a tooltip is visible, track pointer (hover-capable devices only)
+		if (!hoverCapable) return;
+		if (floatingTooltipElement && floatingTooltipElement.dataset.visible === 'true') {
 			positionFloatingTip(e.clientX, e.clientY);
 		}
 	});
+
 	document.addEventListener('mouseenter', function(e) {
-		var t = e.target;
-		var container = t.closest && t.closest('.tooltip');
+		if (!hoverCapable) return;
+		var container = e.target.closest && e.target.closest('.tooltip');
 		if (!container) return;
-		var textEl = container.querySelector('.tooltipText');
-		if (textEl && textEl.textContent) {
-			showFloatingTip(textEl.textContent, e.clientX, e.clientY);
-		}
+		var html = getTooltipContent(container);
+		if (!html) return;
+		showFloatingTip(html, e.clientX, e.clientY);
 	}, true);
+
 	document.addEventListener('mouseleave', function(e) {
-		var t = e.target;
-		if (t.closest && t.closest('.tooltip')) hideFloatingTip();
+		if (!hoverCapable) return;
+		var container = e.target.closest && e.target.closest('.tooltip');
+		if (!container) return;
+		var next = e.relatedTarget;
+		if (next && next.closest && next.closest('.tooltip') === container) return;
+		hideFloatingTip();
+	}, true);
+
+	document.addEventListener('focusin', function(e) {
+		var container = e.target.closest && e.target.closest('.tooltip');
+		if (!container) return;
+		var html = getTooltipContent(container);
+		if (!html) return;
+		var rect = container.getBoundingClientRect();
+		var anchorX = rect.left + rect.width / 2;
+		var anchorY = rect.top + rect.height / 2;
+		showFloatingTip(html, anchorX, anchorY);
+	}, true);
+
+	document.addEventListener('focusout', function(e) {
+		var container = e.target.closest && e.target.closest('.tooltip');
+		if (!container) return;
+		var activeEl = document.activeElement;
+		if (activeEl && container.contains(activeEl)) return;
+		hideFloatingTip();
+	}, true);
+
+	document.addEventListener('touchstart', function(e) {
+		var target = e.target;
+		var container = target.closest && target.closest('.tooltip');
+		if (!container) {
+			if (activeTouchTooltipContainer) hideFloatingTip();
+			return;
+		}
+		var html = getTooltipContent(container);
+		if (!html) return;
+		if (activeTouchTooltipContainer === container && floatingTooltipElement && floatingTooltipElement.dataset.visible === 'true') {
+			hideFloatingTip();
+			return;
+		}
+		var touch = (e.changedTouches && e.changedTouches[0]) || (e.touches && e.touches[0]);
+		var clientX = touch ? touch.clientX : container.getBoundingClientRect().left;
+		var clientY = touch ? touch.clientY : container.getBoundingClientRect().top;
+		showFloatingTip(html, clientX, clientY);
+		activeTouchTooltipContainer = container;
+	}, { passive: true, capture: true });
+
+	var clearActiveTouchTooltip = function() {
+		if (!activeTouchTooltipContainer) return;
+		hideFloatingTip();
+	};
+
+	document.addEventListener('touchend', function(e) {
+		if (!activeTouchTooltipContainer) return;
+		var target = e.target;
+		if (target.closest && target.closest('.tooltip') === activeTouchTooltipContainer) return;
+		clearActiveTouchTooltip();
+	}, true);
+
+	document.addEventListener('touchcancel', clearActiveTouchTooltip, true);
+	document.addEventListener('scroll', clearActiveTouchTooltip, true);
+	document.addEventListener('click', function(e) {
+		if (!activeTouchTooltipContainer) return;
+		if (e.target.closest && e.target.closest('.tooltip') === activeTouchTooltipContainer) return;
+		clearActiveTouchTooltip();
+	}, true);
+
+	document.addEventListener('pointerdown', function(e) {
+		if (e.pointerType !== 'pen') return;
+		var container = e.target.closest && e.target.closest('.tooltip');
+		if (!container) {
+			clearActiveTouchTooltip();
+			return;
+		}
+		var html = getTooltipContent(container);
+		if (!html) return;
+		showFloatingTip(html, e.clientX, e.clientY);
+		activeTouchTooltipContainer = container;
 	}, true);
 }
 
@@ -1745,7 +1901,7 @@ function updateInlineMeta() {
 				}
 				var dot = r.querySelector('.active');
 				var isActive = dot && window.getComputedStyle(dot).backgroundColor !== 'rgb(255, 255, 255)';
-				chip.style.display = isActive ? 'inline-flex' : 'none';
+				setHidden(chip, !isActive);
 			});
 		}
 	} catch(e) { /* no-op */ }
