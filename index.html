@@ -3,10 +3,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" type="text/css" href="css/styles.css">
+    <link rel="stylesheet" type="text/css" href="css/control-panels.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css"> 
+    <link rel="stylesheet" type="text/css" href="css/w3-compat.css">
     <title>Drone Command</title>
 </head>
 <body id="body" class="dark">
@@ -117,77 +118,82 @@
 
             <div class="panel w3-margin-left w3-margin-top w3-padding content-panel height-auto float-left">
                 <template class="headerRowTaskTemplate">
-                    <tr>
-                        <th class="category table-column-name">Research Topic</th>
-                        <th class="valueType">Value type</th>
-                        <th class="maxLevel">Max level</th>
-                        <th class="skipSkill">Skip</th>
-                    </tr>
+                    <div class="control-section-header headerRow">
+                        <div class="control-section-title category">Research Topic</div>
+                    </div>
                 </template>
 
                 <template class="headerRowItemTemplate">
-                    <tr>
-                        <th class="category table-column-name">Item</th>
-                        <th>Active</th>
-                        <th class="table-column-name">Effect</th>
-                        <th>Expense/day</th>
-                    </tr>
+                    <div class="control-section-header headerRow">
+                        <div class="control-section-title category">Item</div>
+                    </div>
                 </template>
 
                 <template class="rowTaskTemplate">
-                    <tr>
-                        <td>
+                    <div class="control-card control-card--task">
+                        <div class="control-card-title">
                             <div class="progress-bar progressBar tooltip">
                                 <div class="progress-fill progressFill"></div>
                                 <div class="progress-text name">Task</div>
                                 <span class="tooltipText"></span>
                             </div>
-                        </td>
-                        <td class="value">
-                            <div class="effect"></div>
-                            <div class="income">
-                                <span></span>
-                                <span></span>
-                                <span></span>
-                                <span></span>
+                        </div>
+                        <div class="control-card-data">
+                            <div class="value">
+                                <div class="effect"></div>
+                                <div class="income">
+                                    <span></span>
+                                    <span></span>
+                                    <span></span>
+                                    <span></span>
+                                </div>
                             </div>
-                        </td>
-                        <td class="maxLevel">Max level</td>
-                        <td class="skipSkill">
-                            <input class="checkbox" type="checkbox"></input>
-                        </td>
-                    </tr>
+                            <div class="control-card-meta">
+                                <div class="control-card-levels">
+                                    <div class="level-chip">
+                                        <span class="level-chip-label">Level</span>
+                                        <span class="level-chip-value currentLevelValue">0</span>
+                                    </div>
+                                    <div class="level-chip maxLevelContainer is-hidden">
+                                        <span class="level-chip-label">Max</span>
+                                        <span class="level-chip-value maxLevelValue">0</span>
+                                    </div>
+                                </div>
+                                <div class="skipSkill is-hidden">
+                                    <input class="skip-toggle" type="checkbox" aria-hidden="true">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </template>
 
                 <template class="rowItemTemplate">
-                    <tr>
-                        <td>
-                            
+                    <div class="control-card control-card--item">
+                        <div class="control-card-title">
                             <button class="button item-button tooltip">
                                 <span class="name"></span>
                                 <span class="tooltipText">tooltip</span>
                             </button>
-                            
-                        </td>
-                        <td>
+                        </div>
+                        <div class="control-card-status">
                             <div class="w3-border w3-circle active-indicator">
                                 <div class="active w3-circle active-circle"></div>
                             </div>
-                        </td>
-                        <td class="effect"></td>
-                        <td class="expense">
+                            <div class="effect"></div>
+                        </div>
+                        <div class="control-card-finance expense">
                             <span></span>
                             <span></span>
                             <span></span>
                             <span></span>
-                        </td>
-                    </tr>
+                        </div>
+                    </div>
                 </template>
 
                 <template class="requiredRowTemplate">
-                    <td class="w3-text-gray" style="padding-left: 16px;" colspan=5>
-                        Required: 
-                        <span class="value" colspan=5>
+                    <div class="control-section-requirements">
+                        <div class="control-requirements-label">Required:</div>
+                        <div class="value">
                             <span class="levels"></span>
                             <span class="coins">
                                 <span></span>
@@ -196,23 +202,23 @@
                                 <span></span>
                             </span>
                             <span class="text-danger evil"></span>
-                        </span>
-                    </td> 
+                        </div>
+                    </div>
                 </template>
 
                 <div class="tab" id="jobs">
-                    <table id="jobTable" class="w3-table w3-bordered">
-                    </table>
+                    <div id="jobTable" class="control-grid">
+                    </div>
                 </div>
 
                 <div class="tab" id="skills">
-                    <table id="skillTable" class="w3-table w3-bordered">
-                    </table>
+                    <div id="skillTable" class="control-grid">
+                    </div>
                 </div>
 
                 <div class="tab" id="shop">
-                    <table id="itemTable" class="w3-table w3-bordered">
-                    </table>
+                    <div id="itemTable" class="control-grid">
+                    </div>
                 </div>
 
                 <div class="tab" id="rebirth">
