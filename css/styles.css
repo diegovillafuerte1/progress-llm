@@ -104,6 +104,10 @@
   --z-popover: 1060;
   --z-tooltip: 1070;
   --z-toast: 1080;
+
+  /* Tooltip Offsets */
+  --tooltip-offset-x: 14px;
+  --tooltip-offset-y: 14px;
 }
 
 /* Light Theme Override */
@@ -273,6 +277,10 @@ a:focus-visible,
 .clear-both { clear: both; }
 .display-none { display: none; }
 
+.is-hidden {
+  display: none !important;
+}
+
 .flex-center {
   display: flex;
   justify-content: center;
@@ -345,6 +353,7 @@ a:focus-visible,
 .active-circle {
   width: 24px;
   height: 24px;
+  background: #ffffff;
 }
 
 .progress-fill-accent {
@@ -521,6 +530,23 @@ tr .skill .progress-fill,
 .tooltip:hover .tooltipText {
   visibility: visible;
   opacity: 0.8;
+}
+
+.tooltip:focus-within .tooltipText {
+  visibility: visible;
+  opacity: 0.8;
+}
+
+#sci-fi-floating-tooltip {
+  position: fixed;
+  pointer-events: none;
+  background: rgba(0, 0, 0, 0.85);
+  color: #ffffff;
+  padding: 8px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  max-width: 260px;
+  z-index: var(--z-tooltip, 1070);
 }
 
 /* ========================================
@@ -1177,7 +1203,6 @@ tr.upgrade-card {
   inset: 0;
   background: rgba(0,0,0,0.5);
   z-index: var(--z-modal);
-  display: none;
 }
 
 .sci-drawer-card {
@@ -1209,6 +1234,23 @@ tr.upgrade-card {
   gap: var(--space-2); 
   justify-content: center; 
   margin-top: var(--space-4); 
+}
+
+.sci-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: var(--z-modal);
+}
+
+#sci-fi-prestige-preview-btn {
+  margin: 8px 0;
+}
+
+#sci-fi-prestige-modal .prestige-card {
+  max-width: 520px;
+  margin: 10vh auto;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.5);
 }
 
 /* Sci-Fi Utility Classes - Used by ui-view-only.js */
