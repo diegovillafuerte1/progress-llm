@@ -422,6 +422,36 @@ function setMisc(miscName) {
     }
 }
 
+function getSkipToggle(taskName) {
+    var row = document.getElementById("row " + taskName)
+    if (!row) return null
+    return row.querySelector(".skip-toggle")
+}
+
+function applySkipVisual(taskName) {
+    var row = document.getElementById("row " + taskName)
+    var toggle = getSkipToggle(taskName)
+    if (!row || !toggle) return
+    var shouldDim = !!toggle.checked
+    row.classList.toggle("is-skipped", shouldDim)
+}
+
+function setSkillSkip(taskName, isSkipped) {
+    var toggle = getSkipToggle(taskName)
+    if (!toggle) return
+    toggle.checked = !!isSkipped
+    applySkipVisual(taskName)
+}
+
+function toggleSkillSkip(taskName) {
+    var toggle = getSkipToggle(taskName)
+    if (!toggle) return
+    toggle.checked = !toggle.checked
+    applySkipVisual(taskName)
+    setSkillWithLowestMaxXp()
+    autoLearn()
+}
+
 function createData(data, baseData) {
     for (key in baseData) {
         var entity = baseData[key]
@@ -448,7 +478,10 @@ function createHeaderRow(templates, categoryType, categoryName) {
     var headerRow = templates.headerRow.content.firstElementChild.cloneNode(true)
     headerRow.getElementsByClassName("category")[0].textContent = categoryName
     if (categoryType != itemCategories) {
-        headerRow.getElementsByClassName("valueType")[0].textContent = categoryType == jobCategories ? "Income/day" : "Effect"
+        var valueTypeElement = headerRow.getElementsByClassName("valueType")[0]
+        if (valueTypeElement) {
+            valueTypeElement.textContent = categoryType == jobCategories ? "Income/day" : "Effect"
+        }
     }
 
     // Removed colored background - header rows now use default theme styling
@@ -466,7 +499,21 @@ function createRow(templates, name, categoryName, categoryType) {
     row.getElementsByClassName("tooltipText")[0].textContent = tooltips[name]
     row.id = "row " + name
     if (categoryType != itemCategories) {
-        row.getElementsByClassName("progressBar")[0].onclick = function() {setTask(name)}
+        var isSkillCategory = categoryType == skillCategories
+        row.dataset.taskName = name
+        row.dataset.taskType = isSkillCategory ? "skill" : "job"
+        row.addEventListener("click", function(event) {
+            if (event.target.closest(".skip-toggle")) {
+                return
+            }
+            if (isSkillCategory && autoLearnElement && autoLearnElement.checked) {
+                toggleSkillSkip(name)
+                event.preventDefault()
+                event.stopPropagation()
+            } else {
+                setTask(name)
+            }
+        })
     } else {
         row.getElementsByClassName("button")[0].onclick = categoryName == "Properties" ? function() {setProperty(name)} : function() {setMisc(name)}
     }
@@ -474,26 +521,37 @@ function createRow(templates, name, categoryName, categoryType) {
     return row
 }
 
-function createAllRows(categoryType, tableId) {
+function createAllRows(categoryType, containerId) {
     var templates = {
         headerRow: document.getElementsByClassName(categoryType == itemCategories ? "headerRowItemTemplate" : "headerRowTaskTemplate")[0],
         row: document.getElementsByClassName(categoryType == itemCategories ? "rowItemTemplate" : "rowTaskTemplate")[0],
     }
 
-    var table = document.getElementById(tableId)
+    var container = document.getElementById(containerId)
 
     for (categoryName in categoryType) {
+        var section = document.createElement("section")
+        section.classList.add("control-section")
+        section.classList.add(removeSpaces(categoryName) + "-section")
+        section.dataset.category = categoryName
+
         var headerRow = createHeaderRow(templates, categoryType, categoryName)
-        table.appendChild(headerRow)
+        section.appendChild(headerRow)
+
+        var cards = document.createElement("div")
+        cards.classList.add("control-section-grid")
+        section.appendChild(cards)
         
         var category = categoryType[categoryName]
         category.forEach(function(name) {
             var row = createRow(templates, name, categoryName, categoryType)
-            table.appendChild(row)       
+            cards.appendChild(row)
         })
 
         var requiredRow = createRequiredRow(categoryName)
-        table.append(requiredRow)
+        section.appendChild(requiredRow)
+
+        container.appendChild(section)
     }
 }
 
@@ -578,10 +636,16 @@ function updateTaskRows() {
 		var row = document.getElementById("row " + task.name)
 		if (!row) continue; // Skip if row doesn't exist yet
 
-		var maxLevel = row.getElementsByClassName("maxLevel")[0]
-        if (maxLevel) {
-            maxLevel.textContent = task.maxLevel
-            gameData.rebirthOneCount > 0 ? maxLevel.classList.remove("hidden") : maxLevel.classList.add("hidden")
+        var currentLevelValue = row.getElementsByClassName("currentLevelValue")[0]
+        if (currentLevelValue) {
+            currentLevelValue.textContent = format(task.level)
+        }
+
+        var maxLevelValue = row.getElementsByClassName("maxLevelValue")[0]
+        var maxLevelContainer = row.getElementsByClassName("maxLevelContainer")[0]
+        if (maxLevelValue && maxLevelContainer) {
+            maxLevelValue.textContent = format(task.maxLevel)
+            gameData.rebirthOneCount > 0 ? maxLevelContainer.classList.remove("is-hidden") : maxLevelContainer.classList.add("is-hidden")
         }
 
         var progressFill = row.getElementsByClassName("progressFill")[0]
@@ -604,9 +668,10 @@ function updateTaskRows() {
             }
         }
 
-        var skipSkillElement = row.getElementsByClassName("skipSkill")[0]
-        if (skipSkillElement) {
-            setHidden(skipSkillElement, !(task instanceof Skill && autoLearnElement.checked))
+        var skipToggle = row.querySelector(".skip-toggle")
+        if (skipToggle) {
+            var isSkipped = !!skipToggle.checked
+            row.classList.toggle("is-skipped", isSkipped)
         }
     }
 }
@@ -634,10 +699,11 @@ function updateHeaderRows(categories) {
     for (categoryName in categories) {
         var className = removeSpaces(categoryName)
         var headerRow = document.getElementsByClassName(className)[0]
+        if (!headerRow) continue
         var maxLevelElement = headerRow.getElementsByClassName("maxLevel")[0]
-        gameData.rebirthOneCount > 0 ? maxLevelElement.classList.remove("hidden") : maxLevelElement.classList.add("hidden")
-        var skipSkillElement = headerRow.getElementsByClassName("skipSkill")[0]
-        setHidden(skipSkillElement, !(categories === skillCategories && autoLearnElement.checked))
+        if (maxLevelElement) {
+            gameData.rebirthOneCount > 0 ? maxLevelElement.classList.remove("hidden") : maxLevelElement.classList.add("hidden")
+        }
     }
 }
 
@@ -754,9 +820,9 @@ function autoPromote() {
 }
 
 function checkSkillSkipped(skill) {
-    var row = document.getElementById("row " + skill.name)
-    var isSkillSkipped = row.getElementsByClassName("checkbox")[0].checked
-    return isSkillSkipped
+    var toggle = getSkipToggle(skill.name)
+    if (!toggle) return false
+    return !!toggle.checked
 }
 
 function setSkillWithLowestMaxXp() {
@@ -1300,6 +1366,11 @@ if (autoPromoteElement) {
 if (autoLearnElement) {
     autoLearnElement.addEventListener('change', function() {
         gameData.autoLearn = this.checked
+        setSkillWithLowestMaxXp()
+        updateTaskRows()
+        if (this.checked) {
+            autoLearn()
+        }
         saveGameData()
     })
 }

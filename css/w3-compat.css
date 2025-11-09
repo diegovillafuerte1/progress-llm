@@ -1,0 +1,45 @@
+.w3-margin {
+  margin: 16px !important;
+}
+
+.w3-margin-left {
+  margin-left: 16px !important;
+}
+
+.w3-margin-top {
+  margin-top: 16px !important;
+}
+
+.w3-padding {
+  padding: 16px !important;
+}
+
+.w3-border {
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+}
+
+.w3-circle {
+  border-radius: 50% !important;
+}
+
+.w3-button {
+  display: inline-block;
+  padding: 8px 16px;
+  text-align: center;
+  cursor: pointer;
+}
+
+.w3-bar-item {
+  display: inline-block;
+}
+
+.w3-green {
+  background-color: #00a884 !important;
+  color: #ffffff !important;
+}
+
+.w3-red {
+  background-color: #b91c1c !important;
+  color: #ffffff !important;
+}
+
