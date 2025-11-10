@@ -515,7 +515,9 @@ function createRow(templates, name, categoryName, categoryType) {
             }
         })
     } else {
-        row.getElementsByClassName("button")[0].onclick = categoryName == "Properties" ? function() {setProperty(name)} : function() {setMisc(name)}
+        row.type = "button"
+        row.dataset.itemName = name
+        row.addEventListener("click", categoryName == "Properties" ? function() { setProperty(name) } : function() { setMisc(name) })
     }
 
     return row
@@ -662,7 +664,8 @@ function updateTaskRows() {
             if (effectEl) setHidden(effectEl, !(task instanceof Skill))
 
             if (task instanceof Job && incomeEl) {
-                formatCoins(task.getIncome(), incomeEl)
+                var incomeAmountEl = incomeEl.getElementsByClassName("income-amount")[0] || incomeEl
+                formatCoins(task.getIncome(), incomeAmountEl)
             } else if (task instanceof Skill && effectEl) {
                 effectEl.textContent = task.getEffectDescription()
             }
@@ -680,18 +683,14 @@ function updateItemRows() {
     for (key in gameData.itemData) {
         var item = gameData.itemData[key]
         var row = document.getElementById("row " + item.name)
-        var button = row.getElementsByClassName("button")[0]
-        button.disabled = gameData.coins < item.getExpense()
-        var active = row.getElementsByClassName("active")[0]
-        var color = itemCategories["Properties"].includes(item.name) ? headerRowColors["Properties"] : headerRowColors["Misc"]
+        if (!row) continue
+        row.disabled = gameData.coins < item.getExpense()
         var isActive = gameData.currentMisc.includes(item) || item == gameData.currentProperty
-        if (isActive) {
-            active.style.backgroundColor = color
-        } else {
-            active.style.removeProperty('background-color')
-        }
-        row.getElementsByClassName("effect")[0].textContent = item.getEffectDescription()
-        formatCoins(item.getExpense(), row.getElementsByClassName("expense")[0])
+        row.classList.toggle("is-active", isActive)
+        var effectEl = row.querySelector(".effect")
+        if (effectEl) effectEl.textContent = item.getEffectDescription()
+        var financeAmountEl = row.querySelector(".finance-amount")
+        formatCoins(item.getExpense(), financeAmountEl)
     }
 }
 
@@ -754,6 +753,7 @@ function hideEntities() {
         var requirement = gameData.requirements[key]
         var completed = requirement.isCompleted()
         for (element of requirement.elements) {
+            if (!element) continue
             if (completed) {
                 element.classList.remove("hidden")
             } else {
@@ -902,27 +902,11 @@ function format(number) {
 }
 
 function formatCoins(coins, element) {
-    var tiers = ["p", "g", "s"]
-    var colors = {
-        "p": "#79b9c7",
-        "g": "#E5C100",
-        "s": "#a8a8a8",
-        "c": "#a15c2f"
-    }
-    var leftOver = coins
-    var i = 0
-    for (tier of tiers) {
-        var x = Math.floor(leftOver / Math.pow(10, (tiers.length - i) * 2))
-        var leftOver = Math.floor(leftOver - x * Math.pow(10, (tiers.length - i) * 2))
-        var text = format(String(x)) + tier + " "
-        element.children[i].textContent = x > 0 ? text : ""
-        element.children[i].style.color = colors[tier]
-        i += 1
-    }
-    if (leftOver == 0 && coins > 0) {element.children[3].textContent = ""; return}
-    var text = String(Math.floor(leftOver)) + "c"
-    element.children[3].textContent = text
-    element.children[3].style.color = colors["c"]
+    if (!element) return;
+    element.textContent = "";
+    var numericAmount = typeof coins === "number" ? coins : 0;
+    var formatted = formatNumber(Math.max(0, numericAmount));
+    element.textContent = formatted + " data points";
 }
 
 function formatDataPoints(value, element) {
@@ -1645,75 +1629,6 @@ function injectPrestigePreview() {
 	});
 }
 
-// Attach detail drawers to rows and item buttons (UI-only)
-function attachDetailDrawers() {
-	try {
-		var overlay = document.createElement('div');
-		overlay.className = 'sci-drawer-overlay is-hidden';
-		overlay.id = 'sci-drawer-overlay';
-		var card = document.createElement('div');
-		card.className = 'sci-drawer-card';
-		card.innerHTML = '<div class="sci-drawer-title" id="sci-drawer-title">Details</div>'+
-			'<div class="sci-drawer-row"><span>Level</span><span id="sci-drawer-level">-</span></div>'+
-			'<div class="sci-drawer-row"><span>XP/day</span><span id="sci-drawer-xp">-</span></div>'+
-			'<div class="sci-drawer-row"><span>Next XP</span><span id="sci-drawer-next">-</span></div>'+
-			'<div class="sci-drawer-actions"><button class="control-button" id="sci-drawer-close">Close</button></div>';
-		overlay.appendChild(card);
-		document.body.appendChild(overlay);
-		overlay.addEventListener('click', function(e){ if (e.target === overlay) setHidden(overlay, true); });
-		card.querySelector('#sci-drawer-close').addEventListener('click', function(){ setHidden(overlay, true); });
-
-		function openDrawerForTask(name) {
-			var title = document.getElementById('sci-drawer-title');
-			var l = document.getElementById('sci-drawer-level');
-			var x = document.getElementById('sci-drawer-xp');
-			var n = document.getElementById('sci-drawer-next');
-			title.textContent = name;
-			if (window.gameData && window.gameData.taskData && window.gameData.taskData[name]) {
-				var t = window.gameData.taskData[name];
-				l.textContent = String(t.level);
-				x.textContent = String(t.getXpGain());
-				n.textContent = String(t.getMaxXp());
-			} else {
-				l.textContent = x.textContent = n.textContent = '-';
-			}
-			setHidden(overlay, false);
-		}
-
-		var rows = document.querySelectorAll('tr');
-		rows.forEach(function(r){
-			var bar = r.querySelector('.progress-bar');
-			if (!bar) return;
-			var nameEl = r.querySelector('.progress-text.name');
-			var name = nameEl && nameEl.textContent ? nameEl.textContent.replace(/ lvl.*$/,'') : null;
-			if (!name) return;
-			var timer;
-			bar.addEventListener('mousedown', function(){ timer = setTimeout(function(){ openDrawerForTask(name); }, 500); });
-			bar.addEventListener('mouseup', function(){ clearTimeout(timer); });
-			bar.addEventListener('mouseleave', function(){ clearTimeout(timer); });
-			bar.addEventListener('touchstart', function(){ timer = setTimeout(function(){ openDrawerForTask(name); }, 600); }, {passive:true});
-			bar.addEventListener('touchend', function(){ clearTimeout(timer); });
-			bar.addEventListener('touchcancel', function(){ clearTimeout(timer); });
-		});
-
-		var itemBtns = document.querySelectorAll('.item-button');
-		itemBtns.forEach(function(btn){
-			btn.addEventListener('click', function(e){
-				var nmEl = btn.querySelector('.name');
-				var nm = nmEl ? nmEl.textContent : 'Item';
-				var title = document.getElementById('sci-drawer-title');
-				title.textContent = nm;
-				document.getElementById('sci-drawer-level').textContent = '-';
-				var exp = btn.closest('tr') && btn.closest('tr').querySelector('.expense');
-				document.getElementById('sci-drawer-xp').textContent = exp ? exp.textContent.trim() : '-';
-				document.getElementById('sci-drawer-next').textContent = '-';
-				setHidden(overlay, false);
-				e.stopPropagation();
-			});
-		});
-	} catch(e) { /* no-op */ }
-}
-
 // Floating tooltips (non-intrusive): reuse existing .tooltip .tooltipText content
 var floatingTooltipElement = null;
 var activeTouchTooltipContainer = null;
@@ -1954,41 +1869,10 @@ function updateInlineMeta() {
 				r.__metaEl.innerHTML = '<strong>Lvl ' + lvl + '</strong> • Xp/day ' + xpDay + ' • Next ' + nextXp;
 			});
 		});
-		// Items: active/equipped chip
-		var itemTable = document.getElementById('itemTable');
-		if (itemTable) {
-			var irows = itemTable.querySelectorAll('tr');
-			irows.forEach(function(r){
-				var btn = r.querySelector('.item-button');
-				if (!btn) return;
-				var chip = r.__activeChip;
-				if (!chip) {
-					chip = document.createElement('span');
-					chip.className = 'sci-chip';
-					chip.textContent = 'Equipped';
-					r.__activeChip = chip;
-					var firstCell = r.cells && r.cells[0];
-					if (firstCell) firstCell.appendChild(chip);
-				}
-				var dot = r.querySelector('.active');
-				var isActive = dot && window.getComputedStyle(dot).backgroundColor !== 'rgb(255, 255, 255)';
-				setHidden(chip, !isActive);
-			});
-		}
 	} catch(e) { /* no-op */ }
 }
 
 // Add a non-intrusive class to tables that contain headerRow, for rounded styling via CSS
-function markRoundedTables() {
-	var headerRows = document.querySelectorAll('tr.headerRow');
-	headerRows.forEach(function(hr){
-		var table = hr.closest('table');
-		if (table && !table.classList.contains('sci-rounded-table')) {
-			table.classList.add('sci-rounded-table');
-		}
-	});
-}
-
 // Initialize UI enhancements
 var mq = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)');
 if (mq && mq.matches) {
@@ -1997,5 +1881,3 @@ if (mq && mq.matches) {
 startUpdater();
 injectPrestigePreview();
 bindFloatingTooltips();
-markRoundedTables();
-attachDetailDrawers();

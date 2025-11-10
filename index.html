@@ -12,111 +12,99 @@
 </head>
 <body id="body" class="dark">
     <div class="w3-margin"> 
-        <h1>Drone Command</h1>
         <div class="main-game-container"> 
-            <div class="panel w3-padding sidebar-panel height-auto float-left">
-                <span id="deathText">
-                    <div class="text-large text-danger">Signal Lost</div>
-                    <div class="sidebar-element text-secondary">Distance has exceeded signal range, use the AI Core to deploy a new drone before connection is lost</div>
-                </span>
+            <nav class="panel nav-panel">
+                <div class="app-title">Drone Command</div>
+                <button type="button" class="tabButton nav-button" id="jobTabButton" onClick="setTab(this, 'jobs')">Research</button>
+                <button type="button" class="tabButton nav-button" onClick="setTab(this, 'skills')">Software</button>
+                <button type="button" class="tabButton nav-button" id="shopTabButton" onClick="setTab(this, 'shop')">Hardware</button>
+                <button type="button" class="tabButton nav-button" id="rebirthTabButton" onClick="setTab(this, 'rebirth')">AI Core</button>
+                <button type="button" class="tabButton nav-button" onClick="setTab(this, 'settings')">Settings</button>
+            </nav>
 
-                <div class="text-large">Distance <span id="ageDisplay">14</span> Day <span id="dayDisplay">0</span></div>
-                <div class="sidebar-element text-secondary">Signal Range: <span id="lifespanDisplay">70</span> light-years</div>
-                
-                <button id="pauseButton" class="w3-button button sidebar-element" onClick="setPause()">Pause</button>
+            <div class="panel content-panel">
+                <section class="stats-panel">
+                    <div id="deathText" class="stats-alert">
+                        <div class="text-large text-danger">Signal Lost</div>
+                        <div class="text-secondary">Distance has exceeded signal range, use the AI Core to deploy a new drone before connection is lost</div>
+                    </div>
 
-                <span id="automation" class="inline" style="margin-left: 8px;">
-                    <span>
-                        <div class="inline">Auto-promote</div>
-                        <input type="checkbox" class="inline" id="autoPromote">
-                    </span>
-                    </br>
-                    <span>
-                        <div class="inline">Auto-learn</div>
-                        <input type="checkbox" class="inline sidebar-element" id="autoLearn">
-                    </span>
-                </span>
-
-                <!-- Big Counter -->
-                <div class="big-counter" id="sci-fi-big-counter">
-                    <div class="big-counter-value" id="sci-fi-counter-value">0</div>
-                    <div class="big-counter-label">Data Points</div>
-                </div>
-
-                <div class="sidebar-element rate-chip-group">
-                    <div class="rate-chip rate-chip--net" id="netChip">
-                        <div class="rate-chip-trend" id="netTrend"></div>
-                        <div class="rate-chip-value">
-                            <span class="rate-chip-label-text">Net/day</span>
-                            <span class="rate-chip-amount" id="netDisplay"></span>
+                    <div class="stats-top">
+                        <div class="stats-controls">
+                            <button id="pauseButton" class="w3-button button" onClick="setPause()">Pause</button>
+                            <div id="automation" class="stats-toggle-group">
+                                <label class="stats-toggle">
+                                    <span>Auto-promote</span>
+                                    <input type="checkbox" id="autoPromote">
+                                </label>
+                                <label class="stats-toggle">
+                                    <span>Auto-learn</span>
+                                    <input type="checkbox" id="autoLearn">
+                                </label>
+                            </div>
                         </div>
                     </div>
-                    <div class="rate-chip" id="incomeChip">
-                        <div class="rate-chip-trend positive"></div>
-                        <div class="rate-chip-value">
-                            <span class="rate-chip-label-text">Income/day</span>
-                            <span class="rate-chip-amount" id="incomeDisplay"></span>
+
+                    <div class="stats-main">
+                        <div class="big-counter" id="sci-fi-big-counter">
+                            <div class="big-counter-value" id="sci-fi-counter-value">0</div>
+                            <div class="big-counter-label">Data Points</div>
+                            <div class="stats-tooltip counter-tooltip">
+                                <div class="tooltip-row" id="netChip">
+                                    <span>Net/day</span>
+                                    <span class="tooltip-amount">
+                                        <span class="rate-chip-trend" id="netTrend"></span>
+                                        <span id="netDisplay"></span>
+                                    </span>
+                                </div>
+                                <div class="tooltip-row">
+                                    <span>Income/day</span>
+                                    <span id="incomeDisplay"></span>
+                                </div>
+                                <div class="tooltip-row">
+                                    <span>Expense/day</span>
+                                    <span id="expenseDisplay"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mini-counter">
+                            <div class="mini-counter-value"><span id="ageDisplay">14</span></div>
+                            <div class="mini-counter-sub">Day <span id="dayDisplay">0</span></div>
+                            <div class="mini-counter-label">Distance</div>
+                            <div class="mini-counter-meta">Signal range: <span id="lifespanDisplay">70</span> ly</div>
+                        </div>
+
+                        <div id="quickTaskDisplay" class="quick-task-stack">
+                            <div class="quick-task-bar job progress-bar progressBar">
+                                <div class="progress-fill progressFill progress-fill-accent"></div>
+                                <div class="progress-text name">Task</div>
+                            </div>
+                            <div class="text-secondary">Current research</div>
+
+                            <div class="quick-task-bar skill progress-bar progressBar">
+                                <div class="progress-fill progressFill progress-fill-accent"></div>
+                                <div class="progress-text name">Task</div>
+                            </div>
+                            <div class="text-secondary">Current software</div>
+
+                            <div class="stats-tooltip stack-tooltip">
+                                <div class="tooltip-row"><span>Efficiency</span><span id="efficiencyDisplay"></span></div>
+                                <div class="tooltip-row" id="evilInfo"><span>Corruption</span><span id="evilDisplay"></span></div>
+                                <div class="tooltip-row time-warp">
+                                    <span>Time warping</span>
+                                    <span class="time-warp-controls">
+                                        <span id="timeWarpingDisplay"></span>
+                                        <button id="timeWarpingButton" class="w3-button button" onClick="setTimeWarping()">Toggle</button>
+                                    </span>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div class="rate-chip rate-chip--expense" id="expenseChip">
-                        <div class="rate-chip-trend negative"></div>
-                        <div class="rate-chip-value">
-                            <span class="rate-chip-label-text">Expense/day</span>
-                            <span class="rate-chip-amount" id="expenseDisplay"></span>
-                        </div>
-                    </div>
-                </div>
 
-                <span id="quickTaskDisplay">
-                    <div class="quick-task-bar small-margin inline job progress-bar progressBar">
-                        <div class="progress-fill progressFill progress-fill-accent"></div>
-                        <div class="progress-text name">Task</div>
-                    </div>
-                    <div class="sidebar-element text-secondary">Current research</div>
+                </section>
 
-                    <div class="quick-task-bar small-margin skill progress-bar progressBar">
-                        <div class="progress-fill progressFill progress-fill-accent"></div>
-                        <div class="progress-text name">Task</div>              
-                    </div>
-                    <div class="sidebar-element text-secondary">Current software</div>
-                </span>
-
-                <div class="text-large"><span class="text-cyan">Efficiency: </span><span id="efficiencyDisplay"></span></div>
-                <div class="text-secondary sidebar-element">Affects all xp gain</div>
-
-                <span id="evilInfo">
-                    <div class="text-large"><span class="text-danger">Corruption: </span><span id="evilDisplay"></span></div>
-                    <div class="text-secondary sidebar-element">Affects corrupted systems xp gain</div>
-                </span>
-
-                <!--
-                <span id="scheduling">
-                    <div style="font-size: large">Scheduling</div>
-                    <div style="color: var(--text-secondary, #a0a0a0)" class="sidebar-element">Schedule time to jobs/skills</div>
-                    <span style="height: 30px"> 
-                        <p style="width: 5px">Jobs</br>(32%)</p>
-                        <input id="schedulingSlider" class="slider" type="range" min="0" max="100" value="0">
-                        <p style="width: 5px">Software</br>(68%)</p>
-                    </span>
-                </span>
-                -->
-
-                <span id="timeWarping">
-                    <div class="text-large"><span class="text-purple">Time warping: </span><span id="timeWarpingDisplay"></span></div>
-                    <div class="text-secondary">Affects game speed</div>
-                    <button id="timeWarpingButton" class="w3-button button sidebar-element" style="margin-top: 5px;" onClick="setTimeWarping()">Enable warp</button>
-                </span>
-            </div>
-
-            <div class="panel w3-margin-left content-panel tab-bar float-left">
-                <div class="w3-button w3-bar-item tabButton" id="jobTabButton" onClick="setTab(this, 'jobs')">Research</div>
-                <div class="w3-button w3-bar-item tabButton" onClick="setTab(this, 'skills')">Software</div>
-                <div class="w3-button w3-bar-item tabButton" id="shopTabButton" onClick="setTab(this, 'shop')">Hardware</div>
-                <div class="w3-button w3-bar-item tabButton" id="rebirthTabButton" onClick="setTab(this, 'rebirth')">AI Core</div>
-                <div class="w3-button w3-bar-item tabButton settings-button" onClick="setTab(this, 'settings')">Settings</div>
-            </div>
-
-            <div class="panel w3-margin-left w3-margin-top w3-padding content-panel height-auto float-left">
+                <section class="control-panel">
                 <template class="headerRowTaskTemplate">
                     <div class="control-section-header headerRow">
                         <div class="control-section-title category">Research Topic</div>
@@ -142,10 +130,7 @@
                             <div class="value">
                                 <div class="effect"></div>
                                 <div class="income">
-                                    <span></span>
-                                    <span></span>
-                                    <span></span>
-                                    <span></span>
+                                    <div class="income-amount"></div>
                                 </div>
                             </div>
                             <div class="control-card-meta">
@@ -168,39 +153,29 @@
                 </template>
 
                 <template class="rowItemTemplate">
-                    <div class="control-card control-card--item">
+                    <button type="button" class="control-card control-card--item tooltip">
                         <div class="control-card-title">
-                            <button class="button item-button tooltip">
-                                <span class="name"></span>
-                                <span class="tooltipText">tooltip</span>
-                            </button>
+                            <span class="name"></span>
+                            <span class="tooltipText">tooltip</span>
                         </div>
-                        <div class="control-card-status">
-                            <div class="w3-border w3-circle active-indicator">
-                                <div class="active w3-circle active-circle"></div>
+                        <div class="control-card-data">
+                            <div class="value">
+                                <div class="effect"></div>
                             </div>
-                            <div class="effect"></div>
                         </div>
                         <div class="control-card-finance expense">
-                            <span></span>
-                            <span></span>
-                            <span></span>
-                            <span></span>
+                            <div class="finance-label">Expense/day</div>
+                            <div class="finance-amount"></div>
                         </div>
-                    </div>
+                    </button>
                 </template>
 
                 <template class="requiredRowTemplate">
                     <div class="control-section-requirements">
-                        <div class="control-requirements-label">Required:</div>
+                        <div class="control-requirements-label">Next unlock:</div>
                         <div class="value">
                             <span class="levels"></span>
-                            <span class="coins">
-                                <span></span>
-                                <span></span>
-                                <span></span>
-                                <span></span>
-                            </span>
+                            <span class="coins"></span>
                             <span class="text-danger evil"></span>
                         </div>
                     </div>
@@ -351,10 +326,11 @@
                         </li>
                     </ul>
                 </div>
+                </section>
             </div>
 
             <!-- Ad Bottom (single, horizontal) -->
-            <div class="panel w3-margin-top w3-padding float-none clear-both flex-center" style="width: 100%; height: auto; gap: 16px;">
+            <div class="panel ad-panel flex-center">
                 <!-- Single Native Ad -->
                 <div class="native-ad ad-container" data-ad-id="galactic-trading">
                     <div class="native-ad-header">
