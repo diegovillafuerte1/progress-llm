@@ -24,8 +24,28 @@ var tempData = {}
 
 var skillWithLowestMaxXp = null
 
-const autoPromoteElement = document.getElementById("autoPromote")
-const autoLearnElement = document.getElementById("autoLearn")
+var gameWindowState = {
+    canvas: null,
+    ctx: null,
+    width: 0,
+    height: 0,
+    stars: [],
+    layers: [
+        {count: 36, speed: 35, sizeRange: [0.6, 1.2], alpha: 0.4},
+        {count: 28, speed: 70, sizeRange: [1, 1.8], alpha: 0.7},
+        {count: 18, speed: 110, sizeRange: [1.4, 2.4], alpha: 0.9}
+    ],
+    lastTimestamp: 0,
+    elapsed: 0,
+    animationFrameId: null,
+    flash: 0,
+    pixelRatio: window.devicePixelRatio || 1,
+    lastClickTimestamp: 0,
+    clickCooldown: 0.5,
+    beams: [],
+    shipImpactPoint: null,
+    impactShake: 0
+}
 
 const updateSpeed = 20
 
@@ -422,6 +442,315 @@ function setMisc(miscName) {
     }
 }
 
+function setupGameWindow() {
+    var canvas = document.getElementById("gameWindowCanvas")
+    if (!canvas) return
+
+    var context = canvas.getContext("2d", { alpha: false })
+    if (!context) return
+
+    gameWindowState.canvas = canvas
+    gameWindowState.ctx = context
+
+    resizeGameWindowCanvas()
+    canvas.addEventListener("click", handleGameWindowClick)
+    window.addEventListener("resize", resizeGameWindowCanvas)
+
+    if (gameWindowState.animationFrameId) {
+        cancelAnimationFrame(gameWindowState.animationFrameId)
+    }
+
+    gameWindowState.lastTimestamp = 0
+    gameWindowState.elapsed = 0
+    gameWindowState.animationFrameId = requestAnimationFrame(animateGameWindow)
+}
+
+function resizeGameWindowCanvas() {
+    if (!gameWindowState.canvas || !gameWindowState.ctx) return
+    var rect = gameWindowState.canvas.getBoundingClientRect()
+    if (rect.width === 0 || rect.height === 0) return
+
+    var pixelRatio = window.devicePixelRatio || 1
+    gameWindowState.pixelRatio = pixelRatio
+
+    gameWindowState.canvas.width = rect.width * pixelRatio
+    gameWindowState.canvas.height = rect.height * pixelRatio
+    gameWindowState.width = rect.width
+    gameWindowState.height = rect.height
+
+    gameWindowState.ctx.setTransform(1, 0, 0, 1, 0, 0)
+    gameWindowState.ctx.scale(pixelRatio, pixelRatio)
+
+    initializeGameWindowStars()
+}
+
+function initializeGameWindowStars() {
+    gameWindowState.stars = []
+    var width = gameWindowState.width
+    var height = gameWindowState.height
+
+    gameWindowState.layers.forEach(function(layer) {
+        for (var i = 0; i < layer.count; i++) {
+            gameWindowState.stars.push({
+                x: Math.random() * width,
+                y: Math.random() * height,
+                size: lerp(layer.sizeRange[0], layer.sizeRange[1], Math.random()),
+                speed: layer.speed,
+                alpha: layer.alpha
+            })
+        }
+    })
+}
+
+function animateGameWindow(timestamp) {
+    if (!gameWindowState.ctx) return
+
+    if (!gameWindowState.lastTimestamp) {
+        gameWindowState.lastTimestamp = timestamp
+    }
+
+    var delta = (timestamp - gameWindowState.lastTimestamp) / 1000
+    if (delta > 0.1) delta = 0.1
+    gameWindowState.lastTimestamp = timestamp
+    gameWindowState.elapsed += delta
+
+    drawGameWindowFrame(delta)
+
+    gameWindowState.animationFrameId = requestAnimationFrame(animateGameWindow)
+}
+
+function drawGameWindowFrame(delta) {
+    var ctx = gameWindowState.ctx
+    var width = gameWindowState.width
+    var height = gameWindowState.height
+    if (!ctx || width === 0 || height === 0) return
+
+    gameWindowState.impactShake = Math.max(0, gameWindowState.impactShake - delta * 1.8)
+
+    ctx.fillStyle = "#04060c"
+    ctx.fillRect(0, 0, width, height)
+
+    drawGameWindowStars(ctx, delta, width, height)
+    drawGameWindowEnergize(ctx, delta, width, height)
+    drawGameWindowSpaceship(ctx, width, height)
+
+    if (gameWindowState.flash > 0) {
+        var flashAlpha = 0.15 * gameWindowState.flash
+        ctx.fillStyle = "rgba(0, 255, 200, " + flashAlpha.toFixed(3) + ")"
+        ctx.fillRect(0, 0, width, height)
+        gameWindowState.flash = Math.max(0, gameWindowState.flash - delta * 2.5)
+    }
+}
+
+function drawGameWindowStars(ctx, delta, width, height) {
+    for (var i = 0; i < gameWindowState.beams.length; i++) {
+        var beam = gameWindowState.beams[i]
+        beam.startY += delta * beam.speed * 15
+    }
+
+    ctx.save()
+    ctx.fillStyle = "#ffffff"
+
+    var starCount = gameWindowState.stars.length
+    for (var i = 0; i < starCount; i++) {
+        var star = gameWindowState.stars[i]
+        star.y += star.speed * delta
+        star.x += Math.sin(gameWindowState.elapsed * 0.6 + i) * delta * 8
+
+        if (star.y > height + star.size) {
+            star.y = -Math.random() * 30
+            star.x = Math.random() * width
+        }
+
+        ctx.globalAlpha = star.alpha
+        ctx.beginPath()
+        ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2)
+        ctx.fill()
+    }
+
+    ctx.globalAlpha = 1
+    ctx.restore()
+}
+
+function drawGameWindowSpaceship(ctx, width, height) {
+    ctx.save()
+
+    var lateralDrift = Math.sin(gameWindowState.elapsed * 1.4) * width * 0.04
+    var verticalBob = Math.sin(gameWindowState.elapsed * 2.1) * height * 0.018
+
+    var shakeMagnitude = Math.min(width, height) * 0.012 * gameWindowState.impactShake
+    var shakeAngle = gameWindowState.elapsed * 28
+    var shakeX = Math.cos(shakeAngle) * shakeMagnitude
+    var shakeY = Math.sin(shakeAngle * 1.35) * shakeMagnitude
+
+    var shipX = width * 0.5 + lateralDrift + shakeX
+    var shipY = height * 0.68 + verticalBob + shakeY
+
+    var baseX = shipX
+    var baseY = shipY
+    var bodyLength = Math.min(width, height) * 0.62
+    var wingSpan = bodyLength * 0.55
+    var noseX = baseX + bodyLength * 0.35
+    var tailX = baseX - bodyLength * 0.52
+
+    gameWindowState.shipImpactPoint = {
+        x: shipX,
+        y: shipY
+    }
+
+    ctx.translate(shipX, shipY)
+    ctx.rotate(-Math.PI / 2)
+    ctx.translate(-shipX, -shipY)
+
+    var bodyGradient = ctx.createLinearGradient(tailX, baseY, noseX, baseY)
+    bodyGradient.addColorStop(0, "rgba(70, 110, 160, 0.25)")
+    bodyGradient.addColorStop(0.4, "rgba(120, 160, 220, 0.6)")
+    bodyGradient.addColorStop(1, "rgba(200, 230, 255, 0.85)")
+
+    ctx.beginPath()
+    ctx.moveTo(noseX, baseY)
+    ctx.lineTo(baseX - bodyLength * 0.35, baseY - wingSpan * 0.7)
+    ctx.lineTo(tailX + bodyLength * 0.12, baseY - wingSpan * 0.12)
+    ctx.lineTo(tailX, baseY)
+    ctx.lineTo(tailX + bodyLength * 0.12, baseY + wingSpan * 0.12)
+    ctx.lineTo(baseX - bodyLength * 0.35, baseY + wingSpan * 0.7)
+    ctx.closePath()
+    ctx.fillStyle = bodyGradient
+    ctx.fill()
+
+    ctx.strokeStyle = "rgba(30, 180, 255, 0.4)"
+    ctx.lineWidth = 1.2
+    ctx.stroke()
+
+    var cockpitGradient = ctx.createLinearGradient(baseX, baseY - wingSpan * 0.25, baseX + bodyLength * 0.25, baseY + wingSpan * 0.25)
+    cockpitGradient.addColorStop(0, "rgba(20, 36, 68, 0.9)")
+    cockpitGradient.addColorStop(1, "rgba(120, 180, 255, 0.85)")
+
+    ctx.beginPath()
+    ctx.ellipse(baseX + bodyLength * 0.1, baseY, bodyLength * 0.18, wingSpan * 0.26, 0, 0, Math.PI * 2)
+    ctx.fillStyle = cockpitGradient
+    ctx.fill()
+    ctx.strokeStyle = "rgba(200, 230, 255, 0.4)"
+    ctx.lineWidth = 0.8
+    ctx.stroke()
+
+    if (gameWindowState.impactShake > 0) {
+        ctx.save()
+        ctx.globalAlpha = Math.min(0.35, 0.15 + gameWindowState.impactShake * 0.4)
+        ctx.fillStyle = "rgba(0, 255, 220, 0.4)"
+        ctx.beginPath()
+        ctx.ellipse(baseX + bodyLength * 0.02, baseY, bodyLength * 0.42, wingSpan * 0.35, 0, 0, Math.PI * 2)
+        ctx.fill()
+        ctx.restore()
+    }
+
+    var flameGradient = ctx.createLinearGradient(tailX - bodyLength * 0.15, baseY, tailX + bodyLength * 0.05, baseY)
+    flameGradient.addColorStop(0, "rgba(255, 200, 120, 0)")
+    flameGradient.addColorStop(0.4, "rgba(255, 180, 90, 0.4)")
+    flameGradient.addColorStop(1, "rgba(255, 120, 50, 0.8)")
+
+    ctx.beginPath()
+    ctx.moveTo(tailX - bodyLength * 0.12, baseY)
+    ctx.lineTo(tailX + bodyLength * 0.02, baseY - wingSpan * 0.18)
+    ctx.lineTo(tailX + bodyLength * 0.02, baseY + wingSpan * 0.18)
+    ctx.closePath()
+    ctx.fillStyle = flameGradient
+    ctx.fill()
+
+    ctx.shadowColor = "rgba(0, 255, 200, 0.3)"
+    ctx.shadowBlur = 8
+    ctx.beginPath()
+    ctx.moveTo(baseX + bodyLength * 0.32, baseY)
+    ctx.lineTo(baseX, baseY - wingSpan * 0.45)
+    ctx.lineTo(baseX - bodyLength * 0.22, baseY - wingSpan * 0.18)
+    ctx.lineTo(baseX - bodyLength * 0.22, baseY + wingSpan * 0.18)
+    ctx.lineTo(baseX, baseY + wingSpan * 0.45)
+    ctx.closePath()
+    ctx.strokeStyle = "rgba(0, 255, 205, 0.18)"
+    ctx.lineWidth = 1
+    ctx.stroke()
+
+    ctx.restore()
+}
+
+function drawGameWindowEnergize(ctx, delta, width, height) {
+    if (!gameWindowState.beams || gameWindowState.beams.length === 0) return
+
+    ctx.save()
+    ctx.globalCompositeOperation = "lighter"
+
+    for (var i = gameWindowState.beams.length - 1; i >= 0; i--) {
+        var beam = gameWindowState.beams[i]
+        beam.progress += delta * beam.speed
+
+        var progression = Math.min(beam.progress, 1)
+
+        var currentX = lerp(beam.startX, beam.endX, progression)
+        var currentY = lerp(beam.startY, beam.endY, progression)
+
+        var tailX = lerp(beam.startX, beam.endX, Math.max(0, progression - 0.2))
+        var tailY = lerp(beam.startY, beam.endY, Math.max(0, progression - 0.2))
+
+        var gradient = ctx.createLinearGradient(tailX, tailY, currentX, currentY)
+        gradient.addColorStop(0, "rgba(0, 200, 255, 0)")
+        gradient.addColorStop(0.3, "rgba(0, 255, 200, 0.3)")
+        gradient.addColorStop(1, "rgba(255, 255, 255, 0.9)")
+
+        ctx.lineWidth = beam.width
+        ctx.strokeStyle = gradient
+        ctx.beginPath()
+        ctx.moveTo(tailX, tailY)
+        ctx.lineTo(currentX, currentY)
+        ctx.stroke()
+
+        ctx.beginPath()
+        ctx.arc(currentX, currentY, beam.width * 1.4, 0, Math.PI * 2)
+        ctx.fillStyle = "rgba(255, 255, 255, 0.85)"
+        ctx.fill()
+
+        if (progression >= 1) {
+            gameWindowState.flash = Math.min(1, gameWindowState.flash + 0.35)
+            gameWindowState.impactShake = Math.min(0.5, gameWindowState.impactShake + 0.22)
+            gameWindowState.beams.splice(i, 1)
+        }
+    }
+
+    ctx.restore()
+}
+
+function handleGameWindowClick() {
+    // var now = performance.now() / 1000
+    // if (now - gameWindowState.lastClickTimestamp < gameWindowState.clickCooldown) return
+    // gameWindowState.lastClickTimestamp = now
+
+    var width = gameWindowState.width
+    var height = gameWindowState.height
+
+    var startX = width * 0.2 + Math.random() * width * 0.6
+    var startY = -height * (0.2 + Math.random() * 0.25)
+
+    var target = gameWindowState.shipImpactPoint
+    var shipX = target ? target.x : width * 0.5
+    var shipY = target ? target.y : height * 0.35
+
+    var beam = {
+        startX: startX,
+        startY: startY,
+        endX: shipX + (Math.random() - 0.5) * width * 0.02,
+        endY: shipY + (Math.random() - 0.5) * height * 0.02,
+        progress: 0,
+        speed: 1.8 + Math.random() * 0.8,
+        width: 5 + Math.random() * 2
+    }
+
+    gameWindowState.beams.push(beam)
+    console.log("Game window energized: initiating light bead")
+}
+
+function lerp(start, end, amount) {
+    return start + (end - start) * amount
+}
+
 function getSkipToggle(taskName) {
     var row = document.getElementById("row " + taskName)
     if (!row) return null
@@ -506,7 +835,7 @@ function createRow(templates, name, categoryName, categoryType) {
             if (event.target.closest(".skip-toggle")) {
                 return
             }
-            if (isSkillCategory && autoLearnElement && autoLearnElement.checked) {
+            if (isSkillCategory && gameData.autoLearn) {
                 toggleSkillSkip(name)
                 event.preventDefault()
                 event.stopPropagation()
@@ -713,6 +1042,18 @@ function updateText() {
     document.getElementById("lifespanDisplay").textContent = daysToYears(getLifespan())
     document.getElementById("pauseButton").textContent = gameData.paused ? "Play" : "Pause"
 
+    var autoPromoteButton = document.getElementById("autoPromoteButton")
+    if (autoPromoteButton) {
+        autoPromoteButton.classList.toggle("is-active", gameData.autoPromote)
+        autoPromoteButton.setAttribute("aria-pressed", gameData.autoPromote ? "true" : "false")
+    }
+
+    var autoLearnButton = document.getElementById("autoLearnButton")
+    if (autoLearnButton) {
+        autoLearnButton.classList.toggle("is-active", gameData.autoLearn)
+        autoLearnButton.setAttribute("aria-pressed", gameData.autoLearn ? "true" : "false")
+    }
+
     updateRateChips()
 
     document.getElementById("efficiencyDisplay").textContent = getEfficiency().toFixed(1)
@@ -812,7 +1153,7 @@ function getNextEntity(data, categoryType, entityName) {
 }
 
 function autoPromote() {
-    if (!autoPromoteElement || !autoPromoteElement.checked) return
+    if (!gameData.autoPromote) return
     var nextEntity = getNextEntity(gameData.taskData, jobCategories, gameData.currentJob.name)
     if (nextEntity == null) return
     var requirement = gameData.requirements[nextEntity.name]
@@ -863,8 +1204,25 @@ function getKeyOfLowestValueFromDict(dict) {
 }
 
 function autoLearn() {
-    if (!autoLearnElement || !autoLearnElement.checked || !skillWithLowestMaxXp) return
+    if (!gameData.autoLearn || !skillWithLowestMaxXp) return
     gameData.currentSkill = skillWithLowestMaxXp
+}
+
+function toggleAutoPromote() {
+    gameData.autoPromote = !gameData.autoPromote
+    saveGameData()
+    updateText()
+}
+
+function toggleAutoLearn() {
+    gameData.autoLearn = !gameData.autoLearn
+    setSkillWithLowestMaxXp()
+    updateTaskRows()
+    if (gameData.autoLearn) {
+        autoLearn()
+    }
+    saveGameData()
+    updateText()
 }
 
 function yearsToDays(years) {
@@ -912,7 +1270,7 @@ function formatCoins(coins, element) {
 function formatDataPoints(value, element) {
 	if (!element) return;
 	var formatted = formatNumber(value);
-	element.textContent = formatted + ' data points';
+	element.textContent = formatted;
 }
 
 function updateRateChips() {
@@ -1157,17 +1515,6 @@ function loadGameData() {
 
     assignMethods()
     
-    // Restore checkbox states after loading
-    // Re-fetch elements in case they weren't available when constants were defined
-    const autoPromoteEl = document.getElementById("autoPromote")
-    const autoLearnEl = document.getElementById("autoLearn")
-    
-    if (autoPromoteEl !== null) {
-        autoPromoteEl.checked = gameData.autoPromote || false
-    }
-    if (autoLearnEl !== null) {
-        autoLearnEl.checked = gameData.autoLearn || false
-    }
 }
 
 function updateUI() {
@@ -1340,25 +1687,7 @@ if (typeof window.initializeCareerBasedAdventures === 'function') {
 }
 
 update()
-// Save checkbox states when changed
-if (autoPromoteElement) {
-    autoPromoteElement.addEventListener('change', function() {
-        gameData.autoPromote = this.checked
-        saveGameData()
-    })
-}
-if (autoLearnElement) {
-    autoLearnElement.addEventListener('change', function() {
-        gameData.autoLearn = this.checked
-        setSkillWithLowestMaxXp()
-        updateTaskRows()
-        if (this.checked) {
-            autoLearn()
-        }
-        saveGameData()
-    })
-}
-
+setupGameWindow()
 setInterval(update, 1000 / updateSpeed)
 setInterval(saveGameData, 3000)
 setInterval(setSkillWithLowestMaxXp, 1000)

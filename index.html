@@ -20,6 +20,16 @@
                 <button type="button" class="tabButton nav-button" id="shopTabButton" onClick="setTab(this, 'shop')">Hardware</button>
                 <button type="button" class="tabButton nav-button" id="rebirthTabButton" onClick="setTab(this, 'rebirth')">AI Core</button>
                 <button type="button" class="tabButton nav-button" onClick="setTab(this, 'settings')">Settings</button>
+                <div class="game-window-panel">
+                    <header class="game-window-header">
+                        <div class="game-window-title">Flight Telemetry</div>
+                        <div class="game-window-subtitle text-secondary">Drone projection</div>
+                    </header>
+                    <div class="game-window-canvas-wrap">
+                        <canvas id="gameWindowCanvas" class="game-window-canvas" width="180" height="180" aria-label="Drone flight simulation"></canvas>
+                    </div>
+                    <p class="game-window-footnote text-muted">Click to energize (coming soon)</p>
+                </div>
             </nav>
 
             <div class="panel content-panel">
@@ -29,46 +39,46 @@
                         <div class="text-secondary">Distance has exceeded signal range, use the AI Core to deploy a new drone before connection is lost</div>
                     </div>
 
-                    <div class="stats-top">
-                        <div class="stats-controls">
-                            <button id="pauseButton" class="w3-button button" onClick="setPause()">Pause</button>
-                            <div id="automation" class="stats-toggle-group">
-                                <label class="stats-toggle">
-                                    <span>Auto-promote</span>
-                                    <input type="checkbox" id="autoPromote">
-                                </label>
-                                <label class="stats-toggle">
-                                    <span>Auto-learn</span>
-                                    <input type="checkbox" id="autoLearn">
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-
                     <div class="stats-main">
                         <div class="big-counter" id="sci-fi-big-counter">
                             <div class="big-counter-value" id="sci-fi-counter-value">0</div>
                             <div class="big-counter-label">Data Points</div>
-                            <div class="stats-tooltip counter-tooltip">
-                                <div class="tooltip-row" id="netChip">
-                                    <span>Net/day</span>
-                                    <span class="tooltip-amount">
+                            <div class="rate-chip-group" id="counterPills">
+                                <div class="rate-chip" id="netChip">
+                                    <div class="rate-chip-label">Net</div>
+                                    <div class="rate-chip-value">
                                         <span class="rate-chip-trend" id="netTrend"></span>
                                         <span id="netDisplay"></span>
-                                    </span>
+                                    </div>
                                 </div>
-                                <div class="tooltip-row">
-                                    <span>Income/day</span>
-                                    <span id="incomeDisplay"></span>
+                                <div class="rate-chip">
+                                    <div class="rate-chip-label">Income</div>
+                                    <div class="rate-chip-value">
+                                        <span class="rate-chip-trend income-trend"></span>
+                                        <span id="incomeDisplay"></span>
+                                    </div>
                                 </div>
-                                <div class="tooltip-row">
-                                    <span>Expense/day</span>
-                                    <span id="expenseDisplay"></span>
+                                <div class="rate-chip">
+                                    <div class="rate-chip-label">Expense</div>
+                                    <div class="rate-chip-value">
+                                        <span class="rate-chip-trend expense-trend"></span>
+                                        <span id="expenseDisplay"></span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
                         <div class="mini-counter">
+                            <button id="pauseButton" class="w3-button button mini-counter-pause-button" onClick="setPause()">Pause</button>
+                            <div id="timeWarping" class="mini-counter-timewarp">
+                                <button id="timeWarpingButton" class="w3-button button mini-counter-timewarp-button" onClick="setTimeWarping()">Disable warp</button>
+                                <div class="mini-counter-tooltip" role="tooltip">
+                                    <div class="tooltip-row">
+                                        <span>Time warp speed</span>
+                                        <span id="timeWarpingDisplay"></span>
+                                    </div>
+                                </div>
+                            </div>
                             <div class="mini-counter-value"><span id="ageDisplay">14</span></div>
                             <div class="mini-counter-sub">Day <span id="dayDisplay">0</span></div>
                             <div class="mini-counter-label">Distance</div>
@@ -88,16 +98,14 @@
                             </div>
                             <div class="text-secondary">Current software</div>
 
+                            <div class="quick-task-controls">
+                                <button id="autoPromoteButton" class="w3-button button quick-task-control-button" onClick="toggleAutoPromote()">Auto-promote</button>
+                                <button id="autoLearnButton" class="w3-button button quick-task-control-button" onClick="toggleAutoLearn()">Auto-learn</button>
+                            </div>
+
                             <div class="stats-tooltip stack-tooltip">
                                 <div class="tooltip-row"><span>Efficiency</span><span id="efficiencyDisplay"></span></div>
                                 <div class="tooltip-row" id="evilInfo"><span>Corruption</span><span id="evilDisplay"></span></div>
-                                <div class="tooltip-row time-warp">
-                                    <span>Time warping</span>
-                                    <span class="time-warp-controls">
-                                        <span id="timeWarpingDisplay"></span>
-                                        <button id="timeWarpingButton" class="w3-button button" onClick="setTimeWarping()">Toggle</button>
-                                    </span>
-                                </div>
                             </div>
                         </div>
                     </div>
