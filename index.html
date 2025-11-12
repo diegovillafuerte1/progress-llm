@@ -19,6 +19,7 @@
                 <button type="button" class="tabButton nav-button" onClick="setTab(this, 'skills')">Software</button>
                 <button type="button" class="tabButton nav-button" id="shopTabButton" onClick="setTab(this, 'shop')">Hardware</button>
                 <button type="button" class="tabButton nav-button" id="rebirthTabButton" onClick="setTab(this, 'rebirth')">AI Core</button>
+                <button type="button" class="tabButton nav-button" onClick="setTab(this, 'achievements')">Achievements</button>
                 <button type="button" class="tabButton nav-button" onClick="setTab(this, 'settings')">Settings</button>
                 <div class="game-window-panel">
                     <header class="game-window-header">
@@ -163,6 +164,7 @@
                 <template class="rowItemTemplate">
                     <button type="button" class="control-card control-card--item tooltip">
                         <div class="control-card-title">
+                            <span class="item-icon"></span>
                             <span class="name"></span>
                             <span class="tooltipText">tooltip</span>
                         </div>
@@ -170,6 +172,7 @@
                             <div class="value">
                                 <div class="effect"></div>
                             </div>
+                            <div class="item-quantity-badge"></div>
                         </div>
                         <div class="control-card-finance expense">
                             <div class="finance-label">Expense/day</div>
@@ -201,6 +204,12 @@
 
                 <div class="tab" id="shop">
                     <div id="itemTable" class="control-grid">
+                    </div>
+                </div>
+
+                <div class="tab" id="achievements">
+                    <div id="achievementsGrid" class="achievements-grid">
+                        <!-- Achievement icons will be dynamically generated here -->
                     </div>
                 </div>
 

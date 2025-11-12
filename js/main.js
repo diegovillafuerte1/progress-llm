@@ -43,8 +43,280 @@ var gameWindowState = {
     lastClickTimestamp: 0,
     clickCooldown: 0.5,
     beams: [],
+    particles: [],
+    nebula: [],
     shipImpactPoint: null,
     impactShake: 0
+}
+
+// Spaceship rendering configuration - all proportions and styling constants
+const SPACESHIP_CONFIG = {
+    // Base positioning (ratios relative to canvas dimensions)
+    POSITION: {
+        X_RATIO: 0.5,           // Horizontal center
+        Y_RATIO: 0.68,          // Vertical position (68% down from top)
+        FALLBACK_Y_RATIO: 0.35  // Used in click handler fallback
+    },
+    
+    // Animation parameters
+    ANIMATION: {
+        LATERAL_SPEED: 1.4,              // Lateral drift oscillation speed
+        LATERAL_AMPLITUDE: 0.04,         // Lateral drift amplitude (4% of width)
+        VERTICAL_SPEED: 2.1,             // Vertical bob oscillation speed
+        VERTICAL_AMPLITUDE: 0.018,       // Vertical bob amplitude (1.8% of height)
+        SHAKE_MAGNITUDE_RATIO: 0.012,    // Shake magnitude (1.2% of min dimension)
+        SHAKE_ANGLE_SPEED: 28,           // Shake rotation speed
+        SHAKE_ANGLE_MULTIPLIER: 1.35     // Shake Y-axis multiplier for asymmetry
+    },
+    
+    // Size ratios (relative to canvas)
+    SIZE: {
+        BODY_LENGTH_RATIO: 0.35,         // Body length (62% of min canvas dimension)
+        WING_SPAN_RATIO: 0.35            // Wing span (55% of body length)
+    },
+    
+    // Geometry (all ratios relative to bodyLength)
+    GEOMETRY: {
+        NOSE_OFFSET: 0.35,               // Nose extends forward 35% of body length
+        TAIL_OFFSET: 0.52,               // Tail extends backward 52% of body length
+        WING_TOP_RATIO: 0.7,             // Top wing point extends 70% of wing span
+        WING_BOTTOM_RATIO: 0.12,         // Bottom wing point extends 12% of wing span
+        WING_BASE_OFFSET: 0.35,          // Wing base position from center
+        TAIL_WING_OFFSET: 0.12,          // Tail wing attachment offset
+        
+        // Cockpit ellipse
+        COCKPIT_X_OFFSET: 0.1,           // Cockpit X position offset
+        COCKPIT_WIDTH: 0.18,             // Cockpit width (18% of body length)
+        COCKPIT_HEIGHT: 0.26,            // Cockpit height (26% of wing span)
+        COCKPIT_GRADIENT_Y_OFFSET: 0.25, // Cockpit gradient vertical offset
+        COCKPIT_GRADIENT_X_END: 0.25,    // Cockpit gradient end X position (25% of body length)
+        
+        // Impact glow ellipse
+        IMPACT_X_OFFSET: 0.02,           // Impact glow X offset
+        IMPACT_WIDTH: 0.42,              // Impact glow width (42% of body length)
+        IMPACT_HEIGHT: 0.35,             // Impact glow height (35% of wing span)
+        IMPACT_ALPHA_MIN: 0.15,          // Minimum impact glow alpha
+        IMPACT_ALPHA_MAX: 0.35,          // Maximum impact glow alpha
+        IMPACT_ALPHA_MULTIPLIER: 0.4,   // Impact alpha multiplier
+        
+        // Flame/thruster
+        FLAME_TAIL_OFFSET: 0.15,         // Flame extends backward from tail
+        FLAME_FORWARD_OFFSET: 0.05,      // Flame forward edge offset
+        FLAME_WIDTH_OFFSET: 0.12,        // Flame base width offset
+        FLAME_HEIGHT_RATIO: 0.18,        // Flame height (18% of wing span)
+        
+        // Glow effect outline
+        GLOW_NOSE_OFFSET: 0.32,          // Glow outline nose position
+        GLOW_WING_TOP_RATIO: 0.45,       // Glow top wing extension (45% of wing span)
+        GLOW_WING_BOTTOM_RATIO: 0.18,    // Glow bottom wing extension (18% of wing span)
+        GLOW_BODY_OFFSET: 0.22           // Glow body position offset
+    },
+    
+    // Styling constants
+    STYLE: {
+        LINE_WIDTH_BODY: 1.2,            // Main body outline width
+        LINE_WIDTH_COCKPIT: 0.8,         // Cockpit outline width
+        LINE_WIDTH_GLOW: 1,              // Glow effect outline width
+        SHADOW_BLUR: 8,                  // Shadow blur radius
+        
+        // Colors (RGBA)
+        BODY_GRADIENT: {
+            TAIL: "rgba(70, 110, 160, 0.25)",
+            MID: "rgba(120, 160, 220, 0.6)",
+            NOSE: "rgba(200, 230, 255, 0.85)"
+        },
+        BODY_STROKE: "rgba(30, 180, 255, 0.4)",
+        COCKPIT_GRADIENT: {
+            START: "rgba(20, 36, 68, 0.9)",
+            END: "rgba(120, 180, 255, 0.85)"
+        },
+        COCKPIT_STROKE: "rgba(200, 230, 255, 0.4)",
+        IMPACT_GLOW: "rgba(0, 255, 220, 0.4)",
+        FLAME_GRADIENT: {
+            START: "rgba(255, 200, 120, 0)",
+            MID: "rgba(255, 180, 90, 0.4)",
+            END: "rgba(255, 120, 50, 0.8)"
+        },
+        GLOW_SHADOW: "rgba(0, 255, 200, 0.3)",
+        GLOW_STROKE: "rgba(0, 255, 205, 0.18)"
+    },
+    
+    // Gradient stop positions
+    GRADIENT_STOPS: {
+        BODY_MID: 0.4,                   // Body gradient middle stop
+        FLAME_MID: 0.4                   // Flame gradient middle stop
+    },
+    
+    // Rotation
+    ROTATION: {
+        ANGLE: -Math.PI / 2              // Ship rotation (90 degrees counter-clockwise)
+    }
+}
+
+// Canvas frame and flash effects configuration
+const CANVAS_FRAME_CONFIG = {
+    BACKGROUND_COLOR: "#04060c",        // Background color (dark blue-black)
+    
+    // Impact shake decay
+    IMPACT_SHAKE: {
+        DECAY_RATE: 1.8                  // Shake decay per second
+    },
+    
+    // Flash effect (when beam hits)
+    FLASH: {
+        ALPHA_MULTIPLIER: 0.15,         // Flash alpha multiplier (15% max opacity)
+        DECAY_RATE: 2.5,                 // Flash decay per second
+        COLOR: "rgba(0, 255, 200, "     // Flash color (cyan)
+    }
+}
+
+// Animation loop configuration
+const ANIMATION_CONFIG = {
+    DELTA_MAX: 0.1,                      // Maximum delta time (prevents large jumps when tab inactive)
+    MILLISECONDS_TO_SECONDS: 1000        // Conversion factor (timestamp is in ms)
+}
+
+// Stars and parallax configuration
+const STARS_CONFIG = {
+    COLOR: "#ffffff",                    // Star color (white)
+    
+    // Star parallax movement
+    PARALLAX: {
+        SPEED_MULTIPLIER: 0.6,           // Parallax oscillation speed
+        AMPLITUDE: 8,                    // Parallax horizontal movement amplitude
+        RESET_OFFSET_MAX: 30             // Max offset when resetting star Y position
+    },
+    
+    // Beam start position update (in stars function)
+    BEAM_START_UPDATE: {
+        SPEED_MULTIPLIER: 15             // Multiplier for beam start Y movement
+    }
+}
+
+// Energize beam configuration
+const BEAM_CONFIG = {
+    // Beam tail offset (for gradient effect)
+    TAIL_OFFSET: 0.2,                    // Tail position offset (20% behind current position)
+    
+    // Beam gradient colors (base colors, can be overridden)
+    GRADIENT: {
+        START: "rgba(0, 200, 255, 0)",   // Gradient start (transparent cyan)
+        MID: "rgba(0, 255, 200, 0.3)",   // Gradient middle (semi-transparent cyan-green)
+        END: "rgba(255, 255, 255, 0.9)"  // Gradient end (bright white)
+    },
+    GRADIENT_STOPS: {
+        MID: 0.3                          // Middle gradient stop position
+    },
+    
+    // Beam glow effect
+    GLOW: {
+        RADIUS_MULTIPLIER: 1.4,          // Glow radius multiplier (relative to beam width)
+        COLOR: "rgba(255, 255, 255, 0.85)" // Glow color (bright white)
+    },
+    
+    // Impact effects (when beam reaches target)
+    IMPACT: {
+        FLASH_INCREMENT: 0.35,            // Flash value increment per impact
+        SHAKE_INCREMENT: 0.22,            // Shake value increment per impact
+        FLASH_MAX: 1,                     // Maximum flash value
+        SHAKE_MAX: 0.5                    // Maximum shake value
+    },
+    
+    // Color variants based on game progress
+    COLOR_VARIANTS: [
+        {START: "rgba(0, 200, 255, 0)", MID: "rgba(0, 255, 200, 0.3)", END: "rgba(255, 255, 255, 0.9)"}, // Default cyan
+        {START: "rgba(200, 0, 255, 0)", MID: "rgba(255, 0, 200, 0.3)", END: "rgba(255, 200, 255, 0.9)"}, // Purple
+        {START: "rgba(255, 200, 0, 0)", MID: "rgba(255, 255, 100, 0.3)", END: "rgba(255, 255, 200, 0.9)"}, // Gold
+        {START: "rgba(0, 255, 100, 0)", MID: "rgba(100, 255, 150, 0.3)", END: "rgba(200, 255, 220, 0.9)"}  // Green
+    ]
+}
+
+// Particle system configuration
+const PARTICLE_CONFIG = {
+    COUNT: 8,                             // Particles per impact
+    SIZE: {
+        MIN: 1.5,                         // Minimum particle size
+        MAX: 3.5                           // Maximum particle size
+    },
+    SPEED: {
+        MIN: 20,                          // Minimum particle speed
+        MAX: 60                            // Maximum particle speed
+    },
+    LIFETIME: 0.4,                        // Particle lifetime in seconds
+    FADE_START: 0.6,                      // When to start fading (60% of lifetime)
+    COLORS: [
+        "rgba(0, 255, 200, ",
+        "rgba(100, 255, 255, ",
+        "rgba(255, 255, 255, ",
+        "rgba(200, 255, 255, "
+    ]
+}
+
+// Nebula background configuration
+const NEBULA_CONFIG = {
+    COUNT: 3,                             // Number of nebula clouds
+    SIZE: {
+        MIN_RATIO: 0.4,                   // Minimum size (40% of canvas)
+        MAX_RATIO: 0.8                     // Maximum size (80% of canvas)
+    },
+    SPEED: 0.1,                           // Movement speed multiplier
+    ALPHA: {
+        MIN: 0.08,                        // Minimum alpha
+        MAX: 0.15                          // Maximum alpha
+    },
+    COLORS: [
+        "rgba(100, 50, 200, ",            // Purple nebula
+        "rgba(50, 100, 200, ",            // Blue nebula
+        "rgba(200, 50, 100, "             // Pink nebula
+    ]
+}
+
+// Item icons mapping (reused from getAchievementIcon pattern)
+const ITEM_ICONS = {
+    'Pod': '🚀',
+    'Scout': '🛸',
+    'Scout Pod': '🛰️',
+    'Bay': '🏠',
+    'Hold': '📦',
+    'Cargo Bay': '📦',
+    'Command Pod': '🎮',
+    'Command Bay': '🏛️',
+    'Scanner': '📡',
+    'Thruster': '🔥',
+    'Auto Pilot': '🤖',
+    'Plasma Cannon': '💣',
+    'Core': '💎',
+    'Quantum Core': '⚛️',
+    'Nav Computer': '🧭',
+    'Mainframe': '🖥️'
+}
+
+// Beam creation configuration (from click handler)
+const BEAM_CREATION_CONFIG = {
+    // Start position (relative to canvas)
+    START_POSITION: {
+        X_MIN_RATIO: 0.2,                // Start X minimum (20% from left)
+        X_RANGE_RATIO: 0.6,              // Start X range (60% of width)
+        Y_OFFSET_MIN_RATIO: 0.2,         // Start Y offset minimum (20% above canvas)
+        Y_OFFSET_MAX_RATIO: 0.25          // Start Y offset maximum (25% above canvas)
+    },
+    
+    // End position variance (relative to target)
+    END_VARIANCE: {
+        X_RATIO: 0.02,                   // X variance (2% of width)
+        Y_RATIO: 0.02                    // Y variance (2% of height)
+    },
+    
+    // Beam properties
+    SPEED: {
+        BASE: 1.8,                       // Base speed
+        VARIANCE: 0.8                    // Speed variance (random addition)
+    },
+    
+    WIDTH: {
+        BASE: 5,                         // Base width in pixels
+        VARIANCE: 2                      // Width variance (random addition)
+    }
 }
 
 const updateSpeed = 20
@@ -397,6 +669,11 @@ function setTab(element, selectedTab) {
         tabButton.classList.remove("w3-blue-gray")
     }
     element.classList.add("w3-blue-gray")
+    
+    // Refresh achievements when achievements tab is opened
+    if (selectedTab === 'achievements' && typeof initializeAchievements === 'function') {
+        initializeAchievements();
+    }
 }
 
 function setPause() {
@@ -427,6 +704,20 @@ function setTask(taskName) {
 function setProperty(propertyName) {
     var property = gameData.itemData[propertyName]
     gameData.currentProperty = property
+    
+    // Visual feedback for purchase
+    var element = getItemElement(propertyName)
+    if (element) {
+        element.classList.remove("purchase-flash")
+        // Force reflow to restart animation
+        void element.offsetWidth
+        element.classList.add("purchase-flash")
+        setTimeout(function() {
+            if (element && element.classList) {
+                element.classList.remove("purchase-flash")
+            }
+        }, 300)
+    }
 }
 
 function setMisc(miscName) {
@@ -439,6 +730,20 @@ function setMisc(miscName) {
         }
     } else {
         gameData.currentMisc.push(misc)
+    }
+    
+    // Visual feedback for purchase
+    var element = getItemElement(miscName)
+    if (element) {
+        element.classList.remove("purchase-flash")
+        // Force reflow to restart animation
+        void element.offsetWidth
+        element.classList.add("purchase-flash")
+        setTimeout(function() {
+            if (element && element.classList) {
+                element.classList.remove("purchase-flash")
+            }
+        }, 300)
     }
 }
 
@@ -482,6 +787,7 @@ function resizeGameWindowCanvas() {
     gameWindowState.ctx.scale(pixelRatio, pixelRatio)
 
     initializeGameWindowStars()
+    initializeGameWindowNebula()
 }
 
 function initializeGameWindowStars() {
@@ -502,15 +808,44 @@ function initializeGameWindowStars() {
     })
 }
 
+function initializeGameWindowNebula() {
+    gameWindowState.nebula = []
+    var width = gameWindowState.width
+    var height = gameWindowState.height
+    var cfg = NEBULA_CONFIG
+    
+    // Safety check for zero dimensions
+    if (width === 0 || height === 0) return
+
+    for (var i = 0; i < cfg.COUNT; i++) {
+        var size = lerp(
+            Math.min(width, height) * cfg.SIZE.MIN_RATIO,
+            Math.min(width, height) * cfg.SIZE.MAX_RATIO,
+            Math.random()
+        )
+        gameWindowState.nebula.push({
+            x: Math.random() * width,
+            y: Math.random() * height,
+            size: size,
+            alpha: lerp(cfg.ALPHA.MIN, cfg.ALPHA.MAX, Math.random()),
+            colorIndex: Math.floor(Math.random() * cfg.COLORS.length),
+            offsetX: (Math.random() - 0.5) * width * 0.3,
+            offsetY: (Math.random() - 0.5) * height * 0.3
+        })
+    }
+}
+
 function animateGameWindow(timestamp) {
     if (!gameWindowState.ctx) return
+    var cfg = ANIMATION_CONFIG
 
     if (!gameWindowState.lastTimestamp) {
         gameWindowState.lastTimestamp = timestamp
     }
 
-    var delta = (timestamp - gameWindowState.lastTimestamp) / 1000
-    if (delta > 0.1) delta = 0.1
+    // Calculate delta time (clamp to prevent large jumps)
+    var delta = (timestamp - gameWindowState.lastTimestamp) / cfg.MILLISECONDS_TO_SECONDS
+    if (delta > cfg.DELTA_MAX) delta = cfg.DELTA_MAX
     gameWindowState.lastTimestamp = timestamp
     gameWindowState.elapsed += delta
 
@@ -524,44 +859,61 @@ function drawGameWindowFrame(delta) {
     var width = gameWindowState.width
     var height = gameWindowState.height
     if (!ctx || width === 0 || height === 0) return
+    var cfg = CANVAS_FRAME_CONFIG
 
-    gameWindowState.impactShake = Math.max(0, gameWindowState.impactShake - delta * 1.8)
+    // Decay impact shake
+    gameWindowState.impactShake = Math.max(0, gameWindowState.impactShake - delta * cfg.IMPACT_SHAKE.DECAY_RATE)
 
-    ctx.fillStyle = "#04060c"
+    // Draw background
+    ctx.fillStyle = cfg.BACKGROUND_COLOR
     ctx.fillRect(0, 0, width, height)
 
+    // Draw layers
+    drawGameWindowNebula(ctx, delta, width, height)
     drawGameWindowStars(ctx, delta, width, height)
+    drawGameWindowParticles(ctx, delta, width, height)
     drawGameWindowEnergize(ctx, delta, width, height)
     drawGameWindowSpaceship(ctx, width, height)
 
+    // Draw flash overlay (if active)
     if (gameWindowState.flash > 0) {
-        var flashAlpha = 0.15 * gameWindowState.flash
-        ctx.fillStyle = "rgba(0, 255, 200, " + flashAlpha.toFixed(3) + ")"
+        var flashAlpha = cfg.FLASH.ALPHA_MULTIPLIER * gameWindowState.flash
+        ctx.fillStyle = cfg.FLASH.COLOR + flashAlpha.toFixed(3) + ")"
         ctx.fillRect(0, 0, width, height)
-        gameWindowState.flash = Math.max(0, gameWindowState.flash - delta * 2.5)
+        gameWindowState.flash = Math.max(0, gameWindowState.flash - delta * cfg.FLASH.DECAY_RATE)
     }
 }
 
 function drawGameWindowStars(ctx, delta, width, height) {
+    var cfg = STARS_CONFIG
+    
+    // Update beam start positions (parallax effect)
     for (var i = 0; i < gameWindowState.beams.length; i++) {
         var beam = gameWindowState.beams[i]
-        beam.startY += delta * beam.speed * 15
+        beam.startY += delta * beam.speed * cfg.BEAM_START_UPDATE.SPEED_MULTIPLIER
     }
 
     ctx.save()
-    ctx.fillStyle = "#ffffff"
+    ctx.fillStyle = cfg.COLOR
 
+    // Draw and update stars
     var starCount = gameWindowState.stars.length
     for (var i = 0; i < starCount; i++) {
         var star = gameWindowState.stars[i]
+        
+        // Move star down
         star.y += star.speed * delta
-        star.x += Math.sin(gameWindowState.elapsed * 0.6 + i) * delta * 8
+        
+        // Parallax horizontal movement
+        star.x += Math.sin(gameWindowState.elapsed * cfg.PARALLAX.SPEED_MULTIPLIER + i) * delta * cfg.PARALLAX.AMPLITUDE
 
+        // Reset star if it goes off screen
         if (star.y > height + star.size) {
-            star.y = -Math.random() * 30
+            star.y = -Math.random() * cfg.PARALLAX.RESET_OFFSET_MAX
             star.x = Math.random() * width
         }
 
+        // Draw star
         ctx.globalAlpha = star.alpha
         ctx.beginPath()
         ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2)
@@ -572,102 +924,223 @@ function drawGameWindowStars(ctx, delta, width, height) {
     ctx.restore()
 }
 
+function drawGameWindowNebula(ctx, delta, width, height) {
+    var cfg = NEBULA_CONFIG
+    if (!gameWindowState.nebula || gameWindowState.nebula.length === 0) return
+    
+    ctx.save()
+    
+    // Draw and update nebula clouds
+    for (var i = 0; i < gameWindowState.nebula.length; i++) {
+        var neb = gameWindowState.nebula[i]
+        
+        // Animate position slowly
+        neb.x += Math.sin(gameWindowState.elapsed * cfg.SPEED + i) * delta * 5
+        neb.y += Math.cos(gameWindowState.elapsed * cfg.SPEED * 0.7 + i) * delta * 3
+        
+        // Wrap around edges
+        if (neb.x > width + neb.size) neb.x = -neb.size
+        if (neb.x < -neb.size) neb.x = width + neb.size
+        if (neb.y > height + neb.size) neb.y = -neb.size
+        if (neb.y < -neb.size) neb.y = height + neb.size
+        
+        // Create radial gradient (cached per nebula, but recreated each frame for simplicity)
+        var gradient = ctx.createRadialGradient(
+            neb.x + neb.offsetX,
+            neb.y + neb.offsetY,
+            0,
+            neb.x,
+            neb.y,
+            neb.size
+        )
+        gradient.addColorStop(0, cfg.COLORS[neb.colorIndex] + (neb.alpha * 0.8).toFixed(3) + ")")
+        gradient.addColorStop(0.5, cfg.COLORS[neb.colorIndex] + (neb.alpha * 0.4).toFixed(3) + ")")
+        gradient.addColorStop(1, cfg.COLORS[neb.colorIndex] + "0)")
+        
+        // Draw nebula cloud
+        ctx.fillStyle = gradient
+        ctx.beginPath()
+        ctx.arc(neb.x, neb.y, neb.size, 0, Math.PI * 2)
+        ctx.fill()
+    }
+    
+    ctx.restore()
+}
+
+function drawGameWindowParticles(ctx, delta, width, height) {
+    if (!gameWindowState.particles || gameWindowState.particles.length === 0) return
+    var cfg = PARTICLE_CONFIG
+    
+    ctx.save()
+    ctx.globalCompositeOperation = "lighter"
+    
+    // Draw and update particles
+    for (var i = gameWindowState.particles.length - 1; i >= 0; i--) {
+        var particle = gameWindowState.particles[i]
+        particle.age += delta
+        
+        // Remove expired particles
+        if (particle.age >= cfg.LIFETIME) {
+            gameWindowState.particles.splice(i, 1)
+            continue
+        }
+        
+        // Update position
+        particle.x += particle.vx * delta
+        particle.y += particle.vy * delta
+        
+        // Calculate alpha (fade out)
+        var lifeRatio = particle.age / cfg.LIFETIME
+        var alpha = 1
+        if (lifeRatio > cfg.FADE_START) {
+            alpha = 1 - ((lifeRatio - cfg.FADE_START) / (1 - cfg.FADE_START))
+        }
+        
+        // Draw particle
+        ctx.globalAlpha = alpha * particle.alpha
+        ctx.fillStyle = particle.color + alpha.toFixed(3) + ")"
+        ctx.beginPath()
+        ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2)
+        ctx.fill()
+    }
+    
+    ctx.globalAlpha = 1
+    ctx.restore()
+}
+
 function drawGameWindowSpaceship(ctx, width, height) {
     ctx.save()
+    var cfg = SPACESHIP_CONFIG
 
-    var lateralDrift = Math.sin(gameWindowState.elapsed * 1.4) * width * 0.04
-    var verticalBob = Math.sin(gameWindowState.elapsed * 2.1) * height * 0.018
+    // Calculate animation offsets
+    var lateralDrift = Math.sin(gameWindowState.elapsed * cfg.ANIMATION.LATERAL_SPEED) * width * cfg.ANIMATION.LATERAL_AMPLITUDE
+    var verticalBob = Math.sin(gameWindowState.elapsed * cfg.ANIMATION.VERTICAL_SPEED) * height * cfg.ANIMATION.VERTICAL_AMPLITUDE
 
-    var shakeMagnitude = Math.min(width, height) * 0.012 * gameWindowState.impactShake
-    var shakeAngle = gameWindowState.elapsed * 28
+    // Calculate impact shake
+    var shakeMagnitude = Math.min(width, height) * cfg.ANIMATION.SHAKE_MAGNITUDE_RATIO * gameWindowState.impactShake
+    var shakeAngle = gameWindowState.elapsed * cfg.ANIMATION.SHAKE_ANGLE_SPEED
     var shakeX = Math.cos(shakeAngle) * shakeMagnitude
-    var shakeY = Math.sin(shakeAngle * 1.35) * shakeMagnitude
+    var shakeY = Math.sin(shakeAngle * cfg.ANIMATION.SHAKE_ANGLE_MULTIPLIER) * shakeMagnitude
 
-    var shipX = width * 0.5 + lateralDrift + shakeX
-    var shipY = height * 0.68 + verticalBob + shakeY
+    // Calculate ship position
+    var shipX = width * cfg.POSITION.X_RATIO + lateralDrift + shakeX
+    var shipY = height * cfg.POSITION.Y_RATIO + verticalBob + shakeY
 
-    var baseX = shipX
-    var baseY = shipY
-    var bodyLength = Math.min(width, height) * 0.62
-    var wingSpan = bodyLength * 0.55
-    var noseX = baseX + bodyLength * 0.35
-    var tailX = baseX - bodyLength * 0.52
-
+    // Store impact point for beam targeting
     gameWindowState.shipImpactPoint = {
         x: shipX,
         y: shipY
     }
 
+    // Calculate dimensions
+    var baseX = shipX
+    var baseY = shipY
+    var bodyLength = Math.min(width, height) * cfg.SIZE.BODY_LENGTH_RATIO
+    var wingSpan = bodyLength * cfg.SIZE.WING_SPAN_RATIO
+    var noseX = baseX + bodyLength * cfg.GEOMETRY.NOSE_OFFSET
+    var tailX = baseX - bodyLength * cfg.GEOMETRY.TAIL_OFFSET
+
+    // Rotate ship (90 degrees counter-clockwise)
     ctx.translate(shipX, shipY)
-    ctx.rotate(-Math.PI / 2)
+    ctx.rotate(cfg.ROTATION.ANGLE)
     ctx.translate(-shipX, -shipY)
 
+    // Draw main body
     var bodyGradient = ctx.createLinearGradient(tailX, baseY, noseX, baseY)
-    bodyGradient.addColorStop(0, "rgba(70, 110, 160, 0.25)")
-    bodyGradient.addColorStop(0.4, "rgba(120, 160, 220, 0.6)")
-    bodyGradient.addColorStop(1, "rgba(200, 230, 255, 0.85)")
+    bodyGradient.addColorStop(0, cfg.STYLE.BODY_GRADIENT.TAIL)
+    bodyGradient.addColorStop(cfg.GRADIENT_STOPS.BODY_MID, cfg.STYLE.BODY_GRADIENT.MID)
+    bodyGradient.addColorStop(1, cfg.STYLE.BODY_GRADIENT.NOSE)
 
     ctx.beginPath()
     ctx.moveTo(noseX, baseY)
-    ctx.lineTo(baseX - bodyLength * 0.35, baseY - wingSpan * 0.7)
-    ctx.lineTo(tailX + bodyLength * 0.12, baseY - wingSpan * 0.12)
+    ctx.lineTo(baseX - bodyLength * cfg.GEOMETRY.WING_BASE_OFFSET, baseY - wingSpan * cfg.GEOMETRY.WING_TOP_RATIO)
+    ctx.lineTo(tailX + bodyLength * cfg.GEOMETRY.TAIL_WING_OFFSET, baseY - wingSpan * cfg.GEOMETRY.WING_BOTTOM_RATIO)
     ctx.lineTo(tailX, baseY)
-    ctx.lineTo(tailX + bodyLength * 0.12, baseY + wingSpan * 0.12)
-    ctx.lineTo(baseX - bodyLength * 0.35, baseY + wingSpan * 0.7)
+    ctx.lineTo(tailX + bodyLength * cfg.GEOMETRY.TAIL_WING_OFFSET, baseY + wingSpan * cfg.GEOMETRY.WING_BOTTOM_RATIO)
+    ctx.lineTo(baseX - bodyLength * cfg.GEOMETRY.WING_BASE_OFFSET, baseY + wingSpan * cfg.GEOMETRY.WING_TOP_RATIO)
     ctx.closePath()
     ctx.fillStyle = bodyGradient
     ctx.fill()
 
-    ctx.strokeStyle = "rgba(30, 180, 255, 0.4)"
-    ctx.lineWidth = 1.2
+    ctx.strokeStyle = cfg.STYLE.BODY_STROKE
+    ctx.lineWidth = cfg.STYLE.LINE_WIDTH_BODY
     ctx.stroke()
 
-    var cockpitGradient = ctx.createLinearGradient(baseX, baseY - wingSpan * 0.25, baseX + bodyLength * 0.25, baseY + wingSpan * 0.25)
-    cockpitGradient.addColorStop(0, "rgba(20, 36, 68, 0.9)")
-    cockpitGradient.addColorStop(1, "rgba(120, 180, 255, 0.85)")
+    // Draw cockpit
+    var cockpitGradient = ctx.createLinearGradient(
+        baseX, 
+        baseY - wingSpan * cfg.GEOMETRY.COCKPIT_GRADIENT_Y_OFFSET, 
+        baseX + bodyLength * cfg.GEOMETRY.COCKPIT_GRADIENT_X_END, 
+        baseY + wingSpan * cfg.GEOMETRY.COCKPIT_GRADIENT_Y_OFFSET
+    )
+    cockpitGradient.addColorStop(0, cfg.STYLE.COCKPIT_GRADIENT.START)
+    cockpitGradient.addColorStop(1, cfg.STYLE.COCKPIT_GRADIENT.END)
 
     ctx.beginPath()
-    ctx.ellipse(baseX + bodyLength * 0.1, baseY, bodyLength * 0.18, wingSpan * 0.26, 0, 0, Math.PI * 2)
+    ctx.ellipse(
+        baseX + bodyLength * cfg.GEOMETRY.COCKPIT_X_OFFSET, 
+        baseY, 
+        bodyLength * cfg.GEOMETRY.COCKPIT_WIDTH, 
+        wingSpan * cfg.GEOMETRY.COCKPIT_HEIGHT, 
+        0, 0, Math.PI * 2
+    )
     ctx.fillStyle = cockpitGradient
     ctx.fill()
-    ctx.strokeStyle = "rgba(200, 230, 255, 0.4)"
-    ctx.lineWidth = 0.8
+    ctx.strokeStyle = cfg.STYLE.COCKPIT_STROKE
+    ctx.lineWidth = cfg.STYLE.LINE_WIDTH_COCKPIT
     ctx.stroke()
 
+    // Draw impact glow (when shaking)
     if (gameWindowState.impactShake > 0) {
         ctx.save()
-        ctx.globalAlpha = Math.min(0.35, 0.15 + gameWindowState.impactShake * 0.4)
-        ctx.fillStyle = "rgba(0, 255, 220, 0.4)"
+        ctx.globalAlpha = Math.min(
+            cfg.GEOMETRY.IMPACT_ALPHA_MAX, 
+            cfg.GEOMETRY.IMPACT_ALPHA_MIN + gameWindowState.impactShake * cfg.GEOMETRY.IMPACT_ALPHA_MULTIPLIER
+        )
+        ctx.fillStyle = cfg.STYLE.IMPACT_GLOW
         ctx.beginPath()
-        ctx.ellipse(baseX + bodyLength * 0.02, baseY, bodyLength * 0.42, wingSpan * 0.35, 0, 0, Math.PI * 2)
+        ctx.ellipse(
+            baseX + bodyLength * cfg.GEOMETRY.IMPACT_X_OFFSET, 
+            baseY, 
+            bodyLength * cfg.GEOMETRY.IMPACT_WIDTH, 
+            wingSpan * cfg.GEOMETRY.IMPACT_HEIGHT, 
+            0, 0, Math.PI * 2
+        )
         ctx.fill()
         ctx.restore()
     }
 
-    var flameGradient = ctx.createLinearGradient(tailX - bodyLength * 0.15, baseY, tailX + bodyLength * 0.05, baseY)
-    flameGradient.addColorStop(0, "rgba(255, 200, 120, 0)")
-    flameGradient.addColorStop(0.4, "rgba(255, 180, 90, 0.4)")
-    flameGradient.addColorStop(1, "rgba(255, 120, 50, 0.8)")
+    // Draw flame/thruster
+    var flameGradient = ctx.createLinearGradient(
+        tailX - bodyLength * cfg.GEOMETRY.FLAME_TAIL_OFFSET, 
+        baseY, 
+        tailX + bodyLength * cfg.GEOMETRY.FLAME_FORWARD_OFFSET, 
+        baseY
+    )
+    flameGradient.addColorStop(0, cfg.STYLE.FLAME_GRADIENT.START)
+    flameGradient.addColorStop(cfg.GRADIENT_STOPS.FLAME_MID, cfg.STYLE.FLAME_GRADIENT.MID)
+    flameGradient.addColorStop(1, cfg.STYLE.FLAME_GRADIENT.END)
 
     ctx.beginPath()
-    ctx.moveTo(tailX - bodyLength * 0.12, baseY)
-    ctx.lineTo(tailX + bodyLength * 0.02, baseY - wingSpan * 0.18)
-    ctx.lineTo(tailX + bodyLength * 0.02, baseY + wingSpan * 0.18)
+    ctx.moveTo(tailX - bodyLength * cfg.GEOMETRY.FLAME_WIDTH_OFFSET, baseY)
+    ctx.lineTo(tailX + bodyLength * cfg.GEOMETRY.FLAME_FORWARD_OFFSET, baseY - wingSpan * cfg.GEOMETRY.FLAME_HEIGHT_RATIO)
+    ctx.lineTo(tailX + bodyLength * cfg.GEOMETRY.FLAME_FORWARD_OFFSET, baseY + wingSpan * cfg.GEOMETRY.FLAME_HEIGHT_RATIO)
     ctx.closePath()
     ctx.fillStyle = flameGradient
     ctx.fill()
 
-    ctx.shadowColor = "rgba(0, 255, 200, 0.3)"
-    ctx.shadowBlur = 8
+    // Draw glow effect outline
+    ctx.shadowColor = cfg.STYLE.GLOW_SHADOW
+    ctx.shadowBlur = cfg.STYLE.SHADOW_BLUR
     ctx.beginPath()
-    ctx.moveTo(baseX + bodyLength * 0.32, baseY)
-    ctx.lineTo(baseX, baseY - wingSpan * 0.45)
-    ctx.lineTo(baseX - bodyLength * 0.22, baseY - wingSpan * 0.18)
-    ctx.lineTo(baseX - bodyLength * 0.22, baseY + wingSpan * 0.18)
-    ctx.lineTo(baseX, baseY + wingSpan * 0.45)
+    ctx.moveTo(baseX + bodyLength * cfg.GEOMETRY.GLOW_NOSE_OFFSET, baseY)
+    ctx.lineTo(baseX, baseY - wingSpan * cfg.GEOMETRY.GLOW_WING_TOP_RATIO)
+    ctx.lineTo(baseX - bodyLength * cfg.GEOMETRY.GLOW_BODY_OFFSET, baseY - wingSpan * cfg.GEOMETRY.GLOW_WING_BOTTOM_RATIO)
+    ctx.lineTo(baseX - bodyLength * cfg.GEOMETRY.GLOW_BODY_OFFSET, baseY + wingSpan * cfg.GEOMETRY.GLOW_WING_BOTTOM_RATIO)
+    ctx.lineTo(baseX, baseY + wingSpan * cfg.GEOMETRY.GLOW_WING_TOP_RATIO)
     ctx.closePath()
-    ctx.strokeStyle = "rgba(0, 255, 205, 0.18)"
-    ctx.lineWidth = 1
+    ctx.strokeStyle = cfg.STYLE.GLOW_STROKE
+    ctx.lineWidth = cfg.STYLE.LINE_WIDTH_GLOW
     ctx.stroke()
 
     ctx.restore()
@@ -675,27 +1148,36 @@ function drawGameWindowSpaceship(ctx, width, height) {
 
 function drawGameWindowEnergize(ctx, delta, width, height) {
     if (!gameWindowState.beams || gameWindowState.beams.length === 0) return
+    var cfg = BEAM_CONFIG
 
     ctx.save()
     ctx.globalCompositeOperation = "lighter"
 
+    // Draw beams from back to front
     for (var i = gameWindowState.beams.length - 1; i >= 0; i--) {
         var beam = gameWindowState.beams[i]
         beam.progress += delta * beam.speed
 
         var progression = Math.min(beam.progress, 1)
 
+        // Calculate current position
         var currentX = lerp(beam.startX, beam.endX, progression)
         var currentY = lerp(beam.startY, beam.endY, progression)
 
-        var tailX = lerp(beam.startX, beam.endX, Math.max(0, progression - 0.2))
-        var tailY = lerp(beam.startY, beam.endY, Math.max(0, progression - 0.2))
+        // Calculate tail position (for gradient effect)
+        var tailX = lerp(beam.startX, beam.endX, Math.max(0, progression - cfg.TAIL_OFFSET))
+        var tailY = lerp(beam.startY, beam.endY, Math.max(0, progression - cfg.TAIL_OFFSET))
 
+        // Use beam's color variant if available, otherwise use default
+        var colorVariant = beam.colorVariant !== undefined ? cfg.COLOR_VARIANTS[beam.colorVariant] : cfg.GRADIENT
+        
+        // Create gradient
         var gradient = ctx.createLinearGradient(tailX, tailY, currentX, currentY)
-        gradient.addColorStop(0, "rgba(0, 200, 255, 0)")
-        gradient.addColorStop(0.3, "rgba(0, 255, 200, 0.3)")
-        gradient.addColorStop(1, "rgba(255, 255, 255, 0.9)")
+        gradient.addColorStop(0, colorVariant.START)
+        gradient.addColorStop(cfg.GRADIENT_STOPS.MID, colorVariant.MID)
+        gradient.addColorStop(1, colorVariant.END)
 
+        // Draw beam line
         ctx.lineWidth = beam.width
         ctx.strokeStyle = gradient
         ctx.beginPath()
@@ -703,14 +1185,20 @@ function drawGameWindowEnergize(ctx, delta, width, height) {
         ctx.lineTo(currentX, currentY)
         ctx.stroke()
 
+        // Draw beam glow
         ctx.beginPath()
-        ctx.arc(currentX, currentY, beam.width * 1.4, 0, Math.PI * 2)
-        ctx.fillStyle = "rgba(255, 255, 255, 0.85)"
+        ctx.arc(currentX, currentY, beam.width * cfg.GLOW.RADIUS_MULTIPLIER, 0, Math.PI * 2)
+        ctx.fillStyle = cfg.GLOW.COLOR
         ctx.fill()
 
+        // Handle impact (when beam reaches target)
         if (progression >= 1) {
-            gameWindowState.flash = Math.min(1, gameWindowState.flash + 0.35)
-            gameWindowState.impactShake = Math.min(0.5, gameWindowState.impactShake + 0.22)
+            gameWindowState.flash = Math.min(cfg.IMPACT.FLASH_MAX, gameWindowState.flash + cfg.IMPACT.FLASH_INCREMENT)
+            gameWindowState.impactShake = Math.min(cfg.IMPACT.SHAKE_MAX, gameWindowState.impactShake + cfg.IMPACT.SHAKE_INCREMENT)
+            
+            // Create particles on impact
+            createImpactParticles(currentX, currentY, beam.colorVariant || 0)
+            
             gameWindowState.beams.splice(i, 1)
         }
     }
@@ -725,26 +1213,65 @@ function handleGameWindowClick() {
 
     var width = gameWindowState.width
     var height = gameWindowState.height
+    var cfg = BEAM_CREATION_CONFIG
 
-    var startX = width * 0.2 + Math.random() * width * 0.6
-    var startY = -height * (0.2 + Math.random() * 0.25)
+    // Calculate random start position
+    var startX = width * cfg.START_POSITION.X_MIN_RATIO + Math.random() * width * cfg.START_POSITION.X_RANGE_RATIO
+    var startY = -height * (cfg.START_POSITION.Y_OFFSET_MIN_RATIO + Math.random() * (cfg.START_POSITION.Y_OFFSET_MAX_RATIO - cfg.START_POSITION.Y_OFFSET_MIN_RATIO))
 
+    // Get target position (ship impact point)
     var target = gameWindowState.shipImpactPoint
-    var shipX = target ? target.x : width * 0.5
-    var shipY = target ? target.y : height * 0.35
+    var shipX = target ? target.x : width * SPACESHIP_CONFIG.POSITION.X_RATIO
+    var shipY = target ? target.y : height * SPACESHIP_CONFIG.POSITION.FALLBACK_Y_RATIO
 
+    // Calculate end position with variance
+    var endX = shipX + (Math.random() - 0.5) * width * cfg.END_VARIANCE.X_RATIO
+    var endY = shipY + (Math.random() - 0.5) * height * cfg.END_VARIANCE.Y_RATIO
+
+    // Select color variant based on game progress
+    var colorVariant = 0
+    if (typeof gameData !== 'undefined' && gameData.coins) {
+        var logCoins = Math.log10(Math.max(1, gameData.coins))
+        if (logCoins > 9) colorVariant = 3  // Green for very high coins
+        else if (logCoins > 6) colorVariant = 2  // Gold for high coins
+        else if (logCoins > 3) colorVariant = 1  // Purple for medium coins
+    }
+
+    // Create beam
     var beam = {
         startX: startX,
         startY: startY,
-        endX: shipX + (Math.random() - 0.5) * width * 0.02,
-        endY: shipY + (Math.random() - 0.5) * height * 0.02,
+        endX: endX,
+        endY: endY,
         progress: 0,
-        speed: 1.8 + Math.random() * 0.8,
-        width: 5 + Math.random() * 2
+        speed: cfg.SPEED.BASE + Math.random() * cfg.SPEED.VARIANCE,
+        width: cfg.WIDTH.BASE + Math.random() * cfg.WIDTH.VARIANCE,
+        colorVariant: colorVariant
     }
 
     gameWindowState.beams.push(beam)
     console.log("Game window energized: initiating light bead")
+}
+
+function createImpactParticles(x, y, colorVariant) {
+    var cfg = PARTICLE_CONFIG
+    
+    for (var i = 0; i < cfg.COUNT; i++) {
+        var angle = (Math.PI * 2 * i) / cfg.COUNT + Math.random() * 0.5
+        var speed = lerp(cfg.SPEED.MIN, cfg.SPEED.MAX, Math.random())
+        var colorIndex = Math.floor(Math.random() * cfg.COLORS.length)
+        
+        gameWindowState.particles.push({
+            x: x,
+            y: y,
+            vx: Math.cos(angle) * speed,
+            vy: Math.sin(angle) * speed,
+            size: lerp(cfg.SIZE.MIN, cfg.SIZE.MAX, Math.random()),
+            age: 0,
+            alpha: 0.8 + Math.random() * 0.2,
+            color: cfg.COLORS[colorIndex]
+        })
+    }
 }
 
 function lerp(start, end, amount) {
@@ -827,6 +1354,15 @@ function createRow(templates, name, categoryName, categoryType) {
     row.getElementsByClassName("name")[0].textContent = name
     row.getElementsByClassName("tooltipText")[0].textContent = tooltips[name]
     row.id = "row " + name
+    
+    // Add icon for items
+    if (categoryType == itemCategories) {
+        var iconEl = row.querySelector(".item-icon")
+        if (iconEl && ITEM_ICONS[name]) {
+            iconEl.textContent = ITEM_ICONS[name]
+        }
+    }
+    
     if (categoryType != itemCategories) {
         var isSkillCategory = categoryType == skillCategories
         row.dataset.taskName = name
@@ -1020,6 +1556,23 @@ function updateItemRows() {
         if (effectEl) effectEl.textContent = item.getEffectDescription()
         var financeAmountEl = row.querySelector(".finance-amount")
         formatCoins(item.getExpense(), financeAmountEl)
+        
+        // Update quantity badge
+        var quantityBadge = row.querySelector(".item-quantity-badge")
+        if (quantityBadge) {
+            var quantity = 0
+            if (item == gameData.currentProperty) {
+                quantity = 1
+            } else if (gameData.currentMisc.includes(item)) {
+                quantity = 1
+            }
+            if (quantity > 0) {
+                quantityBadge.textContent = "×" + quantity
+                quantityBadge.style.display = ""
+            } else {
+                quantityBadge.style.display = "none"
+            }
+        }
     }
 }
 
@@ -1872,6 +2425,12 @@ function showToast(title, message) {
 	var close = toast.querySelector('.toast-close');
 	if (close) close.addEventListener('click', function(){ toast.remove(); });
 	setTimeout(function(){ if (toast.parentNode) toast.remove(); }, 3000);
+	
+	// If this is an achievement toast, reveal the achievement icon
+	if (title === 'Achievement' && message) {
+		var achievementName = message.replace(' unlocked', '');
+		revealAchievement(achievementName);
+	}
 }
 
 function drawPrestigePreviewChart(canvas, mult) {
@@ -2201,6 +2760,176 @@ function updateInlineMeta() {
 	} catch(e) { /* no-op */ }
 }
 
+// ========================================
+// Achievements System
+// ========================================
+function initializeAchievements() {
+	var grid = document.getElementById('achievementsGrid');
+	if (!grid) return;
+	
+	// Clear existing content
+	grid.innerHTML = '';
+	
+	// Get all achievement names from gameData.requirements
+	if (!window.gameData || !window.gameData.requirements) return;
+	
+	var achievementNames = [];
+	for (var key in window.gameData.requirements) {
+		achievementNames.push(key);
+	}
+	
+	// Create achievement icons
+	achievementNames.forEach(function(achievementName) {
+		var icon = document.createElement('div');
+		icon.className = 'achievement-icon locked tooltip';
+		icon.id = 'achievement-' + achievementName.replace(/\s+/g, '-').toLowerCase();
+		icon.setAttribute('data-achievement-name', achievementName);
+		// Don't set title attribute - we're using custom tooltips instead
+		
+		// Add tooltip text (same as toast notification)
+		var tooltipText = document.createElement('span');
+		tooltipText.className = 'tooltipText';
+		tooltipText.textContent = achievementName + ' unlocked';
+		icon.appendChild(tooltipText);
+		
+		// Check if achievement is already unlocked
+		var requirement = window.gameData.requirements[achievementName];
+		if (requirement && requirement.completed) {
+			icon.classList.remove('locked');
+			icon.classList.add('unlocked');
+			// Set icon text without removing tooltipText
+			var iconText = document.createTextNode(getAchievementIcon(achievementName));
+			icon.insertBefore(iconText, tooltipText);
+		}
+		
+		grid.appendChild(icon);
+	});
+}
+
+function revealAchievement(achievementName) {
+	var iconId = 'achievement-' + achievementName.replace(/\s+/g, '-').toLowerCase();
+	var icon = document.getElementById(iconId);
+	if (!icon) return;
+	
+	// Remove locked class and add unlocked class
+	icon.classList.remove('locked');
+	icon.classList.add('unlocked');
+	
+	// Set the icon content (preserve tooltipText if it exists)
+	var tooltipText = icon.querySelector('.tooltipText');
+	var iconText = getAchievementIcon(achievementName);
+	
+	// Remove any existing text nodes (but keep tooltipText)
+	var childNodes = Array.prototype.slice.call(icon.childNodes);
+	childNodes.forEach(function(node) {
+		if (node.nodeType === 3) { // Text node
+			icon.removeChild(node);
+		}
+	});
+	
+	// Ensure tooltipText exists (create if missing, don't duplicate)
+	if (!tooltipText) {
+		tooltipText = document.createElement('span');
+		tooltipText.className = 'tooltipText';
+		tooltipText.textContent = achievementName + ' unlocked';
+		icon.appendChild(tooltipText);
+	} else {
+		// Update tooltip text in case achievement name changed
+		tooltipText.textContent = achievementName + ' unlocked';
+	}
+	
+	// Add icon text before tooltipText
+	var textNode = document.createTextNode(iconText);
+	icon.insertBefore(textNode, tooltipText);
+	
+	// Add a reveal animation
+	icon.style.animation = 'none';
+	setTimeout(function() {
+		icon.style.animation = 'pulse 0.5s ease-out';
+	}, 10);
+}
+
+function getAchievementIcon(achievementName) {
+	// Simple icon mapping - you can expand this with more specific icons
+	// For now, using emoji/unicode characters as simple icons
+	var iconMap = {
+		'Scanning': '🔍',
+		'Mining': '⛏️',
+		'Probing': '📡',
+		'Extraction': '⚡',
+		'Fabrication': '🏭',
+		'Trading': '💱',
+		'Recon': '👁️',
+		'Combat': '⚔️',
+		'Advanced Weapons': '🔫',
+		'Tactics': '🎯',
+		'Hardened Systems': '🛡️',
+		'Quantum Combat': '⚛️',
+		'Reality Weapons': '💥',
+		'Supremacy Tech': '👑',
+		'Processing': '💻',
+		'Efficiency': '⚙️',
+		'Negotiation': '🤝',
+		'Optimization': '📊',
+		'Reinforcement': '🔧',
+		'Combat Protocols': '📋',
+		'Pattern Recognition': '🧠',
+		'Quantum Control': '🌀',
+		'Neural': '🧬',
+		'Quantum Basics': '⚛️',
+		'Quantum': '🌌',
+		'Dimensions': '📐',
+		'Reality Tech': '🌠',
+		'Unified': '🔗',
+		'Range Extension': '📡',
+		'Temporal Manipulation': '⏰',
+		'Extended Range': '🌐',
+		'Dark magic': '💀',
+		'Corruption Absorption': '☠️',
+		'Corruption Control': '👹',
+		'Aggression': '😠',
+		'Forbidden Protocols': '🔮',
+		'Corruption Cultivation': '🌑',
+		'Corrupted Protocols': '💀',
+		'Pod': '🚀',
+		'Scout': '🛸',
+		'Scout Pod': '🛰️',
+		'Bay': '🏠',
+		'Hold': '📦',
+		'Cargo Bay': '📦',
+		'Command Pod': '🎮',
+		'Command Bay': '🏛️',
+		'Scanner': '📡',
+		'Thruster': '🔥',
+		'Auto Pilot': '🤖',
+		'Plasma Cannon': '💣',
+		'Core': '💎',
+		'Quantum Core': '⚛️',
+		'Nav Computer': '🧭',
+		'Mainframe': '🖥️',
+		'Advanced Systems': '🔬',
+		'Shop': '🛒',
+		'Rebirth tab': '🔄',
+		'Rebirth note 1': '📝',
+		'Rebirth note 2': '📜',
+		'Rebirth note 3': '📖',
+		'Evil info': '⚠️',
+		'Time warping info': '⏩',
+		'Automation': '🤖',
+		'Quick task display': '📋'
+	};
+	
+	return iconMap[achievementName] || '⭐';
+}
+
+// Add pulse animation CSS if not already present
+if (!document.getElementById('achievement-animations')) {
+	var style = document.createElement('style');
+	style.id = 'achievement-animations';
+	style.textContent = '@keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }';
+	document.head.appendChild(style);
+}
+
 // Add a non-intrusive class to tables that contain headerRow, for rounded styling via CSS
 // Initialize UI enhancements
 var mq = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -2210,3 +2939,4 @@ if (mq && mq.matches) {
 startUpdater();
 injectPrestigePreview();
 bindFloatingTooltips();
+initializeAchievements();
