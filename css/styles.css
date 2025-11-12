@@ -1821,6 +1821,62 @@ tr.upgrade-card {
 }
 
 /* ========================================
+   ACHIEVEMENTS GRID
+   ======================================== */
+.achievements-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
+  gap: var(--space-3);
+  padding: var(--space-4);
+  width: 100%;
+}
+
+.achievement-icon {
+  position: relative;
+  width: 64px;
+  height: 64px;
+  border-radius: var(--radius-md);
+  border: 2px solid var(--space-border);
+  background: var(--space-panel-elevated);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--text-2xl);
+  color: var(--text-muted);
+  transition: all var(--duration-normal) var(--ease-out);
+  cursor: pointer;
+}
+
+.achievement-icon:hover {
+  border-color: var(--accent-primary);
+  box-shadow: var(--shadow-neon);
+  transform: scale(1.05);
+}
+
+.achievement-icon.unlocked {
+  border-color: var(--accent-success);
+  background: linear-gradient(145deg, rgba(0, 255, 136, 0.1), rgba(0, 200, 100, 0.05));
+  color: var(--text-primary);
+  box-shadow: 0 0 10px rgba(0, 255, 136, 0.2);
+}
+
+.achievement-icon.unlocked:hover {
+  box-shadow: 0 0 15px rgba(0, 255, 136, 0.4);
+}
+
+.achievement-icon.locked {
+  filter: grayscale(0.8);
+  opacity: 0.6;
+}
+
+.achievement-icon.locked::before {
+  content: "?";
+  font-size: var(--text-3xl);
+  font-weight: bold;
+  color: var(--text-danger);
+}
+
+/* ========================================
    9. MEDIA QUERIES & ACCESSIBILITY
    ======================================== */
 @media (max-width: 768px) {
