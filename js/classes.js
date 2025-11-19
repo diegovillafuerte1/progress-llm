@@ -256,5 +256,67 @@ class EvilRequirement extends Requirement {
 
     getCondition(requirement) {
         return gameData.evil >= requirement.requirement
-    }    
+    }
+}
+
+class TotalDataPointsRequirement extends Requirement {
+    constructor(elements, requirements) {
+        super(elements, requirements)
+        this.type = "totalDataPoints"
+    }
+
+    getCondition(requirement) {
+        // Sum data points across all drones
+        var totalDataPoints = 0
+        var drones = gameData.swarmUnlocked && gameData.drones ? gameData.drones : [gameData]
+        for (var i = 0; i < drones.length; i++) {
+            totalDataPoints += drones[i].coins || 0
+        }
+        return totalDataPoints >= requirement.requirement
+    }
+}
+
+class TotalDronesRequirement extends Requirement {
+    constructor(elements, requirements) {
+        super(elements, requirements)
+        this.type = "totalDrones"
+    }
+
+    getCondition(requirement) {
+        // Count total drones
+        var droneCount = gameData.swarmUnlocked && gameData.drones ? gameData.drones.length : 1
+        return droneCount >= requirement.requirement
+    }
+}
+
+class TotalRebirthsRequirement extends Requirement {
+    constructor(elements, requirements) {
+        super(elements, requirements)
+        this.type = "totalRebirths"
+    }
+
+    getCondition(requirement) {
+        // Sum rebirth counts across all drones
+        var totalRebirths = 0
+        if (gameData.swarmUnlocked && gameData.drones) {
+            for (var i = 0; i < gameData.drones.length; i++) {
+                totalRebirths += (gameData.drones[i].rebirthOneCount || 0) + (gameData.drones[i].rebirthTwoCount || 0)
+            }
+        } else {
+            totalRebirths = (gameData.rebirthOneCount || 0) + (gameData.rebirthTwoCount || 0)
+        }
+        return totalRebirths >= requirement.requirement
+    }
+}
+
+class TotalQbitsRequirement extends Requirement {
+    constructor(elements, requirements) {
+        super(elements, requirements)
+        this.type = "totalQbits"
+    }
+
+    getCondition(requirement) {
+        // Qbits are global, not per-drone
+        return gameData.qbits >= requirement.requirement
+    }
 }

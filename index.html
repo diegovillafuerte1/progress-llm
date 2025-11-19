@@ -15,6 +15,7 @@
         <div class="main-game-container"> 
             <nav class="panel nav-panel">
                 <div class="app-title">Drone Command</div>
+                <button type="button" class="tabButton nav-button" id="swarmTabButton" onClick="setTab(this, 'swarm')" style="display: none;">Swarm</button>
                 <button type="button" class="tabButton nav-button" id="jobTabButton" onClick="setTab(this, 'jobs')">Research</button>
                 <button type="button" class="tabButton nav-button" onClick="setTab(this, 'skills')">Software</button>
                 <button type="button" class="tabButton nav-button" id="shopTabButton" onClick="setTab(this, 'shop')">Hardware</button>
@@ -29,11 +30,11 @@
                     <div class="game-window-canvas-wrap">
                         <canvas id="gameWindowCanvas" class="game-window-canvas" width="180" height="180" aria-label="Drone flight simulation"></canvas>
                     </div>
-                    <p class="game-window-footnote text-muted">Click to energize (coming soon)</p>
                 </div>
             </nav>
 
             <div class="panel content-panel">
+                
                 <section class="stats-panel">
                     <div id="deathText" class="stats-alert">
                         <div class="text-large text-danger">Signal Lost</div>
@@ -213,6 +214,46 @@
                     </div>
                 </div>
 
+                <div class="tab" id="swarm" style="display: none;">
+                    <div class="swarm-management-panel">
+                        <div class="swarm-management-header">
+                            <h2 style="margin: 0;">Swarm Command</h2>
+                            <p class="text-secondary" style="margin: 8px 0;">Manage your fleet of drones</p>
+                        </div>
+                        <div class="swarm-stats-row" style="display: flex; gap: 16px; margin-bottom: 16px; flex-wrap: wrap;">
+                            <div class="swarm-stat-card" style="padding: 12px; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 4px; flex: 1; min-width: 150px;">
+                                <div class="text-secondary" style="font-size: 0.9em; margin-bottom: 4px;">Total Drones</div>
+                                <div class="text-large" id="swarmDroneCount">1</div>
+                            </div>
+                            <div class="swarm-stat-card" style="padding: 12px; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 4px; flex: 1; min-width: 150px;">
+                                <div class="text-secondary" style="font-size: 0.9em; margin-bottom: 4px;">Total Data Points</div>
+                                <div class="text-large" id="swarmTotalCoins">0</div>
+                            </div>
+                            <div class="swarm-stat-card" style="padding: 12px; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 4px; flex: 1; min-width: 150px;">
+                                <div class="text-secondary" style="font-size: 0.9em; margin-bottom: 4px;">Qbits</div>
+                                <div class="text-large" id="swarmQbitsDisplay">0</div>
+                            </div>
+                        </div>
+                        <div class="swarm-actions-row" style="display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap;">
+                            <button id="purchaseDroneButton" class="w3-button button" onClick="purchaseNewDrone()" style="flex: 1; min-width: 200px;">
+                                Purchase New Drone (<span id="purchaseDroneCost">50</span> qbits)
+                            </button>
+                        </div>
+                        <div class="swarm-drones-list" style="margin-bottom: 16px;">
+                            <h3 style="margin-bottom: 12px;">Active Drones</h3>
+                            <div id="swarmDronesListContainer">
+                                <!-- Drone list will be generated here -->
+                            </div>
+                        </div>
+                        <div class="swarm-upgrades-section" style="margin-top: 16px;">
+                            <h3 style="margin-bottom: 12px;">Swarm Upgrades</h3>
+                            <div id="swarmQbitUpgradesContainer">
+                                <!-- Qbit upgrades will be moved here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="tab" id="rebirth">
                     <ul>
                         <li class="rebirth-list-item">
@@ -267,8 +308,6 @@
                                 This means you will learn everything again much more quickly than you did in your previous drone. <span class="text-danger">
                                 Something tells you that the AI Core might activate even further after exploring for <b>2 whole centuries</b>...</span>
                             </i>
-                            </br>
-                            <button class="w3-button button" style="margin: 8px 0;" onClick="rebirthOne()">Establish Data Link</button>
                             </br>
                         </li>
                         <li class="rebirth-list-item" id="rebirthNote3">
