@@ -18,6 +18,20 @@ var gameData = {
 
     autoPromote: false,
     autoLearn: false,
+
+    qbits: 0,
+    qbitUpgrades: {
+        datapointSpeed: 0,
+        xpSpeed: 0,
+        autoRebirth: 0
+    },
+
+    // Multi-drone system
+    drones: null, // Will be initialized as array after migration
+    swarmUnlocked: false,
+    swarmUnlockThreshold: 100, // Qbits required to unlock multi-drone
+    activeDroneId: 0, // Index of currently active/viewed drone
+    droneQbitsAwarded: {}, // Track which drones have been awarded qbits on death (persisted)
 }
 
 var tempData = {}
@@ -325,7 +339,7 @@ const baseLifespan = 365 * 70
 
 const baseGameSpeed = 4
 
-const permanentUnlocks = ["Scheduling", "Shop", "Automation", "Quick task display"]
+const permanentUnlocks = ["Scheduling", "Shop", "Automation", "Quick task display", "Rebirth tab"]
 
 const jobBaseData = {
     "Scanning": {name: "Scanning", maxXp: 50, income: 5},
@@ -508,9 +522,278 @@ function getBindedItemEffect(itemName) {
     return item.getEffect.bind(item)
 }
 
-function addMultipliers() {
-    for (taskName in gameData.taskData) {
-        var task = gameData.taskData[taskName]
+// Initialize droneQbitsAwarded if it doesn't exist
+function initializeQbitsAwarded() {
+    if (!gameData.droneQbitsAwarded || typeof gameData.droneQbitsAwarded !== 'object') {
+        gameData.droneQbitsAwarded = {}
+    }
+}
+
+// Multi-drone abstraction layer
+// All code should use getCurrentDrone() instead of directly accessing gameData properties
+// This allows seamless transition between single-drone and multi-drone modes
+function getCurrentDrone() {
+    // If swarm is unlocked and drones array exists, use multi-drone mode
+    if (gameData.swarmUnlocked && gameData.drones && Array.isArray(gameData.drones) && gameData.drones.length > 0) {
+        var droneId = gameData.activeDroneId || 0
+        if (droneId >= 0 && droneId < gameData.drones.length) {
+            return gameData.drones[droneId]
+        }
+        // Fallback to first drone if index is invalid
+        return gameData.drones[0]
+    }
+    // Fallback to legacy single-drone mode (gameData itself acts as drone)
+    return gameData
+}
+
+function getDroneById(id) {
+    if (!gameData.drones || !Array.isArray(gameData.drones)) {
+        return null
+    }
+    return gameData.drones.find(function(drone) {
+        return drone.id === id
+    }) || null
+}
+
+function setActiveDrone(droneId) {
+    if (!gameData.drones || !Array.isArray(gameData.drones)) {
+        return false
+    }
+    var index = gameData.drones.findIndex(function(drone) {
+        return drone.id === droneId
+    })
+    if (index >= 0) {
+        gameData.activeDroneId = index
+        saveGameData() // Save the active drone selection
+        return true
+    }
+    return false
+}
+
+function getAllDrones() {
+    if (gameData.swarmUnlocked && gameData.drones && Array.isArray(gameData.drones)) {
+        return gameData.drones
+    }
+    // Return single drone wrapped in array for consistency
+    return [gameData]
+}
+
+function getDroneCount() {
+    if (gameData.swarmUnlocked && gameData.drones && Array.isArray(gameData.drones)) {
+        return gameData.drones.length
+    }
+    return 1
+}
+
+// Clone taskData for a drone, preserving task state (level, xp, maxLevel)
+function cloneTaskDataForDrone(sourceTaskData) {
+    var clonedTaskData = {}
+    
+    for (var taskName in sourceTaskData) {
+        var sourceTask = sourceTaskData[taskName]
+        
+        // Create a plain object copy with state preserved
+        var clonedTask = {
+            name: sourceTask.name,
+            level: sourceTask.level || 0,
+            maxLevel: sourceTask.maxLevel || 0,
+            xp: sourceTask.xp || 0,
+            baseData: sourceTask.baseData || null,
+            // Copy other properties that might exist
+            id: sourceTask.id || ("row " + sourceTask.name)
+        }
+        
+        clonedTaskData[taskName] = clonedTask
+    }
+    
+    return clonedTaskData
+}
+
+// Assign methods to tasks in a given taskData object
+function assignMethodsToTaskData(taskData) {
+    for (var key in taskData) {
+        var task = taskData[key]
+        if (!task || !task.name) continue
+        
+        // Determine if it's a Job or Skill based on baseData or name lookup
+        var isJob = false
+        if (task.baseData && task.baseData.income) {
+            isJob = true
+        } else if (jobBaseData[task.name]) {
+            isJob = true
+        }
+        
+        if (isJob) {
+            // It's a Job
+            if (!task.baseData) {
+                task.baseData = jobBaseData[task.name]
+            }
+            // Create new Job instance and merge with existing task data
+            var newTask = Object.assign(new Job(jobBaseData[task.name]), task)
+            taskData[key] = newTask
+        } else {
+            // It's a Skill
+            if (!task.baseData) {
+                task.baseData = skillBaseData[task.name]
+            }
+            // Create new Skill instance and merge with existing task data
+            var newTask = Object.assign(new Skill(skillBaseData[task.name]), task)
+            taskData[key] = newTask
+        }
+    }
+}
+
+// Create independent taskData for a drone (clone + assign methods)
+function createIndependentTaskDataForDrone(sourceTaskData) {
+    // Clone the taskData preserving state
+    var clonedTaskData = cloneTaskDataForDrone(sourceTaskData)
+    
+    // Assign methods to cloned tasks
+    assignMethodsToTaskData(clonedTaskData)
+    
+    return clonedTaskData
+}
+
+// Migration function: converts single-drone gameData to multi-drone structure
+function migrateToMultiDrone() {
+    // Already migrated if drones array exists
+    if (gameData.drones && Array.isArray(gameData.drones) && gameData.drones.length > 0) {
+        // Ensure each drone has independent taskData
+        for (var i = 0; i < gameData.drones.length; i++) {
+            var drone = gameData.drones[i]
+            
+            // Check if drone's taskData is shared (same reference as gameData.taskData)
+            if (!drone.taskData || drone.taskData === gameData.taskData) {
+                // Clone taskData to make it independent
+                drone.taskData = createIndependentTaskDataForDrone(gameData.taskData)
+                
+                // Update currentJob and currentSkill to point to cloned tasks
+                if (drone.currentJob && drone.currentJob.name && drone.taskData[drone.currentJob.name]) {
+                    drone.currentJob = drone.taskData[drone.currentJob.name]
+                }
+                if (drone.currentSkill && drone.currentSkill.name && drone.taskData[drone.currentSkill.name]) {
+                    drone.currentSkill = drone.taskData[drone.currentSkill.name]
+                }
+            } else {
+                // TaskData exists but might not have methods - ensure methods are assigned
+                assignMethodsToTaskData(drone.taskData)
+                
+                // Update references to ensure they point to tasks in drone's taskData
+                if (drone.currentJob && drone.currentJob.name && drone.taskData[drone.currentJob.name]) {
+                    drone.currentJob = drone.taskData[drone.currentJob.name]
+                }
+                if (drone.currentSkill && drone.currentSkill.name && drone.taskData[drone.currentSkill.name]) {
+                    drone.currentSkill = drone.taskData[drone.currentSkill.name]
+                }
+            }
+        }
+        return
+    }
+
+    // Create first drone from existing gameData properties
+    // Clone taskData to make it independent
+    var clonedTaskData = createIndependentTaskDataForDrone(gameData.taskData)
+    
+    var firstDrone = {
+        id: 1,
+        coins: gameData.coins || 0,
+        days: gameData.days || 365 * 14,
+        evil: gameData.evil || 0,
+        rebirthOneCount: gameData.rebirthOneCount || 0,
+        rebirthTwoCount: gameData.rebirthTwoCount || 0,
+        currentJob: clonedTaskData[gameData.currentJob ? gameData.currentJob.name : "Scanning"],
+        currentSkill: clonedTaskData[gameData.currentSkill ? gameData.currentSkill.name : "Processing"],
+        currentProperty: gameData.currentProperty,
+        currentMisc: gameData.currentMisc ? (Array.isArray(gameData.currentMisc) ? gameData.currentMisc.slice() : []) : [],
+        autoPromote: gameData.autoPromote || false,
+        autoLearn: gameData.autoLearn || false,
+        taskData: clonedTaskData, // Independent taskData with methods
+        // Note: itemData is shared across all drones (hardware is shared)
+    }
+
+    // Initialize drones array
+    gameData.drones = [firstDrone]
+    gameData.activeDroneId = 0
+
+    // Keep legacy properties for backward compatibility during transition
+    // They will be synced with active drone when accessed
+}
+
+// Purchase a new drone with qbits
+function purchaseNewDrone() {
+    if (!gameData.swarmUnlocked) {
+        console.warn("Swarm not unlocked yet")
+        return false
+    }
+
+    var droneCount = getDroneCount()
+    var baseCost = 50
+    var costMultiplier = 1.5
+    var cost = Math.floor(baseCost * Math.pow(costMultiplier, droneCount - 1))
+
+    if (gameData.qbits < cost) {
+        return false // Can't afford
+    }
+
+    // Deduct qbits
+    gameData.qbits -= cost
+
+    // Create new drone with independent taskData (fresh start at level 0)
+    var newDroneId = droneCount + 1
+    // Clone taskData from gameData (which has fresh state) to get independent copy
+    var clonedTaskData = createIndependentTaskDataForDrone(gameData.taskData)
+    
+    var newDrone = {
+        id: newDroneId,
+        coins: 0,
+        days: 365 * 14,
+        evil: 0,
+        rebirthOneCount: 0,
+        rebirthTwoCount: 0,
+        currentJob: clonedTaskData["Scanning"],
+        currentSkill: clonedTaskData["Processing"],
+        currentProperty: gameData.itemData["Pod"],
+        currentMisc: [],
+        autoPromote: true, // Enabled by default on new drones
+        autoLearn: true, // Enabled by default on new drones
+        taskData: clonedTaskData, // Independent taskData with methods
+    }
+
+    // Add to drones array
+    gameData.drones.push(newDrone)
+    
+    saveGameData()
+    
+    // Update swarm management UI
+    updateSwarmManagementUI()
+    
+    console.log("🌟 New drone purchased! Total drones: " + getDroneCount())
+    return true
+}
+
+// Check if swarm unlock threshold has been reached
+function checkSwarmUnlock() {
+    if (gameData.swarmUnlocked) {
+        return // Already unlocked
+    }
+
+    var threshold = gameData.swarmUnlockThreshold || 100
+    if (gameData.qbits >= threshold) {
+        gameData.swarmUnlocked = true
+        migrateToMultiDrone() // Ensure drones array exists
+        
+        // Trigger UI update to show swarm management
+        updateSwarmManagementUI()
+        
+        console.log("🌟 Swarm unlocked! Multi-drone system activated.")
+        saveGameData()
+    }
+}
+
+// Add multipliers to tasks in a given taskData object
+function addMultipliersToTaskData(taskData) {
+    for (taskName in taskData) {
+        var task = taskData[taskName]
 
         task.xpMultipliers = []
         if (task instanceof Job) task.incomeMultipliers = []
@@ -519,6 +802,8 @@ function addMultipliers() {
         task.xpMultipliers.push(getEfficiency)
         task.xpMultipliers.push(getBindedTaskEffect("Corruption Absorption"))
         task.xpMultipliers.push(getBindedTaskEffect("Forbidden Protocols"))
+        // Add qbit XP multiplier to all tasks
+        task.xpMultipliers.push(getQbitXpMultiplier)
 
         if (task instanceof Job) {
             task.incomeMultipliers.push(task.getLevelMultiplier.bind(task))
@@ -547,6 +832,21 @@ function addMultipliers() {
             task.xpMultipliers.push(getEvil)
         }
     }
+}
+
+function addMultipliers() {
+    // Add multipliers to main gameData.taskData
+    addMultipliersToTaskData(gameData.taskData)
+    
+    // Add multipliers to all drones' taskData
+    if (gameData.drones && Array.isArray(gameData.drones)) {
+        for (var i = 0; i < gameData.drones.length; i++) {
+            var drone = gameData.drones[i]
+            if (drone.taskData) {
+                addMultipliersToTaskData(drone.taskData)
+            }
+        }
+    }
 
     for (itemName in gameData.itemData) {
         var item = gameData.itemData[itemName]
@@ -556,43 +856,69 @@ function addMultipliers() {
     }
 }
 
+// Set custom effects on tasks in a given taskData object
+function setCustomEffectsToTaskData(taskData) {
+    var negotiation = taskData["Negotiation"]
+    if (negotiation) {
+        negotiation.getEffect = function() {
+            var multiplier = 1 - getBaseLog(7, negotiation.level + 1) / 10
+            if (multiplier < 0.1) {multiplier = 0.1}
+            return multiplier
+        }
+    }
+
+    var aggression = taskData["Aggression"]
+    if (aggression) {
+        aggression.getEffect = function() {
+            var multiplier = 1 - getBaseLog(7, aggression.level + 1) / 10
+            if (multiplier < 0.1) {multiplier = 0.1}
+            return multiplier
+        }
+    }
+
+    var temporalManipulation = taskData["Temporal Manipulation"]
+    if (temporalManipulation) {
+        temporalManipulation.getEffect = function() {
+            var multiplier = 1 + getBaseLog(13, temporalManipulation.level + 1) 
+            return multiplier
+        }
+    }
+
+    var rangeExtension = taskData["Range Extension"]
+    if (rangeExtension) {
+        rangeExtension.getEffect = function() {
+            var multiplier = 1 + getBaseLog(33, rangeExtension.level + 1) 
+            return multiplier
+        }
+    }
+}
+
 function setCustomEffects() {
-    var negotiation = gameData.taskData["Negotiation"]
-    negotiation.getEffect = function() {
-        var multiplier = 1 - getBaseLog(7, negotiation.level + 1) / 10
-        if (multiplier < 0.1) {multiplier = 0.1}
-        return multiplier
-    }
-
-    var aggression = gameData.taskData["Aggression"]
-    aggression.getEffect = function() {
-        var multiplier = 1 - getBaseLog(7, aggression.level + 1) / 10
-        if (multiplier < 0.1) {multiplier = 0.1}
-        return multiplier
-    }
-
-    var temporalManipulation = gameData.taskData["Temporal Manipulation"]
-    temporalManipulation.getEffect = function() {
-        var multiplier = 1 + getBaseLog(13, temporalManipulation.level + 1) 
-        return multiplier
-    }
-
-    var rangeExtension = gameData.taskData["Range Extension"]
-    rangeExtension.getEffect = function() {
-        var multiplier = 1 + getBaseLog(33, rangeExtension.level + 1) 
-        return multiplier
+    // Set custom effects on main gameData.taskData
+    setCustomEffectsToTaskData(gameData.taskData)
+    
+    // Set custom effects on all drones' taskData
+    if (gameData.drones && Array.isArray(gameData.drones)) {
+        for (var i = 0; i < gameData.drones.length; i++) {
+            var drone = gameData.drones[i]
+            if (drone.taskData) {
+                setCustomEffectsToTaskData(drone.taskData)
+            }
+        }
     }
 }
 
 function getEfficiency() {
+    var drone = getCurrentDrone()
     var optimizationEffect = getBindedTaskEffect("Optimization")
     var coreEffect = getBindedItemEffect("Core")
-    var efficiency = optimizationEffect() * coreEffect() * gameData.currentProperty.getEffect()
+    var efficiency = optimizationEffect() * coreEffect() * (drone.currentProperty ? drone.currentProperty.getEffect() : 1)
     return efficiency
 }
 
 function getEvil() {
-    return gameData.evil
+    var drone = getCurrentDrone()
+    return drone.evil || 0
 }
 
 function applyMultipliers(value, multipliers) {
@@ -605,8 +931,12 @@ function applyMultipliers(value, multipliers) {
     return finalValue
 }
 
-function applySpeed(value) {
-    finalValue = value * getGameSpeed() / updateSpeed
+function applySpeed(value, drone) {
+    // If drone not provided, use current drone (for backward compatibility)
+    if (!drone) {
+        drone = getCurrentDrone()
+    }
+    finalValue = value * getGameSpeed(drone) / updateSpeed
     return finalValue
 }
 
@@ -617,34 +947,58 @@ function getEvilGain() {
     return evil
 }
 
-function getGameSpeed() {
+function getGameSpeed(drone) {
+    // If drone not provided, use current drone (for backward compatibility)
+    if (!drone) {
+        drone = getCurrentDrone()
+    }
+    
+    // Check if this specific drone is alive
+    var droneAlive = isDroneAlive(drone)
+    
     var temporalManipulation = gameData.taskData["Temporal Manipulation"]
     var timeWarpingSpeed = gameData.timeWarpingEnabled ? temporalManipulation.getEffect() : 1
-    var gameSpeed = baseGameSpeed * +!gameData.paused * +isAlive() * timeWarpingSpeed
+    var gameSpeed = baseGameSpeed * +!gameData.paused * +droneAlive * timeWarpingSpeed
     return gameSpeed
 }
 
-function applyExpenses() {
-    var coins = applySpeed(getExpense())
-    gameData.coins -= coins
-    if (gameData.coins < 0) {    
-        goBankrupt()
+function applyExpenses(drone) {
+    // If drone not provided, use current drone (for backward compatibility)
+    if (!drone) {
+        drone = getCurrentDrone()
+    }
+    var coins = applySpeed(getExpense(drone), drone)
+    drone.coins -= coins
+    if (drone.coins < 0) {    
+        goBankrupt(drone)
     }
 }
 
-function getExpense() {
+function getExpense(drone) {
+    // If drone not provided, use current drone (for backward compatibility)
+    if (!drone) {
+        drone = getCurrentDrone()
+    }
     var expense = 0
-    expense += gameData.currentProperty.getExpense()
-    for (misc of gameData.currentMisc) {
-        expense += misc.getExpense()
+    if (drone.currentProperty) {
+        expense += drone.currentProperty.getExpense()
+    }
+    if (drone.currentMisc && Array.isArray(drone.currentMisc)) {
+        for (misc of drone.currentMisc) {
+            expense += misc.getExpense()
+        }
     }
     return expense
 }
 
-function goBankrupt() {
-    gameData.coins = 0
-    gameData.currentProperty = gameData.itemData["Pod"]
-    gameData.currentMisc = []
+function goBankrupt(drone) {
+    // If drone not provided, use current drone (for backward compatibility)
+    if (!drone) {
+        drone = getCurrentDrone()
+    }
+    drone.coins = 0
+    drone.currentProperty = gameData.itemData["Pod"]
+    drone.currentMisc = []
 }
 
 function setHidden(element, hidden) {
@@ -657,18 +1011,50 @@ function setHidden(element, hidden) {
 }
 
 function setTab(element, selectedTab) {
-
     var tabs = Array.prototype.slice.call(document.getElementsByClassName("tab"))
     tabs.forEach(function(tab) {
 		setHidden(tab, true)
+        // Also clear inline display style if present
+        if (tab.style.display === "none") {
+            tab.style.display = ""
+        }
     })
-	setHidden(document.getElementById(selectedTab), false)
+    var selectedTabElement = document.getElementById(selectedTab)
+    setHidden(selectedTabElement, false)
+    // Ensure inline display style is cleared for selected tab
+    if (selectedTabElement) {
+        selectedTabElement.style.display = ""
+    }
 
     var tabButtons = document.getElementsByClassName("tabButton")
     for (tabButton of tabButtons) {
         tabButton.classList.remove("w3-blue-gray")
     }
     element.classList.add("w3-blue-gray")
+    
+    // Update qbits UI when rebirth tab is opened (only show upgrades if swarm not unlocked)
+    if (selectedTab === "rebirth") {
+        updateQbitsDisplay()
+        // Only show qbit upgrades in rebirth tab if swarm is NOT unlocked
+        if (!gameData.swarmUnlocked) {
+            updateQbitUpgradesUI()
+        }
+    }
+    
+    // Hide/show stats-main container based on selected tab
+    var statsMain = document.querySelector('.stats-main')
+    if (statsMain) {
+        if (selectedTab === "swarm") {
+            statsMain.style.display = "none"
+        } else {
+            statsMain.style.display = ""
+        }
+    }
+    
+    // Update swarm UI when swarm tab is opened
+    if (selectedTab === "swarm") {
+        updateSwarmManagementUI()
+    }
     
     // Refresh achievements when achievements tab is opened
     if (selectedTab === 'achievements' && typeof initializeAchievements === 'function') {
@@ -697,13 +1083,20 @@ function setTimeWarping() {
 }
 
 function setTask(taskName) {
-    var task = gameData.taskData[taskName]
-    task instanceof Job ? gameData.currentJob = task : gameData.currentSkill = task
+    var drone = getCurrentDrone()
+    var taskData = drone.taskData || gameData.taskData
+    var task = taskData[taskName]
+    if (task instanceof Job) {
+        drone.currentJob = task
+    } else {
+        drone.currentSkill = task
+    }
 }
 
 function setProperty(propertyName) {
+    var drone = getCurrentDrone()
     var property = gameData.itemData[propertyName]
-    gameData.currentProperty = property
+    drone.currentProperty = property
     
     // Visual feedback for purchase
     var element = getItemElement(propertyName)
@@ -721,15 +1114,19 @@ function setProperty(propertyName) {
 }
 
 function setMisc(miscName) {
+    var drone = getCurrentDrone()
     var misc = gameData.itemData[miscName]
-    if (gameData.currentMisc.includes(misc)) {
-        for (i = 0; i < gameData.currentMisc.length; i++) {
-            if (gameData.currentMisc[i] == misc) {
-                gameData.currentMisc.splice(i, 1)
+    if (!drone.currentMisc) {
+        drone.currentMisc = []
+    }
+    if (drone.currentMisc.includes(misc)) {
+        for (i = 0; i < drone.currentMisc.length; i++) {
+            if (drone.currentMisc[i] == misc) {
+                drone.currentMisc.splice(i, 1)
             }
         }
     } else {
-        gameData.currentMisc.push(misc)
+        drone.currentMisc.push(misc)
     }
     
     // Visual feedback for purchase
@@ -1423,11 +1820,24 @@ function createAllRows(categoryType, containerId) {
 }
 
 function updateQuickTaskDisplay(taskType) {
-    var currentTask = taskType == "job" ? gameData.currentJob : gameData.currentSkill
+    var drone = getCurrentDrone()
+    var currentTask = taskType == "job" ? drone.currentJob : drone.currentSkill
+    if (!currentTask) return
     var quickTaskDisplayElement = document.getElementById("quickTaskDisplay")
     var progressBar = quickTaskDisplayElement.getElementsByClassName(taskType)[0]
     progressBar.getElementsByClassName("name")[0].textContent = currentTask.name + " lvl " + currentTask.level
-    progressBar.getElementsByClassName("progressFill")[0].style.width = currentTask.xp / currentTask.getMaxXp() * 100 + "%"
+    // Safety check: ensure task has getMaxXp method
+    if (typeof currentTask.getMaxXp === 'function') {
+        progressBar.getElementsByClassName("progressFill")[0].style.width = currentTask.xp / currentTask.getMaxXp() * 100 + "%"
+    } else {
+        // Fallback: try to get from shared taskData
+        var sharedTask = gameData.taskData[currentTask.name]
+        if (sharedTask && typeof sharedTask.getMaxXp === 'function') {
+            progressBar.getElementsByClassName("progressFill")[0].style.width = currentTask.xp / sharedTask.getMaxXp() * 100 + "%"
+        } else {
+            progressBar.getElementsByClassName("progressFill")[0].style.width = "0%"
+        }
+    }
 }
 
 function updateRequiredRows(data, categoryType) {
@@ -1498,8 +1908,10 @@ function updateRequiredRows(data, categoryType) {
 }
 
 function updateTaskRows() {
-	for (key in gameData.taskData) {
-		var task = gameData.taskData[key]
+    var drone = getCurrentDrone()
+    var taskData = drone.taskData || gameData.taskData // Fallback to shared taskData if needed
+	for (key in taskData) {
+		var task = taskData[key]
 		var row = document.getElementById("row " + task.name)
 		if (!row) continue; // Skip if row doesn't exist yet
 
@@ -1512,13 +1924,24 @@ function updateTaskRows() {
         var maxLevelContainer = row.getElementsByClassName("maxLevelContainer")[0]
         if (maxLevelValue && maxLevelContainer) {
             maxLevelValue.textContent = format(task.maxLevel)
-            gameData.rebirthOneCount > 0 ? maxLevelContainer.classList.remove("is-hidden") : maxLevelContainer.classList.add("is-hidden")
+            drone.rebirthOneCount > 0 ? maxLevelContainer.classList.remove("is-hidden") : maxLevelContainer.classList.add("is-hidden")
         }
 
         var progressFill = row.getElementsByClassName("progressFill")[0]
         if (progressFill) {
-            progressFill.style.width = task.xp / task.getMaxXp() * 100 + "%"
-            task == gameData.currentJob || task == gameData.currentSkill ? progressFill.classList.add("current") : progressFill.classList.remove("current")
+            // Safety check: ensure task has getMaxXp method
+            if (typeof task.getMaxXp === 'function') {
+                progressFill.style.width = task.xp / task.getMaxXp() * 100 + "%"
+            } else {
+                // Fallback: if task doesn't have methods, try to get it from shared taskData
+                var sharedTask = gameData.taskData[task.name]
+                if (sharedTask && typeof sharedTask.getMaxXp === 'function') {
+                    progressFill.style.width = task.xp / sharedTask.getMaxXp() * 100 + "%"
+                } else {
+                    progressFill.style.width = "0%"
+                }
+            }
+            task == drone.currentJob || task == drone.currentSkill ? progressFill.classList.add("current") : progressFill.classList.remove("current")
         }
 
         var valueElement = row.getElementsByClassName("value")[0]
@@ -1545,12 +1968,13 @@ function updateTaskRows() {
 }
 
 function updateItemRows() {
+    var drone = getCurrentDrone()
     for (key in gameData.itemData) {
         var item = gameData.itemData[key]
         var row = document.getElementById("row " + item.name)
         if (!row) continue
-        row.disabled = gameData.coins < item.getExpense()
-        var isActive = gameData.currentMisc.includes(item) || item == gameData.currentProperty
+        row.disabled = drone.coins < item.getExpense()
+        var isActive = (drone.currentMisc && drone.currentMisc.includes(item)) || item == drone.currentProperty
         row.classList.toggle("is-active", isActive)
         var effectEl = row.querySelector(".effect")
         if (effectEl) effectEl.textContent = item.getEffectDescription()
@@ -1561,9 +1985,9 @@ function updateItemRows() {
         var quantityBadge = row.querySelector(".item-quantity-badge")
         if (quantityBadge) {
             var quantity = 0
-            if (item == gameData.currentProperty) {
+            if (item == drone.currentProperty) {
                 quantity = 1
-            } else if (gameData.currentMisc.includes(item)) {
+            } else if (drone.currentMisc && drone.currentMisc.includes(item)) {
                 quantity = 1
             }
             if (quantity > 0) {
@@ -1577,41 +2001,43 @@ function updateItemRows() {
 }
 
 function updateHeaderRows(categories) {
+    var drone = getCurrentDrone()
     for (categoryName in categories) {
         var className = removeSpaces(categoryName)
         var headerRow = document.getElementsByClassName(className)[0]
         if (!headerRow) continue
         var maxLevelElement = headerRow.getElementsByClassName("maxLevel")[0]
         if (maxLevelElement) {
-            gameData.rebirthOneCount > 0 ? maxLevelElement.classList.remove("hidden") : maxLevelElement.classList.add("hidden")
+            drone.rebirthOneCount > 0 ? maxLevelElement.classList.remove("hidden") : maxLevelElement.classList.add("hidden")
         }
     }
 }
 
 function updateText() {
+    var drone = getCurrentDrone()
     //Sidebar
-    document.getElementById("ageDisplay").textContent = daysToYears(gameData.days)
+    document.getElementById("ageDisplay").textContent = daysToYears(drone.days)
     document.getElementById("dayDisplay").textContent = getDay()
     document.getElementById("lifespanDisplay").textContent = daysToYears(getLifespan())
     document.getElementById("pauseButton").textContent = gameData.paused ? "Play" : "Pause"
 
     var autoPromoteButton = document.getElementById("autoPromoteButton")
     if (autoPromoteButton) {
-        autoPromoteButton.classList.toggle("is-active", gameData.autoPromote)
-        autoPromoteButton.setAttribute("aria-pressed", gameData.autoPromote ? "true" : "false")
+        autoPromoteButton.classList.toggle("is-active", drone.autoPromote)
+        autoPromoteButton.setAttribute("aria-pressed", drone.autoPromote ? "true" : "false")
     }
 
     var autoLearnButton = document.getElementById("autoLearnButton")
     if (autoLearnButton) {
-        autoLearnButton.classList.toggle("is-active", gameData.autoLearn)
-        autoLearnButton.setAttribute("aria-pressed", gameData.autoLearn ? "true" : "false")
+        autoLearnButton.classList.toggle("is-active", drone.autoLearn)
+        autoLearnButton.setAttribute("aria-pressed", drone.autoLearn ? "true" : "false")
     }
 
     updateRateChips()
 
     document.getElementById("efficiencyDisplay").textContent = getEfficiency().toFixed(1)
 
-    document.getElementById("evilDisplay").textContent = gameData.evil.toFixed(1)
+    document.getElementById("evilDisplay").textContent = drone.evil.toFixed(1)
     document.getElementById("evilGainDisplay").textContent = getEvilGain().toFixed(1)
 
     document.getElementById("timeWarpingDisplay").textContent = "x" + gameData.taskData["Temporal Manipulation"].getEffect().toFixed(2)
@@ -1664,22 +2090,38 @@ function createItemData(baseData) {
     }
 }
 
-function doCurrentTask(task) {
+function doCurrentTask(task, drone) {
+    // If drone not provided, use current drone (for backward compatibility)
+    if (!drone) {
+        drone = getCurrentDrone()
+    }
     task.increaseXp()
     if (task instanceof Job) {
-        increaseCoins()
+        increaseCoins(drone)
     }
 }
 
-function getIncome() {
+function getIncome(drone) {
+    // If drone not provided, use current drone (for backward compatibility)
+    if (!drone) {
+        drone = getCurrentDrone()
+    }
     var income = 0
-    income += gameData.currentJob.getIncome()
+    if (drone.currentJob) {
+        income += drone.currentJob.getIncome()
+    }
     return income
 }
 
-function increaseCoins() {
-    var coins = applySpeed(getIncome())
-    gameData.coins += coins
+function increaseCoins(drone) {
+    // If drone not provided, use current drone (for backward compatibility)
+    if (!drone) {
+        drone = getCurrentDrone()
+    }
+    var coins = applySpeed(getIncome(drone), drone)
+    // Apply qbit datapoint speed multiplier
+    coins = coins * getQbitDatapointMultiplier()
+    drone.coins += coins
 }
 
 function daysToYears(days) {
@@ -1705,12 +2147,17 @@ function getNextEntity(data, categoryType, entityName) {
     return nextEntity
 }
 
-function autoPromote() {
-    if (!gameData.autoPromote) return
-    var nextEntity = getNextEntity(gameData.taskData, jobCategories, gameData.currentJob.name)
+function autoPromote(drone) {
+    // If drone not provided, use current drone (for backward compatibility)
+    if (!drone) {
+        drone = getCurrentDrone()
+    }
+    if (!drone.autoPromote) return
+    if (!drone.currentJob) return
+    var nextEntity = getNextEntity(drone.taskData, jobCategories, drone.currentJob.name)
     if (nextEntity == null) return
     var requirement = gameData.requirements[nextEntity.name]
-    if (requirement.isCompleted()) gameData.currentJob = nextEntity
+    if (requirement.isCompleted()) drone.currentJob = nextEntity
 }
 
 function checkSkillSkipped(skill) {
@@ -1720,10 +2167,12 @@ function checkSkillSkipped(skill) {
 }
 
 function setSkillWithLowestMaxXp() {
+    var drone = getCurrentDrone()
+    var taskData = drone.taskData || gameData.taskData
     var xpDict = {}
 
-    for (skillName in gameData.taskData) {
-        var skill = gameData.taskData[skillName]
+    for (skillName in taskData) {
+        var skill = taskData[skillName]
         var requirement = gameData.requirements[skillName]
         if (skill instanceof Skill && requirement.isCompleted() && !checkSkillSkipped(skill)) {
             xpDict[skill.name] = skill.level //skill.getMaxXp() / skill.getXpGain()
@@ -1731,12 +2180,12 @@ function setSkillWithLowestMaxXp() {
     }
 
     if (xpDict == {}) {
-        skillWithLowestMaxXp = gameData.taskData["Processing"]
+        skillWithLowestMaxXp = taskData["Processing"]
         return
     }
 
     var skillName = getKeyOfLowestValueFromDict(xpDict)
-    skillWithLowestMaxXp = gameData.taskData[skillName]
+    skillWithLowestMaxXp = taskData[skillName]
 }
 
 function getKeyOfLowestValueFromDict(dict) {
@@ -1756,22 +2205,42 @@ function getKeyOfLowestValueFromDict(dict) {
     }
 }
 
-function autoLearn() {
-    if (!gameData.autoLearn || !skillWithLowestMaxXp) return
-    gameData.currentSkill = skillWithLowestMaxXp
+function autoLearn(drone) {
+    // If drone not provided, use current drone (for backward compatibility)
+    if (!drone) {
+        drone = getCurrentDrone()
+    }
+    if (!drone.autoLearn) return
+    // Get skill with lowest max XP for this specific drone
+    var taskData = drone.taskData || gameData.taskData
+    var xpDict = {}
+    for (skillName in taskData) {
+        var skill = taskData[skillName]
+        var requirement = gameData.requirements[skillName]
+        if (skill instanceof Skill && requirement.isCompleted() && !checkSkillSkipped(skill)) {
+            xpDict[skill.name] = skill.level
+        }
+    }
+    if (Object.keys(xpDict).length === 0) {
+        return
+    }
+    var skillName = getKeyOfLowestValueFromDict(xpDict)
+    drone.currentSkill = taskData[skillName]
 }
 
 function toggleAutoPromote() {
-    gameData.autoPromote = !gameData.autoPromote
+    var drone = getCurrentDrone()
+    drone.autoPromote = !drone.autoPromote
     saveGameData()
     updateText()
 }
 
 function toggleAutoLearn() {
-    gameData.autoLearn = !gameData.autoLearn
+    var drone = getCurrentDrone()
+    drone.autoLearn = !drone.autoLearn
     setSkillWithLowestMaxXp()
     updateTaskRows()
-    if (gameData.autoLearn) {
+    if (drone.autoLearn) {
         autoLearn()
     }
     saveGameData()
@@ -1784,13 +2253,19 @@ function yearsToDays(years) {
 }
  
 function getDay() {
-    var day = Math.floor(gameData.days - daysToYears(gameData.days) * 365)
+    var drone = getCurrentDrone()
+    var day = Math.floor(drone.days - daysToYears(drone.days) * 365)
     return day
 }
 
 function increaseDays() {
-    var increase = applySpeed(1)
-    gameData.days += increase
+    // Update all drones' days independently (each progresses based on its own alive status)
+    var drones = getAllDrones()
+    for (var i = 0; i < drones.length; i++) {
+        var drone = drones[i]
+        var increase = applySpeed(1, drone)
+        drone.days += increase
+    }
 }
 
 function format(number) {
@@ -1865,35 +2340,50 @@ function removeSpaces(string) {
 }
 
 function rebirthOne() {
-    gameData.rebirthOneCount += 1
+    var drone = getCurrentDrone()
+    drone.rebirthOneCount += 1
 
     rebirthReset()
 }
 
 function rebirthTwo() {
-    gameData.rebirthTwoCount += 1
-    gameData.evil += getEvilGain()
+    var drone = getCurrentDrone()
+    drone.rebirthTwoCount += 1
+    drone.evil += getEvilGain()
 
     rebirthReset()
 
-    for (taskName in gameData.taskData) {
-        var task = gameData.taskData[taskName]
+    // Reset max levels for this drone's tasks
+    for (taskName in drone.taskData) {
+        var task = drone.taskData[taskName]
         task.maxLevel = 0
     }    
 }
 
 function rebirthReset() {
-    setTab(jobTabButton, "jobs")
+    var drone = getCurrentDrone()
+    // Set tab to swarm if unlocked, otherwise jobs
+    if (gameData.swarmUnlocked) {
+        var swarmTabButton = document.getElementById("swarmTabButton")
+        if (swarmTabButton) {
+            setTab(swarmTabButton, "swarm")
+        } else {
+            setTab(jobTabButton, "jobs")
+        }
+    } else {
+        setTab(jobTabButton, "jobs")
+    }
 
-    gameData.coins = 0
-    gameData.days = 365 * 14
-    gameData.currentJob = gameData.taskData["Scanning"]
-    gameData.currentSkill = gameData.taskData["Processing"]
-    gameData.currentProperty = gameData.itemData["Pod"]
-    gameData.currentMisc = []
+    drone.coins = 0
+    drone.days = 365 * 14
+    drone.currentJob = drone.taskData["Scanning"]
+    drone.currentSkill = drone.taskData["Processing"]
+    drone.currentProperty = gameData.itemData["Pod"]
+    drone.currentMisc = []
 
-    for (taskName in gameData.taskData) {
-        var task = gameData.taskData[taskName]
+    // Reset tasks for this drone
+    for (taskName in drone.taskData) {
+        var task = drone.taskData[taskName]
         if (task.level > task.maxLevel) task.maxLevel = task.level
         task.level = 0
         task.xp = 0
@@ -1909,11 +2399,20 @@ function rebirthReset() {
         if (requirement.completed && permanentUnlocks.includes(key)) continue
         requirement.completed = false
     }
+    
+    // Reset qbits awarded flag after rebirth (per drone)
+    initializeQbitsAwarded()
+    gameData.droneQbitsAwarded[drone.id] = false
 }
 
-function getLifespan() {
-    var rangeExtension = gameData.taskData["Range Extension"]
-    var extendedRange = gameData.taskData["Extended Range"]
+// Get lifespan for a specific drone (or current drone if not provided)
+function getLifespanForDrone(drone) {
+    if (!drone) {
+        drone = getCurrentDrone()
+    }
+    var taskData = drone.taskData || gameData.taskData
+    var rangeExtension = taskData["Range Extension"]
+    var extendedRange = taskData["Extended Range"]
     if (!rangeExtension || !extendedRange || typeof rangeExtension.getEffect !== 'function' || typeof extendedRange.getEffect !== 'function') {
         return baseLifespan
     }
@@ -1921,9 +2420,25 @@ function getLifespan() {
     return lifespan
 }
 
+function getLifespan() {
+    return getLifespanForDrone(getCurrentDrone())
+}
+
 function isAlive() {
-    var condition = gameData.days < getLifespan()
+    var drone = getCurrentDrone()
+    var condition = drone.days < getLifespan()
     return condition
+}
+
+// Check if a specific drone is alive (without changing active drone)
+function isDroneAlive(drone) {
+    if (!drone) return false
+    
+    // Use getLifespanForDrone to avoid manipulating activeDroneId
+    var lifespan = getLifespanForDrone(drone)
+    var alive = drone.days < lifespan
+    
+    return alive
 }
 
 function updateDeathText() {
@@ -1931,14 +2446,66 @@ function updateDeathText() {
     if (!deathText) return;
     
     try {
-        var alive = isAlive()
-        if (!alive) {
-            gameData.days = getLifespan()
-            deathText.classList.remove("hidden")
+        // Check all drones for death status
+        var drones = getAllDrones()
+        var anyDead = false
+        var deadDrone = null
+        
+        for (var i = 0; i < drones.length; i++) {
+            var drone = drones[i]
+            // Use isDroneAlive to check without manipulating activeDroneId
+            var alive = isDroneAlive(drone)
+            
+            if (!alive) {
+                anyDead = true
+                deadDrone = drone
+                
+                // Award qbits when signal is lost (only once per signal loss for this drone)
+                initializeQbitsAwarded()
+                if (!gameData.droneQbitsAwarded[drone.id]) {
+                    var qbitsEarned = Math.floor(drone.coins / 4)
+                    if (qbitsEarned > 0) {
+                        gameData.qbits += qbitsEarned
+                        gameData.droneQbitsAwarded[drone.id] = true
+                        saveGameData()
+                        // Check for swarm unlock
+                        checkSwarmUnlock()
+                    }
+                    
+                    // Auto-rebirth if enabled
+                    var autoRebirthLevel = gameData.qbitUpgrades.autoRebirth || 0
+                    if (autoRebirthLevel > 0) {
+                        // Temporarily set active drone for rebirth
+                        var oldActiveId = gameData.activeDroneId
+                        var droneIndex = gameData.drones.findIndex(function(d) { return d.id === drone.id })
+                        if (droneIndex >= 0) {
+                            gameData.activeDroneId = droneIndex
+                            rebirthOne()
+                            gameData.activeDroneId = oldActiveId
+                        }
+                    }
+                }
+            } else {
+                // Reset flag when signal is regained (after rebirth)
+                initializeQbitsAwarded()
+                gameData.droneQbitsAwarded[drone.id] = false
+            }
         }
-        else {
+        
+        // Show death text if current drone is dead
+        var currentDrone = getCurrentDrone()
+        var currentAlive = isAlive()
+        if (!currentAlive) {
+            currentDrone.days = getLifespan()
+            deathText.classList.remove("hidden")
+        } else {
             deathText.classList.add("hidden")
         }
+        
+        // Update UI
+        updateQbitsDisplay()
+        // Note: Qbit upgrades UI is updated separately to avoid recreating DOM every frame
+        // It will be updated when tab is switched, qbits change (via purchaseQbitUpgrade), or when swarm tab opens
     } catch (e) {
         // If there's an error, assume alive and hide death message
         console.warn("Error in updateDeathText:", e);
@@ -1946,20 +2513,430 @@ function updateDeathText() {
     }
 }
 
-function assignMethods() {
+// Qbit upgrade system functions
+function getQbitUpgradeCost(upgradeType, currentLevel) {
+    // Logarithmic cost scaling: base cost * (1.5 ^ currentLevel)
+    var baseCost = 10
+    var cost = Math.floor(baseCost * Math.pow(1.5, currentLevel))
+    return cost
+}
 
-    for (key in gameData.taskData) {
-        var task = gameData.taskData[key]
-        if (task.baseData.income) {
-            task.baseData = jobBaseData[task.name]
-            task = Object.assign(new Job(jobBaseData[task.name]), task)
-            
-        } else {
-            task.baseData = skillBaseData[task.name]
-            task = Object.assign(new Skill(skillBaseData[task.name]), task)
-        } 
-        gameData.taskData[key] = task
+function purchaseQbitUpgrade(upgradeType) {
+    if (!gameData.qbitUpgrades.hasOwnProperty(upgradeType)) {
+        console.warn("Invalid upgrade type:", upgradeType)
+        return false
     }
+    
+    var currentLevel = gameData.qbitUpgrades[upgradeType]
+    var cost = getQbitUpgradeCost(upgradeType, currentLevel)
+    
+    if (gameData.qbits < cost) {
+        return false
+    }
+    
+    gameData.qbits -= cost
+    gameData.qbitUpgrades[upgradeType] += 1
+    saveGameData()
+    
+    // Update UI
+    updateQbitsDisplay()
+    updateQbitUpgradesUI()
+    
+    return true
+}
+
+function getQbitDatapointMultiplier() {
+    // Each level adds 5% datapoint generation speed
+    var level = gameData.qbitUpgrades.datapointSpeed || 0
+    return 1 + (level * 0.05)
+}
+
+function getQbitXpMultiplier() {
+    // Each level adds 5% XP gain speed
+    var level = gameData.qbitUpgrades.xpSpeed || 0
+    return 1 + (level * 0.05)
+}
+
+function updateQbitsDisplay() {
+    var qbitsDisplay = document.getElementById("qbitsDisplay")
+    if (qbitsDisplay) {
+        qbitsDisplay.textContent = formatNumber(gameData.qbits || 0)
+    }
+    // Also update swarm display if it exists
+    var swarmQbitsDisplay = document.getElementById("swarmQbitsDisplay")
+    if (swarmQbitsDisplay) {
+        swarmQbitsDisplay.textContent = formatNumber(gameData.qbits || 0)
+    }
+}
+
+// Update swarm management UI
+function updateSwarmManagementUI() {
+    // Show/hide swarm tab button based on unlock status
+    var swarmTabButton = document.getElementById("swarmTabButton")
+    if (swarmTabButton) {
+        if (gameData.swarmUnlocked) {
+            swarmTabButton.style.display = "block"
+        } else {
+            swarmTabButton.style.display = "none"
+        }
+    }
+    
+    if (!gameData.swarmUnlocked) {
+        return
+    }
+    
+    // Update stats
+    var droneCount = getDroneCount()
+    var droneCountEl = document.getElementById("swarmDroneCount")
+    if (droneCountEl) {
+        droneCountEl.textContent = droneCount
+    }
+    
+    // Calculate total coins across all drones (cache getAllDrones result)
+    var drones = getAllDrones()
+    var totalCoins = 0
+    for (var i = 0; i < drones.length; i++) {
+        totalCoins += drones[i].coins || 0
+    }
+    var totalCoinsEl = document.getElementById("swarmTotalCoins")
+    if (totalCoinsEl) {
+        formatCoins(totalCoins, totalCoinsEl)
+    }
+    
+    // Update qbits display
+    updateQbitsDisplay()
+    
+    // Update purchase button cost
+    var purchaseCost = Math.floor(50 * Math.pow(1.5, droneCount - 1))
+    var purchaseCostEl = document.getElementById("purchaseDroneCost")
+    if (purchaseCostEl) {
+        purchaseCostEl.textContent = formatNumber(purchaseCost)
+    }
+    var purchaseButton = document.getElementById("purchaseDroneButton")
+    if (purchaseButton) {
+        purchaseButton.disabled = gameData.qbits < purchaseCost
+    }
+    
+    // Update upgrades
+    updateQbitUpgradesUI()
+    
+    // Update drone list
+    updateDroneListUI()
+}
+
+// Update drone list display
+function updateDroneListUI() {
+    if (!gameData.swarmUnlocked) {
+        return
+    }
+    
+    var container = document.getElementById("swarmDronesListContainer")
+    if (!container) {
+        return
+    }
+    
+    container.innerHTML = ""
+    
+    // Cache getAllDrones() result to avoid multiple calls
+    var drones = getAllDrones()
+    var activeDroneId = gameData.activeDroneId !== undefined ? gameData.activeDroneId : 0
+    
+    for (var i = 0; i < drones.length; i++) {
+        var drone = drones[i]
+        var isActive = i === activeDroneId
+        
+        var droneCard = document.createElement("div")
+        droneCard.setAttribute("data-drone-card-id", drone.id) // Add data attribute for safer lookup
+        droneCard.style.padding = "12px"
+        droneCard.style.marginBottom = "8px"
+        droneCard.style.border = "1px solid rgba(255, 255, 255, " + (isActive ? "0.5" : "0.2") + ")"
+        droneCard.style.borderRadius = "4px"
+        droneCard.style.backgroundColor = isActive ? "rgba(255, 255, 255, 0.1)" : "transparent"
+        droneCard.style.cursor = "pointer"
+        
+        // Card click handler - clicking anywhere on the card selects the drone
+        var cardClickHandler = function(droneIdToSelect) {
+            return function(e) {
+                // Don't trigger if clicking the button (button handles its own click)
+                if (e.target.classList.contains('w3-button') || e.target.closest('.w3-button')) {
+                    return
+                }
+                if (setActiveDrone(droneIdToSelect)) {
+                    updateSwarmManagementUI()
+                    updateUI()
+                }
+            }
+        }
+        droneCard.addEventListener('click', cardClickHandler(drone.id))
+        
+        var droneName = "Drone " + drone.id
+        var distance = daysToYears(drone.days)
+        var dataPoints = formatNumber(drone.coins || 0)
+        // Check if drone is alive using isDroneAlive (no activeDroneId manipulation needed)
+        var droneAlive = isDroneAlive(drone)
+        var status = droneAlive ? "Active" : "Signal Lost"
+        
+        // Create content div
+        var contentDiv = document.createElement("div")
+        contentDiv.style.display = "flex"
+        contentDiv.style.justifyContent = "space-between"
+        contentDiv.style.alignItems = "center"
+        contentDiv.style.flexWrap = "wrap"
+        contentDiv.style.gap = "12px"
+        
+        // Create info div
+        var infoDiv = document.createElement("div")
+        var nameDiv = document.createElement("div")
+        nameDiv.style.fontWeight = "bold"
+        nameDiv.style.marginBottom = "4px"
+        nameDiv.innerHTML = droneName + (isActive ? ' <span class="text-secondary">(Active)</span>' : '')
+        
+        var distanceDiv = document.createElement("div")
+        distanceDiv.className = "text-secondary"
+        distanceDiv.style.fontSize = "0.9em"
+        distanceDiv.setAttribute("data-drone-distance", drone.id) // Add data attribute for easy lookup
+        distanceDiv.textContent = "Distance: " + distance + " ly | Data Points: " + dataPoints
+        
+        var statusDiv = document.createElement("div")
+        statusDiv.className = "text-secondary"
+        statusDiv.style.fontSize = "0.9em"
+        statusDiv.setAttribute("data-drone-status", drone.id) // Add data attribute for easy lookup
+        statusDiv.textContent = "Status: " + status
+        
+        infoDiv.appendChild(nameDiv)
+        infoDiv.appendChild(distanceDiv)
+        infoDiv.appendChild(statusDiv)
+        
+        // Create button container (aligned to the right)
+        var buttonContainer = document.createElement("div")
+        buttonContainer.style.display = "flex"
+        buttonContainer.style.gap = "8px"
+        buttonContainer.style.flexWrap = "wrap"
+        buttonContainer.style.justifyContent = "flex-end"
+        buttonContainer.setAttribute("data-drone-buttons", drone.id) // Add data attribute for easy lookup
+        
+        // Create select button
+        var selectButton = document.createElement("button")
+        selectButton.className = "w3-button button"
+        selectButton.textContent = "Select"
+        selectButton.type = "button" // Prevent form submission
+        
+        // Add click handler with proper closure
+        var buttonClickHandler = function(droneIdToSelect) {
+            return function(e) {
+                e.stopPropagation()
+                e.preventDefault()
+                if (setActiveDrone(droneIdToSelect)) {
+                    updateSwarmManagementUI()
+                    updateUI()
+                }
+            }
+        }
+        selectButton.addEventListener('click', buttonClickHandler(drone.id))
+        
+        buttonContainer.appendChild(selectButton)
+        
+        // Create "Establish Data Link" button (only show when drone is dead)
+        if (!droneAlive) {
+            createRebirthButton(drone, i, buttonContainer)
+        }
+        
+        // Assemble the card
+        contentDiv.appendChild(infoDiv)
+        contentDiv.appendChild(buttonContainer)
+        droneCard.appendChild(contentDiv)
+        
+        container.appendChild(droneCard)
+    }
+}
+
+// Helper function to create rebirth button for a drone
+function createRebirthButton(drone, droneIndex, buttonContainer) {
+    var rebirthButton = document.createElement("button")
+    rebirthButton.className = "w3-button button"
+    rebirthButton.textContent = "Establish Data Link"
+    rebirthButton.type = "button"
+    rebirthButton.setAttribute("data-rebirth-button", drone.id)
+    
+    var rebirthClickHandler = function(droneIdToRebirth) {
+        return function(e) {
+            e.stopPropagation()
+            e.preventDefault()
+            if (setActiveDrone(droneIdToRebirth)) {
+                rebirthOne()
+                updateSwarmManagementUI()
+                updateUI()
+            }
+        }
+    }
+    rebirthButton.addEventListener('click', rebirthClickHandler(drone.id))
+    
+    // Insert after the Select button (Select should be first, then Establish Data Link)
+    var selectButton = buttonContainer.querySelector('.w3-button')
+    if (selectButton) {
+        selectButton.parentNode.insertBefore(rebirthButton, selectButton.nextSibling)
+    } else {
+        buttonContainer.appendChild(rebirthButton)
+    }
+    
+    return rebirthButton
+}
+
+// Lightweight update function that only updates values without recreating DOM
+function updateDroneListValues() {
+    if (!gameData.swarmUnlocked) {
+        return
+    }
+    
+    var container = document.getElementById("swarmDronesListContainer")
+    if (!container) {
+        return
+    }
+    
+    // Cache getAllDrones() result to avoid multiple calls
+    var drones = getAllDrones()
+    var activeDroneId = gameData.activeDroneId !== undefined ? gameData.activeDroneId : 0
+    
+    for (var i = 0; i < drones.length; i++) {
+        var drone = drones[i]
+        var isActive = i === activeDroneId
+        
+        // Find the distance/status elements for this drone
+        var distanceElement = container.querySelector('[data-drone-distance="' + drone.id + '"]')
+        var statusElement = container.querySelector('[data-drone-status="' + drone.id + '"]')
+        
+        if (distanceElement) {
+            var distance = daysToYears(drone.days)
+            var dataPoints = formatNumber(drone.coins || 0)
+            distanceElement.textContent = "Distance: " + distance + " ly | Data Points: " + dataPoints
+        }
+        
+        // Check if drone is alive using isDroneAlive (no activeDroneId manipulation needed)
+        var droneAlive = isDroneAlive(drone)
+        
+        if (statusElement) {
+            var status = droneAlive ? "Active" : "Signal Lost"
+            statusElement.textContent = "Status: " + status
+        }
+        
+        // Update card styling for active state
+        // Use querySelector with data attribute for safer lookup (defensive check)
+        var droneCard = container.querySelector('[data-drone-card-id="' + drone.id + '"]') || container.children[i]
+        if (droneCard && droneCard.nodeType === 1) { // Ensure it's an element node
+            droneCard.style.border = "1px solid rgba(255, 255, 255, " + (isActive ? "0.5" : "0.2") + ")"
+            droneCard.style.backgroundColor = isActive ? "rgba(255, 255, 255, 0.1)" : "transparent"
+            
+            // Update name div to show/hide (Active) indicator
+            var nameDiv = droneCard.querySelector('div[style*="font-weight: bold"]')
+            if (nameDiv) {
+                var droneName = "Drone " + drone.id
+                nameDiv.innerHTML = droneName + (isActive ? ' <span class="text-secondary">(Active)</span>' : '')
+            }
+            
+            // Update rebirth button visibility based on drone status
+            var buttonContainer = droneCard.querySelector('[data-drone-buttons="' + drone.id + '"]')
+            if (buttonContainer) {
+                var rebirthButton = buttonContainer.querySelector('[data-rebirth-button="' + drone.id + '"]')
+                
+                if (!droneAlive && !rebirthButton) {
+                    // Drone is dead but button doesn't exist - create it
+                    createRebirthButton(drone, i, buttonContainer)
+                } else if (droneAlive && rebirthButton) {
+                    // Drone is alive but button exists - remove it
+                    rebirthButton.remove()
+                }
+            }
+        }
+    }
+}
+
+function updateQbitUpgradesUI() {
+    // Determine which container to use based on swarm unlock status and current tab
+    var swarmTab = document.getElementById("swarm")
+    var isSwarmTabVisible = swarmTab && 
+        !swarmTab.classList.contains("is-hidden") && 
+        swarmTab.style.display !== "none"
+    
+    var container = null
+    if (gameData.swarmUnlocked && isSwarmTabVisible) {
+        // Use swarm container when swarm tab is visible
+        container = document.getElementById("swarmQbitUpgradesContainer")
+    } else {
+        // Use rebirth container otherwise (for backward compatibility and when viewing rebirth tab)
+        container = document.getElementById("qbitUpgradesContainer")
+    }
+    
+    if (!container) {
+        return
+    }
+    
+    container.innerHTML = ""
+    
+    // Datapoint Speed Upgrade
+    var datapointLevel = gameData.qbitUpgrades.datapointSpeed || 0
+    var datapointCost = getQbitUpgradeCost("datapointSpeed", datapointLevel)
+    var datapointMultiplier = getQbitDatapointMultiplier()
+    var canAffordDatapoint = gameData.qbits >= datapointCost
+    
+    var datapointDiv = document.createElement("div")
+    datapointDiv.style.marginBottom = "16px"
+    datapointDiv.style.padding = "12px"
+    datapointDiv.style.border = "1px solid rgba(255, 255, 255, 0.2)"
+    datapointDiv.style.borderRadius = "4px"
+    datapointDiv.innerHTML = 
+        '<div style="margin-bottom: 8px;"><strong>Datapoint Generation Speed</strong></div>' +
+        '<div class="text-secondary" style="margin-bottom: 8px;">Current: +' + ((datapointMultiplier - 1) * 100).toFixed(1) + '% (Level ' + datapointLevel + ')</div>' +
+        '<button class="w3-button button" ' + (canAffordDatapoint ? '' : 'disabled') + 
+        ' onClick="purchaseQbitUpgrade(\'datapointSpeed\')" style="margin-right: 8px;">' +
+        'Purchase (' + formatNumber(datapointCost) + ' qbits)' +
+        '</button>'
+    container.appendChild(datapointDiv)
+    
+    // XP Speed Upgrade
+    var xpLevel = gameData.qbitUpgrades.xpSpeed || 0
+    var xpCost = getQbitUpgradeCost("xpSpeed", xpLevel)
+    var xpMultiplier = getQbitXpMultiplier()
+    var canAffordXp = gameData.qbits >= xpCost
+    
+    var xpDiv = document.createElement("div")
+    xpDiv.style.marginBottom = "16px"
+    xpDiv.style.padding = "12px"
+    xpDiv.style.border = "1px solid rgba(255, 255, 255, 0.2)"
+    xpDiv.style.borderRadius = "4px"
+    xpDiv.innerHTML = 
+        '<div style="margin-bottom: 8px;"><strong>XP Gain Speed</strong></div>' +
+        '<div class="text-secondary" style="margin-bottom: 8px;">Current: +' + ((xpMultiplier - 1) * 100).toFixed(1) + '% (Level ' + xpLevel + ')</div>' +
+        '<button class="w3-button button" ' + (canAffordXp ? '' : 'disabled') + 
+        ' onClick="purchaseQbitUpgrade(\'xpSpeed\')" style="margin-right: 8px;">' +
+        'Purchase (' + formatNumber(xpCost) + ' qbits)' +
+        '</button>'
+    container.appendChild(xpDiv)
+    
+    // Auto-Rebirth Upgrade (only show in swarm tab when swarm is unlocked)
+    if (gameData.swarmUnlocked && container.id === "swarmQbitUpgradesContainer") {
+        var autoRebirthLevel = gameData.qbitUpgrades.autoRebirth || 0
+        var autoRebirthCost = getQbitUpgradeCost("autoRebirth", autoRebirthLevel)
+        var canAffordAutoRebirth = gameData.qbits >= autoRebirthCost
+        
+        var autoRebirthDiv = document.createElement("div")
+        autoRebirthDiv.style.marginBottom = "16px"
+        autoRebirthDiv.style.padding = "12px"
+        autoRebirthDiv.style.border = "1px solid rgba(255, 255, 255, 0.2)"
+        autoRebirthDiv.style.borderRadius = "4px"
+        autoRebirthDiv.innerHTML = 
+            '<div style="margin-bottom: 8px;"><strong>Auto Establish Data Link</strong></div>' +
+            '<div class="text-secondary" style="margin-bottom: 8px;">Automatically rebirthing drones when signal is lost. Level: ' + autoRebirthLevel + '</div>' +
+            '<button class="w3-button button" ' + (canAffordAutoRebirth ? '' : 'disabled') + 
+            ' onClick="purchaseQbitUpgrade(\'autoRebirth\')" style="margin-right: 8px;">' +
+            'Purchase (' + formatNumber(autoRebirthCost) + ' qbits)' +
+            '</button>'
+        container.appendChild(autoRebirthDiv)
+    }
+}
+
+function assignMethods() {
+    // Assign methods to main gameData.taskData
+    assignMethodsToTaskData(gameData.taskData)
 
     for (key in gameData.itemData) {
         var item = gameData.itemData[key]
@@ -1978,6 +2955,14 @@ function assignMethods() {
             requirement = Object.assign(new AgeRequirement(requirement.elements, requirement.requirements), requirement)
         } else if (requirement.type == "evil") {
             requirement = Object.assign(new EvilRequirement(requirement.elements, requirement.requirements), requirement)
+        } else if (requirement.type == "totalDataPoints") {
+            requirement = Object.assign(new TotalDataPointsRequirement(requirement.elements, requirement.requirements), requirement)
+        } else if (requirement.type == "totalDrones") {
+            requirement = Object.assign(new TotalDronesRequirement(requirement.elements, requirement.requirements), requirement)
+        } else if (requirement.type == "totalRebirths") {
+            requirement = Object.assign(new TotalRebirthsRequirement(requirement.elements, requirement.requirements), requirement)
+        } else if (requirement.type == "totalQbits") {
+            requirement = Object.assign(new TotalQbitsRequirement(requirement.elements, requirement.requirements), requirement)
         }
 
         var tempRequirement = tempData["requirements"][key]
@@ -2008,6 +2993,52 @@ function assignMethods() {
         newArray.push(gameData.itemData[misc.name])
     }
     gameData.currentMisc = newArray
+    
+    // After assigning methods, ensure all drones have independent taskData with methods
+    if (gameData.drones && Array.isArray(gameData.drones)) {
+        for (var i = 0; i < gameData.drones.length; i++) {
+            var drone = gameData.drones[i]
+            
+            // Check if drone's taskData is shared or missing methods
+            if (!drone.taskData || drone.taskData === gameData.taskData) {
+                // Clone taskData to make it independent
+                drone.taskData = createIndependentTaskDataForDrone(gameData.taskData)
+            } else {
+                // TaskData exists - ensure methods are assigned
+                assignMethodsToTaskData(drone.taskData)
+            }
+            
+            // Update currentJob and currentSkill to reference tasks from drone's own taskData
+            if (drone.currentJob && drone.currentJob.name && drone.taskData[drone.currentJob.name]) {
+                drone.currentJob = drone.taskData[drone.currentJob.name]
+            } else if (drone.taskData["Scanning"]) {
+                drone.currentJob = drone.taskData["Scanning"]
+            }
+            if (drone.currentSkill && drone.currentSkill.name && drone.taskData[drone.currentSkill.name]) {
+                drone.currentSkill = drone.taskData[drone.currentSkill.name]
+            } else if (drone.taskData["Processing"]) {
+                drone.currentSkill = drone.taskData["Processing"]
+            }
+            
+            // Update currentProperty and currentMisc to reference shared itemData
+            if (drone.currentProperty && drone.currentProperty.name && gameData.itemData[drone.currentProperty.name]) {
+                drone.currentProperty = gameData.itemData[drone.currentProperty.name]
+            } else {
+                drone.currentProperty = gameData.itemData["Pod"]
+            }
+            // Update currentMisc array to reference items from shared itemData
+            if (drone.currentMisc && Array.isArray(drone.currentMisc)) {
+                var miscArray = []
+                for (var j = 0; j < drone.currentMisc.length; j++) {
+                    var misc = drone.currentMisc[j]
+                    if (misc && misc.name && gameData.itemData[misc.name]) {
+                        miscArray.push(gameData.itemData[misc.name])
+                    }
+                }
+                drone.currentMisc = miscArray
+            }
+        }
+    }
 }
 
 function replaceSaveDict(dict, saveDict) {
@@ -2064,17 +3095,49 @@ function loadGameData() {
         replaceSaveDict(gameData.itemData, gameDataSave.itemData)
 
         gameData = gameDataSave
+        
+        // Initialize qbits if they don't exist (for old saves)
+        if (typeof gameData.qbits === 'undefined') {
+            gameData.qbits = 0
+        }
+        if (!gameData.qbitUpgrades || typeof gameData.qbitUpgrades !== 'object') {
+            gameData.qbitUpgrades = {
+                datapointSpeed: 0,
+                xpSpeed: 0,
+                autoRebirth: 0
+            }
+        }
+        // Initialize autoRebirth if it doesn't exist
+        if (typeof gameData.qbitUpgrades.autoRebirth === 'undefined') {
+            gameData.qbitUpgrades.autoRebirth = 0
+        }
+        // Initialize droneQbitsAwarded if it doesn't exist (for old saves)
+        if (!gameData.droneQbitsAwarded || typeof gameData.droneQbitsAwarded !== 'object') {
+            gameData.droneQbitsAwarded = {}
+        }
     }
 
     assignMethods()
     
+    // Migrate to multi-drone structure if needed
+    migrateToMultiDrone()
+    
+    // Check if swarm should be unlocked
+    checkSwarmUnlock()
+    
+    // Initialize swarm UI if unlocked
+    if (gameData.swarmUnlocked) {
+        updateSwarmManagementUI()
+    }
 }
 
 function updateUI() {
+    var drone = getCurrentDrone()
+    var taskData = drone.taskData || gameData.taskData
     updateTaskRows()
     updateItemRows()
-    updateRequiredRows(gameData.taskData, jobCategories)
-    updateRequiredRows(gameData.taskData, skillCategories)
+    updateRequiredRows(taskData, jobCategories)
+    updateRequiredRows(taskData, skillCategories)
     updateRequiredRows(gameData.itemData, itemCategories)
     updateHeaderRows(jobCategories)
     updateHeaderRows(skillCategories)
@@ -2083,6 +3146,50 @@ function updateUI() {
     hideEntities()
     updateText()
     updateDeathText() // Update death message visibility
+    
+    // Update main coins display
+    var counterValue = document.getElementById('sci-fi-counter-value')
+    if (counterValue) {
+        formatCoins(drone.coins, counterValue)
+    }
+    
+    // Update qbits display if rebirth tab is visible (but don't show upgrades if swarm unlocked)
+    var rebirthTab = document.getElementById("rebirth")
+    if (rebirthTab && !rebirthTab.classList.contains("is-hidden")) {
+        updateQbitsDisplay()
+        // Only show qbit upgrades in rebirth tab if swarm is NOT unlocked
+        if (!gameData.swarmUnlocked) {
+            updateQbitUpgradesUI()
+        }
+    }
+    
+    // Update qbits UI if swarm tab is visible (when swarm is unlocked)
+    // Only update if swarm tab is actually visible (not hidden)
+    var swarmTab = document.getElementById("swarm")
+    var isSwarmTabVisible = swarmTab && 
+        !swarmTab.classList.contains("is-hidden") && 
+        swarmTab.style.display !== "none"
+    if (isSwarmTabVisible && gameData.swarmUnlocked) {
+        updateQbitsDisplay()
+        // Update drone list values live (lightweight update, doesn't recreate DOM)
+        updateDroneListValues()
+        // Update total coins across all drones
+        var totalCoins = 0
+        var drones = getAllDrones()
+        for (var i = 0; i < drones.length; i++) {
+            totalCoins += drones[i].coins || 0
+        }
+        var totalCoinsEl = document.getElementById("swarmTotalCoins")
+        if (totalCoinsEl) {
+            formatCoins(totalCoins, totalCoinsEl)
+        }
+        // Only update upgrades UI when swarm tab is visible to avoid infinite loops
+        // The upgrades are already updated when the tab is opened via setTab()
+        // updateQbitUpgradesUI()
+    }
+    
+    // Note: Swarm management UI is updated separately when needed (e.g., on drone switch, purchase)
+    // Not updated here to avoid recreating DOM elements every frame
 }
 
 function update() {
@@ -2094,12 +3201,32 @@ function update() {
         return;
     }
     
-    increaseDays()
-    autoPromote()
-    autoLearn()
-    doCurrentTask(gameData.currentJob)
-    doCurrentTask(gameData.currentSkill)
-    applyExpenses()
+    // Update all drones simultaneously
+    increaseDays() // Updates all drones' days
+    
+    // Process all drones independently - each continues with its assigned task
+    var drones = getAllDrones()
+    for (var i = 0; i < drones.length; i++) {
+        var drone = drones[i]
+        
+        // Process this drone's tasks
+        if (drone.currentJob) {
+            doCurrentTask(drone.currentJob, drone)
+        }
+        if (drone.currentSkill) {
+            doCurrentTask(drone.currentSkill, drone)
+        }
+        
+        // Auto-promote and auto-learn for this drone
+        autoPromote(drone)
+        autoLearn(drone)
+        
+        // Apply expenses for this drone
+        applyExpenses(drone)
+    }
+    
+    // Check for swarm unlock (only needs to be checked once)
+    checkSwarmUnlock()
 }
 
 function resetGameData() {
@@ -2181,6 +3308,30 @@ gameData.requirements = {
     "Negotiation": new TaskRequirement([getTaskElement("Negotiation")], [{task: "Processing", requirement: 20}]),
     "Optimization": new TaskRequirement([getTaskElement("Optimization")], [{task: "Processing", requirement: 30}, {task: "Efficiency", requirement: 20}]),
 
+    // Swarm Achievements - Total Data Points
+    "Data Collector": new TotalDataPointsRequirement([], [{requirement: 1000000}]),
+    "Data Hoarder": new TotalDataPointsRequirement([], [{requirement: 100000000}]),
+    "Data Archivist": new TotalDataPointsRequirement([], [{requirement: 10000000000}]),
+    "Data Overlord": new TotalDataPointsRequirement([], [{requirement: 1000000000000}]),
+
+    // Swarm Achievements - Total Drones
+    "Fleet Commander": new TotalDronesRequirement([], [{requirement: 5}]),
+    "Swarm Master": new TotalDronesRequirement([], [{requirement: 10}]),
+    "Drone Overlord": new TotalDronesRequirement([], [{requirement: 25}]),
+    "Infinite Swarm": new TotalDronesRequirement([], [{requirement: 50}]),
+
+    // Swarm Achievements - Total Rebirths
+    "First Rebirth": new TotalRebirthsRequirement([], [{requirement: 1}]),
+    "Veteran Explorer": new TotalRebirthsRequirement([], [{requirement: 10}]),
+    "Century Explorer": new TotalRebirthsRequirement([], [{requirement: 100}]),
+    "Millennium Explorer": new TotalRebirthsRequirement([], [{requirement: 1000}]),
+
+    // Swarm Achievements - Total Qbits
+    "Quantum Initiate": new TotalQbitsRequirement([], [{requirement: 100}]),
+    "Quantum Master": new TotalQbitsRequirement([], [{requirement: 10000}]),
+    "Quantum Overlord": new TotalQbitsRequirement([], [{requirement: 1000000}]),
+    "Quantum Transcendent": new TotalQbitsRequirement([], [{requirement: 100000000}]),
+
     //Combat
     "Reinforcement": new TaskRequirement([getTaskElement("Reinforcement")], []),
     "Combat Protocols": new TaskRequirement([getTaskElement("Combat Protocols")], [{task: "Processing", requirement: 20}]),
@@ -2232,7 +3383,17 @@ loadGameData()
 setCustomEffects()
 addMultipliers()
 
-setTab(jobTabButton, "jobs")
+// Set initial tab - swarm if unlocked, otherwise jobs
+if (gameData.swarmUnlocked) {
+    var swarmTabButton = document.getElementById("swarmTabButton")
+    if (swarmTabButton) {
+        setTab(swarmTabButton, "swarm")
+    } else {
+        setTab(jobTabButton, "jobs")
+    }
+} else {
+    setTab(jobTabButton, "jobs")
+}
 
 // Initialize LLM integration
 if (typeof window.initializeCareerBasedAdventures === 'function') {
@@ -2241,6 +3402,13 @@ if (typeof window.initializeCareerBasedAdventures === 'function') {
 
 update()
 setupGameWindow()
+// Expose functions to window for global access
+window.getCurrentDrone = getCurrentDrone
+window.setActiveDrone = setActiveDrone
+window.updateSwarmManagementUI = updateSwarmManagementUI
+window.updateUI = updateUI
+window.purchaseNewDrone = purchaseNewDrone
+
 setInterval(update, 1000 / updateSpeed)
 setInterval(saveGameData, 3000)
 setInterval(setSkillWithLowestMaxXp, 1000)
@@ -2306,11 +3474,14 @@ function startUpdater() {
 	function loop(now) {
 		// throttle to ~30 FPS
 		if (now - lastTick >= 33) {
-			if (typeof window !== 'undefined' && window.gameData && typeof window.gameData.coins === 'number') {
-				var current = window.gameData.coins;
-				if (current !== last) {
-					animateValueImpl(valueEl, last, current, 300);
-					last = current;
+			if (typeof window !== 'undefined' && typeof window.getCurrentDrone === 'function') {
+				var drone = window.getCurrentDrone();
+				if (drone && typeof drone.coins === 'number') {
+					var current = drone.coins;
+					if (current !== last) {
+						animateValueImpl(valueEl, last, current, 300);
+						last = current;
+					}
 				}
 			}
 			// Update rate chip if helpers are available
@@ -2320,11 +3491,12 @@ function startUpdater() {
 				chipTrend.className = 'rate-chip-trend' + (rate < 0 ? ' negative' : '');
 			}
 			// Charts sample once per second
-			if (charts && now - lastChart >= 1000 && window.gameData && typeof window.getIncome === 'function' && typeof window.getExpense === 'function') {
+			if (charts && now - lastChart >= 1000 && typeof window.getCurrentDrone === 'function' && typeof window.getIncome === 'function' && typeof window.getExpense === 'function') {
 				lastChart = now;
+				var drone = window.getCurrentDrone();
 				history.push({
 					t: now,
-					coins: window.gameData.coins,
+					coins: drone ? drone.coins : 0,
 					income: window.getIncome(),
 					expense: window.getExpense()
 				});
@@ -2336,9 +3508,13 @@ function startUpdater() {
 			if (toastHost && window.gameData && window.gameData.requirements) {
 				for (var key in window.gameData.requirements) {
 					var req = window.gameData.requirements[key];
-					if (req && req.completed && !req.uiNotified) {
-						showToast('Achievement', key + ' unlocked');
-						req.uiNotified = true;
+					if (req) {
+						// Check if achievement is completed (this will set req.completed = true if conditions are met)
+						req.isCompleted();
+						if (req.completed && !req.uiNotified) {
+							showToast('Achievement', key + ' unlocked');
+							req.uiNotified = true;
+						}
 					}
 				}
 			}
@@ -2916,7 +4092,27 @@ function getAchievementIcon(achievementName) {
 		'Evil info': '⚠️',
 		'Time warping info': '⏩',
 		'Automation': '🤖',
-		'Quick task display': '📋'
+		'Quick task display': '📋',
+		// Swarm Achievements - Total Data Points
+		'Data Collector': '📊',
+		'Data Hoarder': '💾',
+		'Data Archivist': '🗄️',
+		'Data Overlord': '👑',
+		// Swarm Achievements - Total Drones
+		'Fleet Commander': '🚀',
+		'Swarm Master': '🐝',
+		'Drone Overlord': '👑',
+		'Infinite Swarm': '∞',
+		// Swarm Achievements - Total Rebirths
+		'First Rebirth': '🔄',
+		'Veteran Explorer': '⭐',
+		'Century Explorer': '🌟',
+		'Millennium Explorer': '💫',
+		// Swarm Achievements - Total Qbits
+		'Quantum Initiate': '⚛️',
+		'Quantum Master': '🌀',
+		'Quantum Overlord': '🌌',
+		'Quantum Transcendent': '✨'
 	};
 	
 	return iconMap[achievementName] || '⭐';
